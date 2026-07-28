@@ -1,26 +1,74 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --radius: 0.875rem;
+
+  --color-background: oklch(99% .005 240);
+  --color-foreground: oklch(18% .03 250);
+
+  --color-card: oklch(100% 0 0);
+  --color-card-foreground: oklch(18% .03 250);
+
+  --color-popover: oklch(100% 0 0);
+  --color-popover-foreground: oklch(18% .03 250);
+
+  --color-primary: oklch(46% .18 265);
+  --color-primary-foreground: oklch(99% 0 0);
+  --color-primary-glow: oklch(62% .2 270);
+
+  --color-secondary: oklch(96% .012 250);
+  --color-secondary-foreground: oklch(25% .04 260);
+
+  --color-muted: oklch(96% .008 250);
+  --color-muted-foreground: oklch(50% .025 255);
+
+  --color-accent: oklch(95% .04 200);
+  --color-accent-foreground: oklch(25% .06 235);
+
+  --color-success: oklch(65% .16 155);
+  --color-success-foreground: oklch(99% 0 0);
+
+  --color-warning: oklch(78% .14 75);
+  --color-warning-foreground: oklch(25% .05 60);
+
+  --color-destructive: oklch(60% .22 25);
+  --color-destructive-foreground: oklch(99% 0 0);
+
+  --color-border: oklch(92% .01 250);
+  --color-input: oklch(94% .01 250);
+  --color-ring: oklch(46% .18 265);
+
+  --font-family-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-family-display: "Plus Jakarta Sans", 'Inter', sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  * {
+    border-color: var(--color-border);
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "cv11", "ss01", "ss03";
+    -webkit-text-size-adjust: 100%;
+    tab-size: 4;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
 }
