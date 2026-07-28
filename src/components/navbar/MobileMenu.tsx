@@ -80,7 +80,18 @@ export function MobileMenu({ isOpen, onToggle }: MobileMenuProps) {
             <Button variant="outline" size="default" className="w-full justify-center">
               Sign In
             </Button>
-            <Button variant="primary" size="default" className="w-full justify-center">
+            <Button
+              variant="primary"
+              size="default"
+              className="w-full justify-center"
+              onClick={() => {
+                onToggle();
+                setTimeout(() => {
+                  const el = document.getElementById('waitlist');
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 300);
+              }}
+            >
               Join Waitlist
             </Button>
           </div>

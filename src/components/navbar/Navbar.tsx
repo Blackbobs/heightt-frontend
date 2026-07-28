@@ -54,14 +54,29 @@ export function Navbar() {
             <Button variant="outline" size="default">
               Sign In
             </Button>
-            <Button variant="primary" size="default">
+            <Button
+              variant="primary"
+              size="default"
+              onClick={() => {
+                const el = document.getElementById('waitlist');
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+            >
               Join Waitlist
             </Button>
           </div>
 
           {/* Mobile Menu Toggle */}
           <div className="lg:hidden flex items-center gap-2">
-            <Button variant="primary" size="sm" className="flex items-center gap-1.5">
+            <Button
+              variant="primary"
+              size="sm"
+              className="flex items-center gap-1.5"
+              onClick={() => {
+                const el = document.getElementById('waitlist');
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+            >
               Join Waitlist
             </Button>
             <MobileMenu

@@ -7,6 +7,7 @@ import { TransparencySection } from '@/components/transparency/TransparencySecti
 import { SavingsSection } from '@/components/savings/SavingsSection';
 import { RoadmapSection } from '@/components/roadmap/RoadmapSection';
 import { FAQSection } from '@/components/faq/FAQSection';
+import { WaitlistSection } from '@/components/waitlist/WaitlistSection';
 
 export default function Home() {
   return (
@@ -18,6 +19,7 @@ export default function Home() {
       <SavingsSection />
       <RoadmapSection />
       <FAQSection />
+      <WaitlistSection />
     </main>
   );
 }

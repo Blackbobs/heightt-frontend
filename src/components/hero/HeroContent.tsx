@@ -100,7 +100,14 @@ export function HeroContent({
         ref={onActionsRef}
         className="flex flex-col sm:flex-row gap-4 flex-wrap mt-2 opacity-0 translate-y-8"
       >
-        <Button variant="primary" size="lg">
+        <Button
+          variant="primary"
+          size="lg"
+          onClick={() => {
+            const el = document.getElementById('waitlist');
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }}
+        >
           <ArrowRight className="w-5 h-5" />
           Join Waitlist
         </Button>

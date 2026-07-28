@@ -178,6 +178,10 @@ export function FAQSection() {
           variant="primary"
           size="lg"
           className="bg-white text-primary hover:bg-white/90 shadow-xl hover:scale-105 transition-all font-bold cursor-pointer"
+          onClick={() => {
+            const el = document.getElementById('waitlist');
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }}
         >
           Join Waitlist
           <ArrowRight className="w-5 h-5 ml-1" />
