@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
 import { Button } from '@/components/ui/Button';
 import { NavLinks } from './NavLinks';
@@ -54,30 +55,15 @@ export function Navbar() {
             <Button variant="outline" size="default">
               Sign In
             </Button>
-            <Button
-              variant="primary"
-              size="default"
-              onClick={() => {
-                const el = document.getElementById('waitlist');
-                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }}
-            >
-              Join Waitlist
+            <Button variant="primary" size="default" asChild>
+              <Link href="/joinlist">Join Waitlist</Link>
             </Button>
           </div>
 
           {/* Mobile Menu Toggle */}
           <div className="lg:hidden flex items-center gap-2">
-            <Button
-              variant="primary"
-              size="sm"
-              className="flex items-center gap-1.5"
-              onClick={() => {
-                const el = document.getElementById('waitlist');
-                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }}
-            >
-              Join Waitlist
+            <Button variant="primary" size="sm" className="flex items-center gap-1.5" asChild>
+              <Link href="/joinlist">Join Waitlist</Link>
             </Button>
             <MobileMenu
               isOpen={isMobileMenuOpen}
