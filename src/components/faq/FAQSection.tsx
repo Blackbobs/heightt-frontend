@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { HelpCircle, ChevronDown, ArrowRight } from 'lucide-react';
+import { HelpCircle, ChevronDown } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
 
 const faqs = [
   {
@@ -164,28 +163,6 @@ export function FAQSection() {
             </div>
           );
         })}
-      </div>
-
-      {/* CTA Support Banner */}
-      <div className="mt-12 md:mt-16 bg-gradient-to-br from-primary via-[oklch(40%_.18_265)] to-[oklch(32%_.18_265)] rounded-2xl p-6 sm:p-10 text-center text-white relative overflow-hidden shadow-2xl">
-        <h3 className="font-display text-2xl sm:text-3xl font-extrabold mb-2">
-          Still have questions?
-        </h3>
-        <p className="text-white/80 text-sm sm:text-base max-w-md mx-auto mb-6">
-          Our team is here to help. Get in touch and we'll get back to you within 24 hours.
-        </p>
-        <Button
-          variant="primary"
-          size="lg"
-          className="bg-white text-primary hover:bg-white/90 shadow-xl hover:scale-105 transition-all font-bold cursor-pointer"
-          onClick={() => {
-            const el = document.getElementById('waitlist');
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }}
-        >
-          Join Waitlist
-          <ArrowRight className="w-5 h-5 ml-1" />
-        </Button>
       </div>
     </section>
   );

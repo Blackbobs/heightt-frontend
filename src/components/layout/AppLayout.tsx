@@ -1,0 +1,23 @@
+'use client';
+
+import React from 'react';
+import { usePathname } from 'next/navigation';
+import { Navbar } from '@/components/navbar/Navbar';
+import { Footer } from '@/components/footer/Footer';
+
+export function AppLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isAuthPage = pathname === '/signup' || pathname === '/signin';
+
+  if (isAuthPage) {
+    return <>{children}</>;
+  }
+
+  return (
+    <>
+      <Navbar />
+      <main className="flex-1">{children}</main>
+      <Footer />
+    </>
+  );
+}

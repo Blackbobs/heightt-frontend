@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Globe, ArrowRight, Play } from 'lucide-react';
+import Link from 'next/link';
 
 interface HeroContentProps {
   onBadgeRef: (el: HTMLDivElement | null) => void;
@@ -103,13 +104,12 @@ export function HeroContent({
         <Button
           variant="primary"
           size="lg"
-          onClick={() => {
-            const el = document.getElementById('waitlist');
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }}
+          asChild
         >
-          <ArrowRight className="w-5 h-5" />
-          Join Waitlist
+          <Link href="/signup">
+            <ArrowRight className="w-5 h-5" />
+            Get Started
+          </Link>
         </Button>
       </div>
 

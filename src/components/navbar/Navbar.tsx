@@ -52,18 +52,18 @@ export function Navbar() {
 
           {/* Desktop Actions */}
           <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
-            <Button variant="outline" size="default">
-              Sign In
+            <Button variant="outline" size="default" asChild>
+              <Link href="/signin">Sign In</Link>
             </Button>
             <Button variant="primary" size="default" asChild>
-              <Link href="/joinlist">Join Waitlist</Link>
+              <Link href="/signup">Create Account</Link>
             </Button>
           </div>
 
           {/* Mobile Menu Toggle */}
           <div className="lg:hidden flex items-center gap-2">
             <Button variant="primary" size="sm" className="flex items-center gap-1.5" asChild>
-              <Link href="/joinlist">Join Waitlist</Link>
+              <Link href="/signup">Create Account</Link>
             </Button>
             <MobileMenu
               isOpen={isMobileMenuOpen}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { X, Menu } from 'lucide-react';
 import { NavLinks } from './NavLinks';
 import { Button } from '@/components/ui/Button';
@@ -77,22 +78,17 @@ export function MobileMenu({ isOpen, onToggle }: MobileMenuProps) {
             onClick={onToggle}
           />
           <div className="flex flex-col gap-3 pt-4 border-t border-border">
-            <Button variant="outline" size="default" className="w-full justify-center">
-              Sign In
+            <Button variant="outline" size="default" className="w-full justify-center" asChild onClick={onToggle}>
+              <Link href="/signin">Sign In</Link>
             </Button>
             <Button
               variant="primary"
               size="default"
               className="w-full justify-center"
-              onClick={() => {
-                onToggle();
-                setTimeout(() => {
-                  const el = document.getElementById('waitlist');
-                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 300);
-              }}
+              asChild
+              onClick={onToggle}
             >
-              Join Waitlist
+              <Link href="/signup">Create Account</Link>
             </Button>
           </div>
         </div>
