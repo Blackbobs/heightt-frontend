@@ -1,96 +1,66 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { GraduationCap, Building2, ShieldCheck, Eye, EyeOff, Check, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type DemoRole = 'student' | 'org' | 'admin' | null;
+/* ─── Zod Schema ─────────────────────────────────────────────── */
+const signinSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email address is required')
+    .email('Enter a valid email address'),
+  password: z.string().min(1, 'Password is required'),
+  rememberMe: z.boolean().optional(),
+});
 
-interface FormState {
-  email: string;
-  password: string;
-  rememberMe: boolean;
-}
+type SigninFormData = z.infer<typeof signinSchema>;
 
-interface FormErrors {
-  email?: string;
-  password?: string;
-}
+/* ─── Demo credentials ───────────────────────────────────────── */
+type DemoRole = 'student' | 'org' | 'admin';
 
+const DEMO_CREDENTIALS: Record<DemoRole, Pick<SigninFormData, 'email' | 'password'>> = {
+  student: { email: 'aisha.oladele@university.edu', password: 'StudentPass123!' },
+  org:     { email: 'admin.nacos@university.edu',   password: 'OrgPass123!' },
+  admin:   { email: 'superadmin@heightt.edu',        password: 'AdminPass123!' },
+};
+
+/* ─── Component ──────────────────────────────────────────────── */
 interface SigninCardProps {
   borderless?: boolean;
   className?: string;
 }
 
 export function SigninCard({ borderless = false, className }: SigninCardProps) {
-  const [activeDemo, setActiveDemo] = useState<DemoRole>('student');
+  const [activeDemo, setActiveDemo] = useState<DemoRole | null>('student');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [formData, setFormData] = useState<FormState>({
-    email: 'aisha.oladele@university.edu',
-    password: 'StudentPass123!',
-    rememberMe: true,
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<SigninFormData>({
+    resolver: zodResolver(signinSchema),
+    defaultValues: {
+      ...DEMO_CREDENTIALS.student,
+      rememberMe: true,
+    },
   });
 
-  const [errors, setErrors] = useState<FormErrors>({});
-  const emailRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
-
-  const handleDemoSelect = (role: 'student' | 'org' | 'admin') => {
+  const handleDemoSelect = (role: DemoRole) => {
     setActiveDemo(role);
-    setErrors({});
-    if (role === 'student') {
-      setFormData({
-        email: 'aisha.oladele@university.edu',
-        password: 'StudentPass123!',
-        rememberMe: true,
-      });
-    } else if (role === 'org') {
-      setFormData({
-        email: 'admin.nacos@university.edu',
-        password: 'OrgPass123!',
-        rememberMe: true,
-      });
-    } else if (role === 'admin') {
-      setFormData({
-        email: 'superadmin@heightt.edu',
-        password: 'AdminPass123!',
-        rememberMe: true,
-      });
-    }
+    reset({ ...DEMO_CREDENTIALS[role], rememberMe: true });
   };
 
-  const handleInputChange = (
-    field: keyof FormState,
-    value: string | boolean
-  ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    setActiveDemo(null);
-    if (errors[field as keyof FormErrors]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const newErrors: FormErrors = {};
-    if (!formData.email.trim()) newErrors.email = 'Email address is required';
-    if (!formData.password) newErrors.password = 'Password is required';
-
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length > 0) {
-      if (newErrors.email) emailRef.current?.focus();
-      else if (newErrors.password) passwordRef.current?.focus();
-      return;
-    }
-
+  const onSubmit = (_data: SigninFormData) => {
     setIsSubmitted(true);
-    setTimeout(() => {
-      setIsSubmitted(false);
-    }, 2500);
+    setTimeout(() => setIsSubmitted(false), 2500);
   };
 
   return (
@@ -123,6 +93,7 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
         <div className="grid grid-cols-3 gap-2">
           <button
             type="button"
+            id="demoStudent"
             onClick={() => handleDemoSelect('student')}
             className={cn(
               'px-2.5 py-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer',
@@ -137,6 +108,7 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
 
           <button
             type="button"
+            id="demoOrg"
             onClick={() => handleDemoSelect('org')}
             className={cn(
               'px-2.5 py-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer',
@@ -151,6 +123,7 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
 
           <button
             type="button"
+            id="demoAdmin"
             onClick={() => handleDemoSelect('admin')}
             className={cn(
               'px-2.5 py-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer',
@@ -166,32 +139,31 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
       </div>
 
       {/* Signin Form */}
-      <form id="signinForm" onSubmit={handleSubmit} noValidate>
+      <form id="signinForm" onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="flex flex-col gap-4">
+
           {/* Email address */}
           <div className="flex flex-col gap-1">
             <label
-              htmlFor="email"
+              htmlFor="signinEmail"
               className="text-[0.75rem] font-semibold text-[#1f2a44] tracking-wide uppercase opacity-70"
             >
               Email address
             </label>
             <input
-              ref={emailRef}
+              {...register('email')}
               type="email"
-              id="email"
+              id="signinEmail"
               placeholder="name@university.edu"
-              value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
+              autoComplete="email"
               className={cn(
                 'bg-[#f8faff] border-[1.5px] border-[#e2e8f0] rounded-[14px] px-3.5 py-3 text-[0.95rem] font-medium text-[#0b1a33] transition-all duration-150 w-full placeholder:text-[#9aabbf] focus:outline-none focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10',
                 errors.email && 'border-[#e53e3e] bg-[#fff8f8]'
               )}
-              required
             />
             {errors.email && (
               <span className="text-[0.7rem] text-[#e53e3e] pl-1 min-h-[16px]">
-                {errors.email}
+                {errors.email.message}
               </span>
             )}
           </div>
@@ -199,41 +171,35 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
           {/* Password */}
           <div className="flex flex-col gap-1 relative">
             <label
-              htmlFor="password"
+              htmlFor="signinPassword"
               className="text-[0.75rem] font-semibold text-[#1f2a44] tracking-wide uppercase opacity-70"
             >
               Password
             </label>
             <div className="relative w-full">
               <input
-                ref={passwordRef}
+                {...register('password')}
                 type={showPassword ? 'text' : 'password'}
-                id="password"
+                id="signinPassword"
                 placeholder="••••••••"
-                value={formData.password}
-                onChange={(e) => handleInputChange('password', e.target.value)}
+                autoComplete="current-password"
                 className={cn(
                   'bg-[#f8faff] border-[1.5px] border-[#e2e8f0] rounded-[14px] pl-3.5 pr-10 py-3 text-[0.95rem] font-medium text-[#0b1a33] transition-all duration-150 w-full placeholder:text-[#9aabbf] focus:outline-none focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10',
                   errors.password && 'border-[#e53e3e] bg-[#fff8f8]'
                 )}
-                required
               />
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() => setShowPassword((p) => !p)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                {showPassword ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
             {errors.password && (
               <span className="text-[0.7rem] text-[#e53e3e] pl-1 min-h-[16px]">
-                {errors.password}
+                {errors.password.message}
               </span>
             )}
           </div>
@@ -242,9 +208,9 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
           <div className="flex items-center justify-between my-1">
             <label className="flex items-center gap-2 text-[0.88rem] text-[#1f2a44] cursor-pointer select-none">
               <input
+                {...register('rememberMe')}
                 type="checkbox"
-                checked={formData.rememberMe}
-                onChange={(e) => handleInputChange('rememberMe', e.target.checked)}
+                id="rememberMe"
                 className="w-4 h-4 accent-[#1a5cff] rounded border border-[#cbd5e1] focus:ring-2 focus:ring-[#1a5cff]/20 cursor-pointer"
               />
               Remember me
@@ -261,6 +227,7 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
           {/* Submit button */}
           <button
             type="submit"
+            id="signinSubmit"
             className={cn(
               'border-none rounded-[40px] px-5 py-4 text-base font-semibold text-white w-full cursor-pointer transition-all duration-200 mt-2 tracking-tight shadow-[0_8px_24px_rgba(26,92,255,0.25)] flex items-center justify-center gap-2 active:scale-[0.98]',
               isSubmitted
@@ -280,7 +247,7 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
 
           {/* Signup link */}
           <div className="text-center mt-4 text-[0.92rem] text-[#3d4f6b]">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link
               href="/signup"
               className="text-[#1a5cff] font-semibold hover:border-b hover:border-[#1a5cff] transition-all"

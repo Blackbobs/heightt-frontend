@@ -1,100 +1,83 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { GraduationCap, Building2, Eye, EyeOff, Check, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type Role = 'student' | 'admin';
+/* ─── Zod Schema ─────────────────────────────────────────────── */
+const signupSchema = z
+  .object({
+    role: z.enum(['student', 'admin']),
+    firstName: z.string().min(1, 'First name is required'),
+    lastName: z.string().min(1, 'Last name is required'),
+    email: z
+      .string()
+      .min(1, 'School email is required')
+      .email('Enter a valid email address'),
+    matric: z.string().min(1, 'This field is required'),
+    level: z.string(),
+    orgType: z.string().optional(),
+    password: z
+      .string()
+      .min(8, 'Must be at least 8 characters')
+      .regex(/[A-Z]/, 'Must include an uppercase letter')
+      .regex(/\d/, 'Must include a number'),
+    terms: z.boolean().refine((v) => v === true, {
+      message: 'You must agree to the terms',
+    }),
+  })
+  .superRefine((data, ctx) => {
+    if (data.role === 'student' && !data.level) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Level is required',
+        path: ['level'],
+      });
+    }
+  });
 
-interface FormState {
-  firstName: string;
-  lastName: string;
-  email: string;
-  matric: string;
-  level: string;
-  password: string;
-  terms: boolean;
-}
+type SignupFormData = z.infer<typeof signupSchema>;
 
-interface FormErrors {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  matric?: string;
-  level?: string;
-  password?: string;
-  terms?: string;
-}
-
+/* ─── Component ──────────────────────────────────────────────── */
 interface SignupCardProps {
   borderless?: boolean;
   className?: string;
 }
 
 export function SignupCard({ borderless = false, className }: SignupCardProps) {
-  const [role, setRole] = useState<Role>('student');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [formData, setFormData] = useState<FormState>({
-    firstName: 'Aisha',
-    lastName: 'Oladele',
-    email: 'aisha.oladele@university.edu',
-    matric: 'U20CS1234',
-    level: '100',
-    password: 'SecurePass123',
-    terms: true,
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm<SignupFormData>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      role: 'student',
+      firstName: 'Aisha',
+      lastName: 'Oladele',
+      email: 'aisha.oladele@university.edu',
+      matric: 'U20CS1234',
+      level: '100',
+      orgType: 'department',
+      password: 'SecurePass123',
+      terms: true,
+    },
   });
 
-  const [errors, setErrors] = useState<FormErrors>({});
-  const formRef = useRef<HTMLFormElement>(null);
-  const firstNameRef = useRef<HTMLInputElement>(null);
-  const lastNameRef = useRef<HTMLInputElement>(null);
-  const emailRef = useRef<HTMLInputElement>(null);
-  const matricRef = useRef<HTMLInputElement>(null);
-  const levelRef = useRef<HTMLSelectElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
-  const termsRef = useRef<HTMLInputElement>(null);
+  const role = watch('role');
 
-  const handleInputChange = (
-    field: keyof FormState,
-    value: string | boolean
-  ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const newErrors: FormErrors = {};
-    if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
-    if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-    if (!formData.email.trim()) newErrors.email = 'School email is required';
-    if (!formData.matric.trim()) newErrors.matric = role === 'student' ? 'Matric number is required' : 'Staff ID / Code is required';
-    if (!formData.level && role === 'student') newErrors.level = 'Level is required';
-    if (!formData.password) newErrors.password = 'Password is required';
-    if (!formData.terms) newErrors.terms = 'You must agree to the terms';
-
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length > 0) {
-      if (newErrors.firstName) firstNameRef.current?.focus();
-      else if (newErrors.lastName) lastNameRef.current?.focus();
-      else if (newErrors.email) emailRef.current?.focus();
-      else if (newErrors.matric) matricRef.current?.focus();
-      else if (newErrors.level) levelRef.current?.focus();
-      else if (newErrors.password) passwordRef.current?.focus();
-      else if (newErrors.terms) termsRef.current?.focus();
-      return;
-    }
-
+  const onSubmit = (_data: SignupFormData) => {
     setIsSubmitted(true);
-    setTimeout(() => {
-      setIsSubmitted(false);
-    }, 2500);
+    setTimeout(() => setIsSubmitted(false), 2500);
   };
 
   return (
@@ -127,7 +110,7 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
       >
         <button
           type="button"
-          onClick={() => setRole('student')}
+          onClick={() => setValue('role', 'student', { shouldValidate: true })}
           aria-checked={role === 'student'}
           role="radio"
           className={cn(
@@ -143,7 +126,7 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
                 role === 'student' && 'opacity-100 text-[#1a5cff]'
               )}
             />
-            I'm a Student
+            I&apos;m a Student
           </span>
           <span
             className={cn(
@@ -157,7 +140,7 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
 
         <button
           type="button"
-          onClick={() => setRole('admin')}
+          onClick={() => setValue('role', 'admin', { shouldValidate: true })}
           aria-checked={role === 'admin'}
           role="radio"
           className={cn(
@@ -186,9 +169,13 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
         </button>
       </div>
 
+      {/* Hidden role field so RHF tracks it in the submitted data */}
+      <input type="hidden" {...register('role')} />
+
       {/* Signup Form */}
-      <form id="signupForm" ref={formRef} onSubmit={handleSubmit} noValidate>
+      <form id="signupForm" onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="flex flex-col gap-4 mt-1">
+
           {/* First + Last name */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div className="flex flex-col gap-1">
@@ -199,21 +186,18 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
                 First name
               </label>
               <input
-                ref={firstNameRef}
+                {...register('firstName')}
                 type="text"
                 id="firstName"
                 placeholder="e.g. Aisha"
-                value={formData.firstName}
-                onChange={(e) => handleInputChange('firstName', e.target.value)}
                 className={cn(
                   'bg-[#f8faff] border-[1.5px] border-[#e2e8f0] rounded-[14px] px-3.5 py-3 text-[0.95rem] font-medium text-[#0b1a33] transition-all duration-150 w-full placeholder:text-[#9aabbf] focus:outline-none focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10',
                   errors.firstName && 'border-[#e53e3e] bg-[#fff8f8]'
                 )}
-                required
               />
               {errors.firstName && (
                 <span className="text-[0.7rem] text-[#e53e3e] pl-1 min-h-[16px]">
-                  {errors.firstName}
+                  {errors.firstName.message}
                 </span>
               )}
             </div>
@@ -226,21 +210,18 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
                 Last name
               </label>
               <input
-                ref={lastNameRef}
+                {...register('lastName')}
                 type="text"
                 id="lastName"
                 placeholder="e.g. Oladele"
-                value={formData.lastName}
-                onChange={(e) => handleInputChange('lastName', e.target.value)}
                 className={cn(
                   'bg-[#f8faff] border-[1.5px] border-[#e2e8f0] rounded-[14px] px-3.5 py-3 text-[0.95rem] font-medium text-[#0b1a33] transition-all duration-150 w-full placeholder:text-[#9aabbf] focus:outline-none focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10',
                   errors.lastName && 'border-[#e53e3e] bg-[#fff8f8]'
                 )}
-                required
               />
               {errors.lastName && (
                 <span className="text-[0.7rem] text-[#e53e3e] pl-1 min-h-[16px]">
-                  {errors.lastName}
+                  {errors.lastName.message}
                 </span>
               )}
             </div>
@@ -249,27 +230,24 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
           {/* School email */}
           <div className="flex flex-col gap-1">
             <label
-              htmlFor="email"
+              htmlFor="signupEmail"
               className="text-[0.75rem] font-semibold text-[#1f2a44] tracking-wide uppercase opacity-70"
             >
               School email
             </label>
             <input
-              ref={emailRef}
+              {...register('email')}
               type="email"
-              id="email"
+              id="signupEmail"
               placeholder="aisha.oladele@university.edu"
-              value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
               className={cn(
                 'bg-[#f8faff] border-[1.5px] border-[#e2e8f0] rounded-[14px] px-3.5 py-3 text-[0.95rem] font-medium text-[#0b1a33] transition-all duration-150 w-full placeholder:text-[#9aabbf] focus:outline-none focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10',
                 errors.email && 'border-[#e53e3e] bg-[#fff8f8]'
               )}
-              required
             />
             {errors.email && (
               <span className="text-[0.7rem] text-[#e53e3e] pl-1 min-h-[16px]">
-                {errors.email}
+                {errors.email.message}
               </span>
             )}
           </div>
@@ -283,26 +261,23 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
               {role === 'student' ? 'Matric number' : 'Staff / Admin ID'}
             </label>
             <input
-              ref={matricRef}
+              {...register('matric')}
               type="text"
               id="matric"
               placeholder={role === 'student' ? 'e.g. U20CS1234' : 'e.g. ADM-9082'}
-              value={formData.matric}
-              onChange={(e) => handleInputChange('matric', e.target.value)}
               className={cn(
                 'bg-[#f8faff] border-[1.5px] border-[#e2e8f0] rounded-[14px] px-3.5 py-3 text-[0.95rem] font-medium text-[#0b1a33] transition-all duration-150 w-full placeholder:text-[#9aabbf] focus:outline-none focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10',
                 errors.matric && 'border-[#e53e3e] bg-[#fff8f8]'
               )}
-              required
             />
             {errors.matric && (
               <span className="text-[0.7rem] text-[#e53e3e] pl-1 min-h-[16px]">
-                {errors.matric}
+                {errors.matric.message}
               </span>
             )}
           </div>
 
-          {/* Level + Password Row */}
+          {/* Level / Org Category + Password Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             {role === 'student' ? (
               <div className="flex flex-col gap-1">
@@ -313,16 +288,13 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
                   Level
                 </label>
                 <select
-                  ref={levelRef}
+                  {...register('level')}
                   id="level"
-                  value={formData.level}
-                  onChange={(e) => handleInputChange('level', e.target.value)}
                   className={cn(
                     'bg-[#f8faff] border-[1.5px] border-[#e2e8f0] rounded-[14px] px-3.5 py-3 text-[0.95rem] font-medium text-[#0b1a33] transition-all duration-150 w-full appearance-none focus:outline-none focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10 pr-10',
-                    'bg-[url("data:image/svg+xml,%3Csvg_xmlns=\'http://www.w3.org/2000/svg\'_width=\'12\'_height=\'8\'_viewBox=\'0_0_12_8\'%3E%3Cpath_d=\'M1_1.5l5_5_5-5\'_stroke=\'%235b6d89\'_stroke-width=\'1.5\'_fill=\'none\'_stroke-linecap=\'round\'/%3E%3C/svg%3E")] bg-no-repeat bg-[right_14px_center]',
+                    "bg-[url(\"data:image/svg+xml,%3Csvg_xmlns='http://www.w3.org/2000/svg'_width='12'_height='8'_viewBox='0_0_12_8'%3E%3Cpath_d='M1_1.5l5_5_5-5'_stroke='%235b6d89'_stroke-width='1.5'_fill='none'_stroke-linecap='round'/%3E%3C/svg%3E\")] bg-no-repeat bg-[right_14px_center]",
                     errors.level && 'border-[#e53e3e] bg-[#fff8f8]'
                   )}
-                  required
                 >
                   <option value="">Select</option>
                   <option value="100">100</option>
@@ -334,7 +306,7 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
                 </select>
                 {errors.level && (
                   <span className="text-[0.7rem] text-[#e53e3e] pl-1 min-h-[16px]">
-                    {errors.level}
+                    {errors.level.message}
                   </span>
                 )}
               </div>
@@ -347,9 +319,9 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
                   Org Category
                 </label>
                 <select
+                  {...register('orgType')}
                   id="orgType"
-                  defaultValue="department"
-                  className="bg-[#f8faff] border-[1.5px] border-[#e2e8f0] rounded-[14px] px-3.5 py-3 text-[0.95rem] font-medium text-[#0b1a33] transition-all duration-150 w-full appearance-none focus:outline-none focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10 pr-10 bg-[url('data:image/svg+xml,%3Csvg_xmlns=\'http://www.w3.org/2000/svg\'_width=\'12\'_height=\'8\'_viewBox=\'0_0_12_8\'%3E%3Cpath_d=\'M1_1.5l5_5_5-5\'_stroke=\'%235b6d89\'_stroke-width=\'1.5\'_fill=\'none\'_stroke-linecap=\'round\'/%3E%3C/svg%3E')] bg-no-repeat bg-[right_14px_center]"
+                  className="bg-[#f8faff] border-[1.5px] border-[#e2e8f0] rounded-[14px] px-3.5 py-3 text-[0.95rem] font-medium text-[#0b1a33] transition-all duration-150 w-full appearance-none focus:outline-none focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10 pr-10 bg-[url(\"data:image/svg+xml,%3Csvg_xmlns='http://www.w3.org/2000/svg'_width='12'_height='8'_viewBox='0_0_12_8'%3E%3Cpath_d='M1_1.5l5_5_5-5'_stroke='%235b6d89'_stroke-width='1.5'_fill='none'_stroke-linecap='round'/%3E%3C/svg%3E\")] bg-no-repeat bg-[right_14px_center]"
                 >
                   <option value="department">Department</option>
                   <option value="faculty">Faculty</option>
@@ -361,80 +333,77 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
 
             <div className="flex flex-col gap-1 relative">
               <label
-                htmlFor="password"
+                htmlFor="signupPassword"
                 className="text-[0.75rem] font-semibold text-[#1f2a44] tracking-wide uppercase opacity-70"
               >
                 Password
               </label>
               <div className="relative w-full">
                 <input
-                  ref={passwordRef}
+                  {...register('password')}
                   type={showPassword ? 'text' : 'password'}
-                  id="password"
+                  id="signupPassword"
                   placeholder="••••••••"
-                  value={formData.password}
-                  onChange={(e) => handleInputChange('password', e.target.value)}
                   className={cn(
                     'bg-[#f8faff] border-[1.5px] border-[#e2e8f0] rounded-[14px] pl-3.5 pr-10 py-3 text-[0.95rem] font-medium text-[#0b1a33] transition-all duration-150 w-full placeholder:text-[#9aabbf] focus:outline-none focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10',
                     errors.password && 'border-[#e53e3e] bg-[#fff8f8]'
                   )}
-                  required
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setShowPassword((p) => !p)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
               {errors.password && (
                 <span className="text-[0.7rem] text-[#e53e3e] pl-1 min-h-[16px]">
-                  {errors.password}
+                  {errors.password.message}
                 </span>
               )}
             </div>
           </div>
 
           {/* Terms checkbox */}
-          <div className="flex items-start gap-3 my-2">
-            <input
-              ref={termsRef}
-              type="checkbox"
-              id="termsCheck"
-              checked={formData.terms}
-              onChange={(e) => handleInputChange('terms', e.target.checked)}
-              className={cn(
-                'w-[18px] h-[18px] mt-0.5 accent-[#1a5cff] shrink-0 rounded border border-[#cbd5e1] cursor-pointer focus:ring-2 focus:ring-[#1a5cff]/20',
-                errors.terms && 'outline-2 outline-[#e53e3e] outline-offset-2'
-              )}
-              required
-            />
-            <label
-              htmlFor="termsCheck"
-              className="text-[0.88rem] text-[#1f2a44] leading-relaxed select-none"
-            >
-              I agree to the{' '}
-              <a
-                href="#"
-                className="text-[#1a5cff] font-semibold hover:border-b hover:border-[#1a5cff] transition-all"
+          <div className="flex flex-col gap-1 my-1">
+            <div className="flex items-start gap-3">
+              <input
+                {...register('terms')}
+                type="checkbox"
+                id="termsCheck"
+                className={cn(
+                  'w-[18px] h-[18px] mt-0.5 accent-[#1a5cff] shrink-0 rounded border border-[#cbd5e1] cursor-pointer focus:ring-2 focus:ring-[#1a5cff]/20',
+                  errors.terms && 'outline-2 outline-[#e53e3e] outline-offset-2'
+                )}
+              />
+              <label
+                htmlFor="termsCheck"
+                className="text-[0.88rem] text-[#1f2a44] leading-relaxed select-none"
               >
-                Terms
-              </a>{' '}
-              and{' '}
-              <a
-                href="#"
-                className="text-[#1a5cff] font-semibold hover:border-b hover:border-[#1a5cff] transition-all"
-              >
-                Privacy Policy
-              </a>
-              .
-            </label>
+                I agree to the{' '}
+                <a
+                  href="#"
+                  className="text-[#1a5cff] font-semibold hover:border-b hover:border-[#1a5cff] transition-all"
+                >
+                  Terms
+                </a>{' '}
+                and{' '}
+                <a
+                  href="#"
+                  className="text-[#1a5cff] font-semibold hover:border-b hover:border-[#1a5cff] transition-all"
+                >
+                  Privacy Policy
+                </a>
+                .
+              </label>
+            </div>
+            {errors.terms && (
+              <span className="text-[0.7rem] text-[#e53e3e] pl-1">
+                {errors.terms.message}
+              </span>
+            )}
           </div>
 
           {/* Submit button */}
