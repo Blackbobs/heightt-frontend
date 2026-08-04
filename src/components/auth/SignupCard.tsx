@@ -291,8 +291,7 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
                   {...register('level')}
                   id="level"
                   className={cn(
-                    'bg-[#f8faff] border-[1.5px] border-[#e2e8f0] rounded-[14px] px-3.5 py-3 text-[0.95rem] font-medium text-[#0b1a33] transition-all duration-150 w-full appearance-none focus:outline-none focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10 pr-10',
-                    "bg-[url(\"data:image/svg+xml,%3Csvg_xmlns='http://www.w3.org/2000/svg'_width='12'_height='8'_viewBox='0_0_12_8'%3E%3Cpath_d='M1_1.5l5_5_5-5'_stroke='%235b6d89'_stroke-width='1.5'_fill='none'_stroke-linecap='round'/%3E%3C/svg%3E\")] bg-no-repeat bg-[right_14px_center]",
+                    'bg-[#f8faff] border-[1.5px] border-[#e2e8f0] rounded-[14px] px-3.5 py-3 text-[0.95rem] font-medium text-[#0b1a33] transition-all duration-150 w-full appearance-none focus:outline-none focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10 pr-10 bg-custom-dropdown',
                     errors.level && 'border-[#e53e3e] bg-[#fff8f8]'
                   )}
                 >
@@ -303,6 +302,7 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
                   <option value="400">400</option>
                   <option value="500">500</option>
                   <option value="postgrad">Postgraduate</option>
+                  <option value="other">Other</option>
                 </select>
                 {errors.level && (
                   <span className="text-[0.7rem] text-[#e53e3e] pl-1 min-h-[16px]">
@@ -321,8 +321,7 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
                 <select
                   {...register('orgType')}
                   id="orgType"
-                  className="bg-[#f8faff] border-[1.5px] border-[#e2e8f0] rounded-[14px] px-3.5 py-3 text-[0.95rem] font-medium text-[#0b1a33] transition-all duration-150 w-full appearance-none focus:outline-none focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10 pr-10 bg-no-repeat bg-[right_14px_center]"
-                  style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' stroke='%235b6d89' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\")" }}
+                  className="bg-[#f8faff] border-[1.5px] border-[#e2e8f0] rounded-[14px] px-3.5 py-3 text-[0.95rem] font-medium text-[#0b1a33] transition-all duration-150 w-full appearance-none focus:outline-none focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10 pr-10 bg-custom-dropdown"
                 >
                   <option value="department">Department</option>
                   <option value="faculty">Faculty</option>

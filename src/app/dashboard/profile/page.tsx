@@ -5,8 +5,8 @@ import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { ProfilePage } from '@/components/dashboard/pages/ProfilePage';
 
 export const metadata: Metadata = {
-  title: 'Profile · CampusPay — Heightt',
-  description: 'View and manage your student profile on CampusPay.',
+  title: 'Profile — Heightt',
+  description: 'View and manage your profile on Heightt.',
 };
 
 export default function Profile() {
@@ -15,7 +15,7 @@ export default function Profile() {
       <Sidebar />
       <div className="flex flex-col flex-1 min-w-0 h-full">
         <DashboardHeader pageTitle="Profile" />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto pb-20 lg:pb-0">
           <div className="max-w-2xl mx-auto px-5 lg:px-7 py-5">
             <ProfilePage />
           </div>

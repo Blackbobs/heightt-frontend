@@ -16,6 +16,10 @@ import {
   Signal,
   Wifi,
   Battery,
+  PiggyBank,
+  CreditCard,
+  Receipt,
+  CalendarDays,
 } from 'lucide-react';
 import gsap from 'gsap';
 
@@ -30,16 +34,9 @@ const transactions = [
   {
     icon: ArrowUp,
     name: 'Wallet Funding',
-    desc: 'Yesterday, 10:30 AM',
+    desc: 'Yesterday',
     amount: '+₦10,000',
     negative: false,
-  },
-  {
-    icon: Ticket,
-    name: 'Tech Fest Ticket',
-    desc: 'Yesterday, 9:00 AM',
-    amount: '-₦3,000',
-    negative: true,
   },
 ];
 
@@ -119,131 +116,135 @@ export function PhoneFrame() {
     <div ref={wrapperRef} className="perspective-1000">
       <div
         ref={phoneRef}
-        className="w-full max-w-[260px] sm:max-w-[340px] lg:max-w-[420px] aspect-[9/19] bg-card rounded-[36px] sm:rounded-[48px] p-2 sm:p-5 shadow-[0_30px_80px_rgba(0,0,0,0.1),0_0_0_3px_oklch(46%_.18_265),0_0_0_8px_rgba(46,92,210,0.06),inset_0_0_0_1px_rgba(255,255,255,0.8)] relative transition-shadow duration-500 will-change-transform cursor-pointer mx-auto"
+        className="w-full max-w-[260px] sm:max-w-[340px] lg:max-w-[420px] aspect-[9/19] bg-[#f8f9fc] rounded-[36px] sm:rounded-[48px] p-2 sm:p-4 shadow-[0_30px_80px_rgba(0,0,0,0.1),0_0_0_3px_oklch(46%_.18_265),0_0_0_8px_rgba(46,92,210,0.06),inset_0_0_0_1px_rgba(255,255,255,0.8)] relative transition-shadow duration-500 will-change-transform cursor-pointer mx-auto"
         style={{ transformStyle: 'preserve-3d', willChange: 'transform' }}
       >
         {/* Border ring */}
         <div className="absolute -inset-1 rounded-[40px] sm:rounded-[52px] border border-border pointer-events-none" />
 
         {/* Notch */}
-        <div className="absolute top-3 sm:top-6 left-1/2 -translate-x-1/2 w-[90px] sm:w-[150px] h-5 sm:h-9 bg-foreground rounded-[14px] sm:rounded-[22px] z-10 flex items-center justify-center gap-1.5 sm:gap-3 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]">
-          <div className="w-2 sm:w-3 h-2 sm:h-3 bg-[oklch(20%_.02_260)] rounded-full border border-[oklch(30%_.02_260)] relative">
-            <div className="absolute w-1 h-1 bg-primary/20 rounded-full top-0.5 left-0.5" />
+        <div className="absolute top-3 sm:top-5 left-1/2 -translate-x-1/2 w-[80px] sm:w-[130px] h-4 sm:h-7 bg-foreground rounded-[12px] sm:rounded-[18px] z-10 flex items-center justify-center gap-1.5 sm:gap-3 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]">
+          <div className="w-1.5 sm:w-2.5 h-1.5 sm:h-2.5 bg-[oklch(20%_.02_260)] rounded-full border border-[oklch(30%_.02_260)] relative">
+            <div className="absolute w-0.5 h-0.5 bg-primary/20 rounded-full top-0.5 left-0.5" />
           </div>
-          <div className="w-[30px] sm:w-[55px] h-0.5 sm:h-1.5 bg-[oklch(20%_.02_260)] rounded border border-[oklch(30%_.02_260)]" />
+          <div className="w-[26px] sm:w-[48px] h-0.5 sm:h-1 bg-[oklch(20%_.02_260)] rounded border border-[oklch(30%_.02_260)]" />
         </div>
 
         {/* Screen */}
-        <div className="w-full h-full bg-card rounded-[24px] sm:rounded-[36px] overflow-hidden flex flex-col">
+        <div className="w-full h-full bg-white rounded-[24px] sm:rounded-[36px] overflow-hidden flex flex-col">
           {/* Status Bar */}
-          <div className="flex justify-between items-center px-3 sm:px-5 pt-3 sm:pt-3.5 h-9 sm:h-12 text-[10px] sm:text-xs font-semibold text-foreground flex-shrink-0">
-            <span className="font-bold text-[11px] sm:text-sm">{time}</span>
-            <div className="flex gap-1 sm:gap-2">
-              <Signal className="w-3 h-3 sm:w-4 sm:h-4" />
-              <Wifi className="w-3 h-3 sm:w-4 sm:h-4" />
-              <Battery className="w-3.5 h-3 sm:w-5 sm:h-4" />
+          <div className="flex justify-between items-center px-3 sm:px-4 pt-3 sm:pt-4 pb-1 text-[9px] sm:text-[11px] font-semibold text-foreground flex-shrink-0">
+            <span className="font-bold">{time}</span>
+            <div className="flex gap-1 sm:gap-1.5">
+              <Signal className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
+              <Wifi className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
+              <Battery className="w-3 h-2.5 sm:w-4 sm:h-3.5" />
             </div>
           </div>
 
-          {/* Scrollable Content */}
-          <div className="flex-1 px-2.5 sm:px-5 pb-2 sm:pb-5 flex flex-col gap-2 sm:gap-3.5 overflow-hidden">
-            {/* Wallet Header */}
-            <div className="flex justify-between items-center py-1 sm:py-1.5 border-b border-border flex-shrink-0">
-              <div className="font-bold text-[11px] sm:text-base text-foreground flex items-center gap-1.5">
-                <Wallet className="w-3 h-3 sm:w-4.5 sm:h-4.5 text-primary" />
-                Wallet
-              </div>
-              <span className="bg-success/20 text-success text-[9px] sm:text-xs font-semibold px-2 sm:px-3 py-0.5 rounded-full flex items-center gap-1">
-                <CheckCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                Active
+          {/* Content — no overflow, everything fits with breathing room */}
+          <div className="flex-1 px-3 sm:px-4 flex flex-col gap-2.5 sm:gap-3 pb-2">
+
+            {/* Header */}
+            <div className="flex items-center justify-between pt-1 pb-2 border-b border-[#e8ecf1] flex-shrink-0">
+              <span className="text-[0.75rem] sm:text-[0.95rem] font-bold text-[#1a1a2e]">
+                Hi, <span className="text-[#1a5cff]">Adaeze</span>
               </span>
+              <div className="flex items-center gap-1.5">
+                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#f0f2f5] flex items-center justify-center">
+                  <Bell className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#1a1a2e]" />
+                </div>
+                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-[#1a5cff] to-[#4a7aff] flex items-center justify-center text-white font-bold text-[0.45rem] sm:text-[0.55rem]">
+                  AO
+                </div>
+              </div>
             </div>
 
-            {/* Balance */}
-            <div className="text-center py-1 sm:py-4 flex-shrink-0">
-              <div className="text-[9px] sm:text-xs text-muted-foreground font-medium uppercase tracking-wider">
-                Available Balance
-              </div>
-              <div className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight mt-0.5">
-                <span className="text-base sm:text-2xl font-semibold text-muted-foreground">₦</span>
-                24,500
+            {/* Balance Card */}
+            <div className="bg-gradient-to-br from-[#1a5cff] to-[#0f4ad0] rounded-[12px] sm:rounded-[16px] px-3 sm:px-4 py-2.5 sm:py-3.5 text-white relative overflow-hidden flex-shrink-0">
+              <div className="absolute -top-8 -right-8 w-20 h-20 rounded-full bg-white/5 pointer-events-none" />
+              <p className="text-[0.45rem] sm:text-[0.6rem] text-white/70 font-medium uppercase tracking-wide mb-0.5">Total Balance</p>
+              <p className="text-[1.1rem] sm:text-[1.4rem] font-bold tracking-tight leading-none">₦184,500</p>
+              <p className="text-[0.42rem] sm:text-[0.58rem] text-white/60 mt-1">Avail. ₦122,300 · Locked ₦62,200</p>
+              <div className="flex gap-1.5 mt-2">
+                <button className="bg-white text-[#1a5cff] rounded-full px-2 sm:px-3 py-0.5 sm:py-1 text-[0.45rem] sm:text-[0.6rem] font-bold border-none">
+                  Add to wallet
+                </button>
+                <button className="bg-white/20 text-white rounded-full px-2 sm:px-3 py-0.5 sm:py-1 text-[0.45rem] sm:text-[0.6rem] font-bold border-none">
+                  Withdraw
+                </button>
               </div>
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-2 gap-1.5 sm:gap-2.5 flex-shrink-0">
-              <button className="bg-primary text-primary-foreground rounded-lg py-2 sm:py-3 px-1 text-[10px] sm:text-sm font-medium flex items-center justify-center gap-1 sm:gap-2 font-sans">
-                <ArrowDown className="w-3 h-3 sm:w-4 sm:h-4" />
-                Pay Dues
-              </button>
-              <button className="bg-muted rounded-lg py-2 sm:py-3 px-1 text-[10px] sm:text-sm font-medium text-foreground flex items-center justify-center gap-1 sm:gap-2 font-sans">
-                <ArrowUp className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
-                Fund
-              </button>
-              <button className="bg-muted rounded-lg py-2 sm:py-3 px-1 text-[10px] sm:text-sm font-medium text-foreground flex items-center justify-center gap-1 sm:gap-2 font-sans">
-                <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
-                History
-              </button>
-              <button className="bg-muted rounded-lg py-2 sm:py-3 px-1 text-[10px] sm:text-sm font-medium text-foreground flex items-center justify-center gap-1 sm:gap-2 font-sans">
-                <Ticket className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
-                Events
-              </button>
-            </div>
-
-            {/* Recent Transactions */}
-            <div className="flex justify-between items-center text-[9px] sm:text-xs font-semibold text-muted-foreground uppercase tracking-wider py-0.5 sm:py-1.5 flex-shrink-0">
-              Recent Activity
-              <a href="#" className="text-primary text-[9px] sm:text-xs font-medium normal-case no-underline hover:underline flex items-center gap-0.5">
-                View All <ChevronRight className="inline w-2.5 h-2.5 sm:w-3 sm:h-3" />
-              </a>
-            </div>
-
-            <div className="flex flex-col flex-shrink-0">
-              {transactions.map((tx, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between py-1.5 sm:py-2 border-b border-border last:border-none"
-                >
-                  <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-muted flex items-center justify-center text-primary flex-shrink-0">
-                      <tx.icon className="w-3 h-3 sm:w-4 sm:h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-[10px] sm:text-sm font-medium text-foreground truncate">{tx.name}</div>
-                      <div className="text-[9px] sm:text-xs text-muted-foreground truncate">{tx.desc}</div>
-                    </div>
-                  </div>
-                  <div className="text-right flex-shrink-0 ml-1">
-                    <div className={`text-[10px] sm:text-sm font-semibold ${tx.negative ? 'text-destructive' : 'text-success'}`}>
-                      {tx.amount}
-                    </div>
-                    <span className="text-[9px] sm:text-xs text-success block">Done</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Bottom Nav */}
-            <div className="flex justify-around items-center pt-1.5 sm:pt-2.5 pb-0.5 sm:pb-1.5 border-t border-border mt-auto flex-shrink-0">
+            <div className="grid grid-cols-4 gap-1.5 sm:gap-2 flex-shrink-0">
               {[
-                { icon: Home, label: 'Home', active: true },
-                { icon: Wallet, label: 'Wallet', active: false },
-                { icon: Building, label: 'Orgs', active: false },
-                { icon: Bell, label: 'Alerts', active: false },
-                { icon: User, label: 'Profile', active: false },
-              ].map((item, index) => (
+                { label: 'Pay Dues',  desc: '2 pending', icon: CreditCard },
+                { label: 'Tickets',   desc: 'Events',    icon: CalendarDays },
+                { label: 'Save',      desc: '3 goals',   icon: PiggyBank },
+                { label: 'Receipts',  desc: '6 issued',  icon: Receipt },
+              ].map(({ label, desc, icon: Icon }) => (
                 <button
-                  key={index}
-                  className={`flex flex-col items-center gap-0.5 text-[8px] sm:text-xs text-muted-foreground hover:text-primary font-sans py-0.5 sm:py-1 px-1 sm:px-3 relative ${item.active ? 'text-primary' : ''}`}
+                  key={label}
+                  className="bg-white border border-[#e8ecf1] rounded-[8px] sm:rounded-[10px] py-1.5 sm:py-2 px-0.5 flex flex-col items-center gap-0.5 sm:gap-1 w-full"
                 >
-                  <item.icon className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
-                  {item.label}
-                  {item.active && (
-                    <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-4 sm:w-5 h-0.5 bg-primary rounded" />
-                  )}
+                  <div className="w-4.5 h-4.5 sm:w-6 sm:h-6 rounded-[6px] bg-[#eef3ff] flex items-center justify-center text-[#1a5cff]">
+                    <Icon className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
+                  </div>
+                  <span className="text-[0.42rem] sm:text-[0.55rem] font-semibold text-[#1a1a2e] leading-tight text-center w-full truncate">{label}</span>
+                  <span className="text-[0.38rem] sm:text-[0.48rem] text-[#6b7a8f] text-center">{desc}</span>
                 </button>
               ))}
             </div>
+
+            {/* Recent Activity */}
+            <div className="flex-shrink-0">
+              <div className="flex justify-between items-center mb-1.5">
+                <span className="text-[0.48rem] sm:text-[0.6rem] font-semibold text-[#7a8ba3] uppercase tracking-wider">Recent Activity</span>
+                <span className="text-[0.48rem] sm:text-[0.6rem] text-[#1a5cff] font-medium flex items-center gap-0.5">
+                  View All <ChevronRight className="w-2 h-2" />
+                </span>
+              </div>
+              <div className="flex flex-col gap-1 sm:gap-1.5">
+                {transactions.map((tx, index) => (
+                  <div key={index} className="flex items-center justify-between py-1 sm:py-1.5 px-2 sm:px-2.5 bg-[#f8f9fc] rounded-[8px]">
+                    <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                      <div className="w-5 h-5 sm:w-6.5 sm:h-6.5 rounded-full bg-white border border-[#e8ecf1] flex items-center justify-center text-[#1a5cff] flex-shrink-0">
+                        <tx.icon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-[0.5rem] sm:text-[0.65rem] font-semibold text-[#1a1a2e] truncate">{tx.name}</div>
+                        <div className="text-[0.42rem] sm:text-[0.55rem] text-[#7a8ba3] truncate">{tx.desc}</div>
+                      </div>
+                    </div>
+                    <div className="text-right flex-shrink-0 ml-1">
+                      <div className={`text-[0.5rem] sm:text-[0.65rem] font-bold ${tx.negative ? 'text-rose-500' : 'text-emerald-500'}`}>
+                        {tx.amount}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Bottom Nav */}
+            <div className="flex justify-around items-center pt-2 sm:pt-2.5 border-t border-[#e8ecf1] mt-auto flex-shrink-0">
+              {[
+                { icon: Home,         label: 'Home',    active: true },
+                { icon: Wallet,       label: 'Pay',     active: false },
+                { icon: CalendarDays, label: 'Events',  active: false },
+                { icon: User,         label: 'Profile', active: false },
+              ].map((item, index) => (
+                <button
+                  key={index}
+                  className={`flex flex-col items-center gap-0.5 text-[0.42rem] sm:text-[0.55rem] font-medium py-0.5 px-1.5 ${item.active ? 'text-[#1a5cff]' : 'text-[#7a8ba3]'}`}
+                >
+                  <item.icon className="w-3 h-3 sm:w-4 sm:h-4" />
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
           </div>
         </div>
       </div>

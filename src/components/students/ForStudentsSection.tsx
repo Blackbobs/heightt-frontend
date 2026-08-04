@@ -19,7 +19,7 @@ const studentFeatures = [
     icon: Wallet,
     title: 'Smart Wallet',
     description:
-      'Fund once. Pay dues, buy tickets, settle anything inside CampusPay instantly.',
+      'Fund once. Pay dues, buy tickets, settle anything inside Heightt instantly.',
     isFullWidth: false,
   },
   {

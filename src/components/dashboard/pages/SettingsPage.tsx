@@ -174,7 +174,7 @@ export function SettingsPage() {
         Sign Out
       </button>
 
-      <p className="text-center text-[0.62rem] text-[#b0bac8]">CampusPay · Heightt · v1.2.0</p>
+      <p className="text-center text-[0.62rem] text-[#b0bac8]">Heightt · v1.2.0</p>
     </div>
   );
 }

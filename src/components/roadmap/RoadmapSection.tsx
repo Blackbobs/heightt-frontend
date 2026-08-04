@@ -56,7 +56,7 @@ const roadmapFeatures = [
   {
     icon: CreditCard,
     title: 'Cards & Tap-to-Pay',
-    description: 'A CampusPay card to spend at campus vendors.',
+    description: 'A Heightt card to spend at campus vendors.',
     status: 'In development',
     statusDot: 'bg-primary animate-pulse',
     isFullWidth: false,

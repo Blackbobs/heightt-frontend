@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Sidebar } from '@/components/dashboard/Sidebar';
 import { BottomNav } from '@/components/dashboard/BottomNav';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
-import { Greeting, BalanceCard } from '@/components/dashboard/BalanceCard';
+import { BalanceCard } from '@/components/dashboard/BalanceCard';
 import { QuickActions } from '@/components/dashboard/QuickActions';
 import { UpcomingDues } from '@/components/dashboard/UpcomingDues';
 import { RecentTransactions } from '@/components/dashboard/RecentTransactions';
@@ -10,8 +10,8 @@ import { SavingsMiniCard, AnnouncementsMiniCard } from '@/components/dashboard/M
 import { RecommendedEvents } from '@/components/dashboard/RecommendedEvents';
 
 export const metadata: Metadata = {
-  title: 'Dashboard · CampusPay — Heightt',
-  description: 'Manage your campus finances — pay dues, track savings, buy event tickets and more.',
+  title: 'Dashboard — Heightt',
+  description: 'Manage your finances — pay dues, track savings, buy event tickets and more on Heightt.',
 };
 
 export default function DashboardPage() {
@@ -25,9 +25,8 @@ export default function DashboardPage() {
         <DashboardHeader />
 
         {/* Scrollable body */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto pb-20 lg:pb-0">
           <div className="max-w-2xl mx-auto px-5 lg:px-7 py-5">
-            <Greeting />
             <BalanceCard />
             <QuickActions />
             <UpcomingDues />

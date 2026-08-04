@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Wallet, PiggyBank, CreditCard, Receipt,
-  Bell, CalendarDays, Settings, LogOut,
+  Bell, CalendarDays, Settings, LogOut, Building2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -31,9 +31,9 @@ export function Sidebar() {
     <aside className="hidden lg:flex flex-col w-[220px] flex-shrink-0 bg-[#f8f9fc] border-r border-[#e8ecf1] h-screen sticky top-0">
       {/* Logo */}
       <div className="px-5 pt-6 pb-5">
-        <Link href="/" className="flex items-center gap-2.5 font-bold text-[1rem] text-[#1a1a2e] no-underline">
-          <CampusPayLogo />
-          Campus<span className="text-[#1a5cff]">Pay</span>
+        <Link href="/" className="flex items-center gap-2.5 font-bold text-2xl text-[#1a1a2e] no-underline">
+          <Building2 className="w-7 h-7 text-[#1a5cff]" strokeWidth={1.8} />
+          Heightt
         </Link>
       </div>
 
@@ -88,12 +88,4 @@ export function Sidebar() {
   );
 }
 
-function CampusPayLogo() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-      <rect x="2" y="6" width="28" height="20" rx="6" stroke="#1a5cff" strokeWidth="2.5" />
-      <path d="M10 12h12M10 16h8M10 20h6" stroke="#1a5cff" strokeWidth="2.5" strokeLinecap="round" />
-      <circle cx="22" cy="20" r="2" fill="#1a5cff" />
-    </svg>
-  );
-}
+

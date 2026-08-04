@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Sun, ArrowDownLeft, ArrowUpRight, BarChart2 } from 'lucide-react';
+import { Sun, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 
 export function BalanceCard() {
   return (
@@ -17,15 +17,11 @@ export function BalanceCard() {
       <div className="flex gap-2.5 mt-4 flex-wrap">
         <button className="flex items-center gap-1.5 bg-white text-[#1a5cff] rounded-full px-4 py-2 text-[0.72rem] font-semibold cursor-pointer border-none transition-all hover:bg-[#f0f4ff] active:scale-95">
           <ArrowDownLeft className="w-3.5 h-3.5" />
-          Fund
+          Add to wallet
         </button>
         <button className="flex items-center gap-1.5 bg-white/15 text-white rounded-full px-4 py-2 text-[0.72rem] font-semibold cursor-pointer border-none transition-all hover:bg-white/25 active:scale-95">
           <ArrowUpRight className="w-3.5 h-3.5" />
           Withdraw
-        </button>
-        <button className="flex items-center gap-1.5 bg-white/15 text-white rounded-full px-4 py-2 text-[0.72rem] font-semibold cursor-pointer border-none transition-all hover:bg-white/25 active:scale-95">
-          <BarChart2 className="w-3.5 h-3.5" />
-          Stats
         </button>
       </div>
     </div>

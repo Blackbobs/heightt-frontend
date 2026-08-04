@@ -5,8 +5,8 @@ import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { SettingsPage } from '@/components/dashboard/pages/SettingsPage';
 
 export const metadata: Metadata = {
-  title: 'Settings · CampusPay — Heightt',
-  description: 'Manage your CampusPay account settings, notifications, and security.',
+  title: 'Settings — Heightt',
+  description: 'Manage your Heightt account settings, notifications, and security.',
 };
 
 export default function Settings() {
@@ -15,7 +15,7 @@ export default function Settings() {
       <Sidebar />
       <div className="flex flex-col flex-1 min-w-0 h-full">
         <DashboardHeader pageTitle="Settings" />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto pb-20 lg:pb-0">
           <div className="max-w-2xl mx-auto px-5 lg:px-7 py-5">
             <SettingsPage />
           </div>
