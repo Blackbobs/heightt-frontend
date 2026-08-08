@@ -4,15 +4,13 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard, Wallet, PiggyBank, CreditCard, Receipt,
+  LayoutDashboard, CreditCard, Receipt,
   Bell, CalendarDays, Settings, LogOut, Building2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
   { label: 'Dashboard',     href: '/dashboard',             icon: LayoutDashboard },
-  { label: 'Wallet',        href: '/dashboard/wallet',       icon: Wallet },
-  { label: 'Savings',       href: '/dashboard/savings',      icon: PiggyBank },
   { label: 'Payments',      href: '/dashboard/payments',     icon: CreditCard },
   { label: 'Receipts',      href: '/dashboard/receipts',     icon: Receipt },
   { label: 'Announcements', href: '/dashboard/announcements',icon: Bell },
