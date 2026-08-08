@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -49,6 +50,7 @@ interface SignupCardProps {
 }
 
 export function SignupCard({ borderless = false, className }: SignupCardProps) {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -75,9 +77,12 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
 
   const role = watch('role');
 
-  const onSubmit = (_data: SignupFormData) => {
+  const onSubmit = (data: SignupFormData) => {
     setIsSubmitted(true);
-    setTimeout(() => setIsSubmitted(false), 2500);
+    // Redirect to email verification page after short success flash
+    setTimeout(() => {
+      router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
+    }, 1200);
   };
 
   return (
