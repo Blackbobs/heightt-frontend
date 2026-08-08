@@ -11,6 +11,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     pathname === '/signup' ||
     pathname === '/signin' ||
     pathname === '/verify-email' ||
+    pathname === '/onboarding' ||
     pathname.startsWith('/dashboard');
 
   if (isAuthPage) {

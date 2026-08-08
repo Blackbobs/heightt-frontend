@@ -91,7 +91,7 @@ export function VerifyEmailCard() {
     // Mock: any 6-digit code works in demo
     setIsVerifying(false);
     setIsVerified(true);
-    setTimeout(() => router.push('/dashboard'), 1800);
+    setTimeout(() => router.push('/onboarding'), 1800);
   }, [digits, router]);
 
   /* ── Auto-submit when all filled ─────────────────────────────── */
