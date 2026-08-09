@@ -592,7 +592,7 @@ export function OnboardingFlow() {
               <button
                 type="button"
                 onClick={finishOnboarding}
-                className="w-full py-3.5 px-6 rounded-2xl bg-[#0f7b4a] hover:bg-[#0c663d] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-[0_8px_24px_rgba(15,123,74,0.25)] active:scale-[0.98]"
+                className="w-full py-3.5 px-6 rounded-2xl bg-[#0f7b4a] hover:bg-[#1a5cff] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-[0_8px_24px_rgba(15,123,74,0.25)] active:scale-[0.98]"
               >
                 <Rocket className="w-4 h-4" />
                 <span>Go to Dashboard</span>
