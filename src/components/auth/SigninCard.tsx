@@ -2,18 +2,19 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { GraduationCap, Building2, ShieldCheck, Eye, EyeOff, Check, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuthStore } from '@/store/auth-store';
 
 /* ─── Zod Schema ─────────────────────────────────────────────── */
 const signinSchema = z.object({
-  email: z
+  identifier: z
     .string()
-    .min(1, 'Email address is required')
-    .email('Enter a valid email address'),
+    .min(1, 'Email or username is required'),
   password: z.string().min(1, 'Password is required'),
   rememberMe: z.boolean().optional(),
 });
@@ -23,10 +24,10 @@ type SigninFormData = z.infer<typeof signinSchema>;
 /* ─── Demo credentials ───────────────────────────────────────── */
 type DemoRole = 'student' | 'org' | 'admin';
 
-const DEMO_CREDENTIALS: Record<DemoRole, Pick<SigninFormData, 'email' | 'password'>> = {
-  student: { email: 'aisha.oladele@university.edu', password: 'StudentPass123!' },
-  org:     { email: 'admin.nacos@university.edu',   password: 'OrgPass123!' },
-  admin:   { email: 'superadmin@heightt.edu',        password: 'AdminPass123!' },
+const DEMO_CREDENTIALS: Record<DemoRole, Pick<SigninFormData, 'identifier' | 'password'>> = {
+  student: { identifier: 'aisha.oladele@university.edu', password: 'StudentPass123!' },
+  org:     { identifier: 'admin.nacos@university.edu',   password: 'OrgPass123!' },
+  admin:   { identifier: 'superadmin@heightt.edu',        password: 'AdminPass123!' },
 };
 
 /* ─── Component ──────────────────────────────────────────────── */
@@ -36,8 +37,11 @@ interface SigninCardProps {
 }
 
 export function SigninCard({ borderless = false, className }: SigninCardProps) {
+  const router = useRouter();
+  const { login, isLoading } = useAuthStore();
   const [activeDemo, setActiveDemo] = useState<DemoRole | null>('student');
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const {
@@ -56,11 +60,20 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
   const handleDemoSelect = (role: DemoRole) => {
     setActiveDemo(role);
     reset({ ...DEMO_CREDENTIALS[role], rememberMe: true });
+    setError(null);
   };
 
-  const onSubmit = (_data: SigninFormData) => {
-    setIsSubmitted(true);
-    setTimeout(() => setIsSubmitted(false), 2500);
+  const onSubmit = async (data: SigninFormData) => {
+    setError(null);
+    try {
+      const result = await login(data.identifier, data.password);
+      setIsSubmitted(true);
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 1200);
+    } catch (err: any) {
+      setError(err.message || 'Invalid credentials. Please try again.');
+    }
   };
 
   return (
@@ -84,6 +97,13 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
       <p className="text-[0.95rem] text-[#5b6d89] mb-6 font-normal leading-snug">
         Sign in to continue managing your campus finances.
       </p>
+
+      {/* Error Message */}
+      {error && (
+        <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
+          ❌ {error}
+        </div>
+      )}
 
       {/* Quick Demo Fill Buttons */}
       <div className="mb-6 flex flex-col gap-2">
@@ -141,29 +161,28 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
       {/* Signin Form */}
       <form id="signinForm" onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="flex flex-col gap-4">
-
-          {/* Email address */}
+          {/* Email or Username */}
           <div className="flex flex-col gap-1">
             <label
-              htmlFor="signinEmail"
+              htmlFor="signinIdentifier"
               className="text-[0.75rem] font-semibold text-[#1f2a44] tracking-wide uppercase opacity-70"
             >
-              Email address
+              Email or Username
             </label>
             <input
-              {...register('email')}
-              type="email"
-              id="signinEmail"
-              placeholder="name@university.edu"
-              autoComplete="email"
+              {...register('identifier')}
+              type="text"
+              id="signinIdentifier"
+              placeholder="Email or username"
+              autoComplete="username"
               className={cn(
                 'bg-[#f8faff] border-[1.5px] border-[#e2e8f0] rounded-[14px] px-3.5 py-3 text-[0.95rem] font-medium text-[#0b1a33] transition-all duration-150 w-full placeholder:text-[#9aabbf] focus:outline-none focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10',
-                errors.email && 'border-[#e53e3e] bg-[#fff8f8]'
+                errors.identifier && 'border-[#e53e3e] bg-[#fff8f8]'
               )}
             />
-            {errors.email && (
+            {errors.identifier && (
               <span className="text-[0.7rem] text-[#e53e3e] pl-1 min-h-[16px]">
-                {errors.email.message}
+                {errors.identifier.message}
               </span>
             )}
           </div>
@@ -228,14 +247,21 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
           <button
             type="submit"
             id="signinSubmit"
+            disabled={isLoading}
             className={cn(
               'border-none rounded-[40px] px-5 py-4 text-base font-semibold text-white w-full cursor-pointer transition-all duration-200 mt-2 tracking-tight shadow-[0_8px_24px_rgba(26,92,255,0.25)] flex items-center justify-center gap-2 active:scale-[0.98]',
               isSubmitted
                 ? 'bg-[#0f7b4a] shadow-[0_8px_24px_rgba(15,123,74,0.25)]'
-                : 'bg-[#1a5cff] hover:bg-[#0f4ad0] hover:shadow-[0_12px_28px_rgba(26,92,255,0.3)]'
+                : 'bg-[#1a5cff] hover:bg-[#0f4ad0] hover:shadow-[0_12px_28px_rgba(26,92,255,0.3)]',
+              isLoading && 'opacity-70 cursor-not-allowed'
             )}
           >
-            {isSubmitted ? (
+            {isLoading ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Signing in...</span>
+              </>
+            ) : isSubmitted ? (
               <>
                 <Check className="w-5 h-5 text-white animate-bounce" />
                 <span>✓ Signed in!</span>
