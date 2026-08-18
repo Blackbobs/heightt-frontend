@@ -7,10 +7,12 @@ import { Button } from '@/components/ui/Button';
 import { NavLinks } from './NavLinks';
 import { MobileMenu } from './MobileMenu';
 import { cn } from '@/lib/utils';
+import { useAuthStore } from '@/store/auth-store';
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isAuthenticated, user } = useAuthStore();
 
   // Handle scroll effect
   useEffect(() => {
@@ -34,6 +36,10 @@ export function Navbar() {
     return () => window.removeEventListener('resize', handleResize);
   }, [isMobileMenuOpen]);
 
+  // Check if user needs onboarding
+  const needsOnboarding = user ? !user.profile?.onboardingCompleted : false;
+  const dashboardHref = needsOnboarding ? '/onboarding' : '/dashboard';
+
   return (
     <>
       <nav
@@ -52,19 +58,37 @@ export function Navbar() {
 
           {/* Desktop Actions */}
           <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
-            <Button variant="outline" size="default" asChild>
-              <Link href="/signin">Sign In</Link>
-            </Button>
-            <Button variant="primary" size="default" asChild>
-              <Link href="/signup">Create Account</Link>
-            </Button>
+            {isAuthenticated && user ? (
+              <Button variant="primary" size="default" asChild>
+                <Link href={dashboardHref}>
+                  {needsOnboarding ? 'Complete Onboarding' : 'Dashboard'}
+                </Link>
+              </Button>
+            ) : (
+              <>
+                <Button variant="outline" size="default" asChild>
+                  <Link href="/signin">Sign In</Link>
+                </Button>
+                <Button variant="primary" size="default" asChild>
+                  <Link href="/signup">Create Account</Link>
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Toggle */}
           <div className="lg:hidden flex items-center gap-2">
-            <Button variant="primary" size="sm" className="flex items-center gap-1.5" asChild>
-              <Link href="/signup">Create Account</Link>
-            </Button>
+            {isAuthenticated && user ? (
+              <Button variant="primary" size="sm" className="flex items-center gap-1.5" asChild>
+                <Link href={dashboardHref}>
+                  {needsOnboarding ? 'Onboarding' : 'Dashboard'}
+                </Link>
+              </Button>
+            ) : (
+              <Button variant="primary" size="sm" className="flex items-center gap-1.5" asChild>
+                <Link href="/signup">Create Account</Link>
+              </Button>
+            )}
             <MobileMenu
               isOpen={isMobileMenuOpen}
               onToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

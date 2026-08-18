@@ -1,3 +1,5 @@
+// src/components/auth/SignupCard.tsx
+
 "use client";
 
 import React, { useState } from "react";
@@ -6,18 +8,10 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import {
-  GraduationCap,
-  Building2,
-  Eye,
-  EyeOff,
-  Check,
-  Sparkles,
-} from "lucide-react";
+import { Eye, EyeOff, Check, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth-store";
 
-/* ─── Zod Schema ─────────────────────────────────────────────── */
 const signupSchema = z.object({
   email: z
     .string()
@@ -40,7 +34,6 @@ const signupSchema = z.object({
 
 type SignupFormData = z.infer<typeof signupSchema>;
 
-/* ─── Component ──────────────────────────────────────────────── */
 interface SignupCardProps {
   borderless?: boolean;
   className?: string;
@@ -77,7 +70,6 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
 
       setIsSubmitted(true);
       setTimeout(() => {
-        // Redirect to verification sent page with email
         router.push(
           `/verify-email-sent?email=${encodeURIComponent(data.email)}`,
         );
@@ -109,17 +101,20 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
         Sign up with your email, username, and password.
       </p>
 
-      {/* Error Message */}
       {error && (
         <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
           ❌ {error}
         </div>
       )}
 
-      {/* Signup Form */}
+      {isSubmitted && (
+        <div className="mb-4 p-3 rounded-xl bg-green-50 border border-green-200 text-green-600 text-sm">
+          ✅ Account created! Redirecting...
+        </div>
+      )}
+
       <form id="signupForm" onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="flex flex-col gap-4 mt-1">
-          {/* Username */}
           <div className="flex flex-col gap-1">
             <label
               htmlFor="username"
@@ -144,7 +139,6 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
             )}
           </div>
 
-          {/* Email */}
           <div className="flex flex-col gap-1">
             <label
               htmlFor="signupEmail"
@@ -169,7 +163,6 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
             )}
           </div>
 
-          {/* Password */}
           <div className="flex flex-col gap-1 relative">
             <label
               htmlFor="signupPassword"
@@ -192,7 +185,6 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
                 type="button"
                 onClick={() => setShowPassword((p) => !p)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
-                aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? (
                   <EyeOff className="w-4 h-4" />
@@ -208,16 +200,15 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
             )}
           </div>
 
-          {/* Submit button */}
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || isSubmitted}
             className={cn(
               "border-none rounded-[40px] px-5 py-4 text-base font-semibold text-white w-full cursor-pointer transition-all duration-200 mt-2 tracking-tight shadow-[0_8px_24px_rgba(26,92,255,0.25)] flex items-center justify-center gap-2 active:scale-[0.98]",
               isSubmitted
                 ? "bg-[#0f7b4a] shadow-[0_8px_24px_rgba(15,123,74,0.25)]"
                 : "bg-[#1a5cff] hover:bg-[#0f4ad0] hover:shadow-[0_12px_28px_rgba(26,92,255,0.3)]",
-              isLoading && "opacity-70 cursor-not-allowed",
+              (isLoading || isSubmitted) && "opacity-70 cursor-not-allowed",
             )}
           >
             {isLoading ? (
@@ -235,7 +226,6 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
             )}
           </button>
 
-          {/* Signin link */}
           <div className="text-center mt-4 text-[0.92rem] text-[#3d4f6b]">
             Already have an account?{" "}
             <Link
@@ -248,7 +238,6 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
         </div>
       </form>
 
-      {/* Subtle demo hint */}
       <div className="mt-5 text-[0.7rem] text-[#7a8ba3] text-center border-t border-[#edf2f7] pt-4 flex items-center justify-center gap-1.5">
         <Sparkles className="w-3.5 h-3.5 text-amber-500" />
         <span>All fields are required</span>

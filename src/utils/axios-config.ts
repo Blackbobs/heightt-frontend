@@ -1,18 +1,21 @@
-import { useAuthStore } from "@/store/auth-store";
+// src/utils/axios-config.ts
+
 import axios from "axios";
 
+const baseURL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/v1";
+
+console.log("Axios baseURL:", baseURL);
+
 export const axiosConfig = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/v1",
-  withCredentials: true,
+  baseURL,
+  withCredentials: true, // CRITICAL: Enables cookies
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// ============================================
-// CSRF TOKEN MANAGEMENT
-// ============================================
-
+// CSRF Token Management
 let csrfToken: string | null = null;
 let csrfTokenFetching: Promise<string> | null = null;
 
@@ -56,16 +59,18 @@ export function clearCsrfToken() {
   csrfTokenFetching = null;
 }
 
-// ============================================
-// REQUEST INTERCEPTOR - Add CSRF Token
-// ============================================
-
+// Request Interceptor
 axiosConfig.interceptors.request.use(
   async (config) => {
     const skipMethods = ["get", "head", "options"];
     const method = config.method?.toLowerCase() || "";
 
-    const skipUrls = ["/auth/login", "/auth/register", "/auth/csrf-token"];
+    const skipUrls = [
+      "/auth/login",
+      "/auth/register",
+      "/auth/csrf-token",
+      "/auth/refresh",
+    ];
     const isAuthEndpoint = skipUrls.some((url) => config.url?.includes(url));
 
     if (skipMethods.includes(method) || isAuthEndpoint) {
@@ -84,57 +89,99 @@ axiosConfig.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-// ============================================
-// RESPONSE INTERCEPTOR - Handle Token Refresh
-// ============================================
+// Response Interceptor
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value: unknown) => void;
+  reject: (reason?: unknown) => void;
+  config: any;
+}> = [];
+
+const processQueue = (error: unknown | null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(axiosConfig(prom.config));
+    }
+  });
+  failedQueue = [];
+};
 
 axiosConfig.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
+    if (!originalRequest || originalRequest._retry) {
+      return Promise.reject(error);
+    }
+
     const status = error.response?.status;
-    const message = error.response?.data?.message;
+    const message = error.response?.data?.message || "";
 
     // Handle CSRF token errors
-    if (status === 403 && message === "invalid csrf token") {
+    if (
+      status === 403 &&
+      (message === "invalid csrf token" || message === "CSRF token mismatch")
+    ) {
       clearCsrfToken();
-      if (!originalRequest._retry) {
-        originalRequest._retry = true;
-        try {
-          await getCsrfToken();
-          return axiosConfig(originalRequest);
-        } catch (refreshErr) {
-          return Promise.reject(refreshErr);
-        }
+      originalRequest._retry = true;
+      try {
+        await getCsrfToken();
+        return axiosConfig(originalRequest);
+      } catch (refreshErr) {
+        return Promise.reject(refreshErr);
       }
     }
 
     // Handle token refresh for 401 errors
-    const refreshableMessages = [
-      "Access token expired",
-      "No access token provided",
-      "Invalid access token",
-    ];
+    if (status === 401 && !originalRequest._retry) {
+      const skipRefreshUrls = [
+        "/auth/login",
+        "/auth/register",
+        "/auth/refresh",
+        "/auth/csrf-token",
+      ];
+      const isSkipUrl = skipRefreshUrls.some((url) =>
+        originalRequest.url?.includes(url),
+      );
 
-    if (
-      status === 401 &&
-      message &&
-      refreshableMessages.includes(message) &&
-      !originalRequest._retry
-    ) {
-      originalRequest._retry = true;
-      try {
-        await axiosConfig.post("/auth/refresh");
-        return axiosConfig(originalRequest);
-      } catch (refreshErr) {
-        const { clearUser } = useAuthStore.getState();
-        clearUser();
-        clearCsrfToken();
-        if (typeof window !== "undefined") {
-          window.location.href = "/login";
+      if (!isSkipUrl) {
+        originalRequest._retry = true;
+
+        if (isRefreshing) {
+          return new Promise((resolve, reject) => {
+            failedQueue.push({ resolve, reject, config: originalRequest });
+          });
         }
-        return Promise.reject(refreshErr);
+
+        isRefreshing = true;
+
+        try {
+          await axiosConfig.post("/auth/refresh");
+          processQueue(null);
+          return axiosConfig(originalRequest);
+        } catch (refreshError) {
+          processQueue(refreshError);
+
+          // Fix: Use the Zustand store's clearUser method
+          try {
+            const { useAuthStore } = await import("@/store/auth-store");
+            const state = useAuthStore.getState();
+            state.clearUser();
+          } catch (e) {
+            console.error("Failed to clear user:", e);
+          }
+
+          clearCsrfToken();
+          if (typeof window !== "undefined") {
+            window.location.href = "/signin";
+          }
+          return Promise.reject(refreshError);
+        } finally {
+          isRefreshing = false;
+        }
       }
     }
 

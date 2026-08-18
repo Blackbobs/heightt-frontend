@@ -1,28 +1,87 @@
-import { axiosConfig, clearCsrfToken, getCsrfToken } from "@/utils/axios-config";
+// src/store/auth-store.ts
+
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import {
+  organizationsApi,
+  OrganizationMembership,
+} from "@/lib/api/organizations";
+import {
+  axiosConfig,
+  clearCsrfToken,
+  getCsrfToken,
+} from "@/utils/axios-config";
 
-interface User {
+export interface UserProfile {
+  firstName: string;
+  lastName: string;
+  middleName?: string;
+  phone?: string;
+  avatar?: string;
+  gender?: string;
+  dateOfBirth?: string;
+  country?: string;
+  state?: string;
+  city?: string;
+  address?: string;
+  bio?: string;
+  onboardingStep: string;
+  onboardingCompleted: boolean;
+  verificationStatus: string;
+}
+
+export interface StudentProfile {
+  institutionId: string;
+  facultyId: string;
+  departmentId: string;
+  currentAcademicLevelId?: string;
+  matricNumber?: string;
+  academicStatus: string;
+  onboardingCompleted: boolean;
+  verificationStatus: string;
+}
+
+export interface User {
   id: string;
   email: string;
   username: string;
   emailVerified: boolean;
-  hasCompletedOnboarding: boolean;
-  onboardingStep: string;
+  status: string;
+  lastLoginAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  profile: UserProfile;
+  studentProfile?: StudentProfile;
 }
 
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isInitialized: boolean;
+  token: string | null;
+  userOrganizations: OrganizationMembership[];
   setUser: (user: User | null) => void;
   clearUser: () => void;
+  setUserOrganizations: (orgs: OrganizationMembership[]) => void;
+  fetchUserOrganizations: () => Promise<void>;
   register: (data: RegisterData) => Promise<any>;
   login: (identifier: string, password: string) => Promise<any>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<void>;
   verifyEmail: (token: string) => Promise<any>;
   resendVerification: (email: string) => Promise<any>;
+  checkOnboardingStatus: () => Promise<{
+    needsOnboarding: boolean;
+    onboardingCompleted: boolean;
+    onboardingStep: string;
+    redirectTo: string;
+  }>;
+  updateUserOnboardingStatus: (completed: boolean, step: string) => void;
+  initialize: () => void;
+  getToken: () => string | null;
+  fetchCurrentUser: () => Promise<User | null>;
+  setToken: (token: string | null) => void;
 }
 
 interface RegisterData {
@@ -37,16 +96,90 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       isAuthenticated: false,
       isLoading: false,
+      isInitialized: false,
+      token: null,
+      userOrganizations: [],
+
+      initialize: () => {
+        set({ isInitialized: true });
+      },
+
+      getToken: () => {
+        return get().token;
+      },
+
+      setToken: (token) => {
+        set({ token });
+        if (token) {
+          axiosConfig.defaults.headers.common["Authorization"] =
+            `Bearer ${token}`;
+        } else {
+          delete axiosConfig.defaults.headers.common["Authorization"];
+        }
+      },
 
       setUser: (user) => {
         set({ user, isAuthenticated: !!user });
       },
 
       clearUser: () => {
-        set({ user: null, isAuthenticated: false });
+        set({
+          user: null,
+          isAuthenticated: false,
+          token: null,
+          userOrganizations: [],
+        });
         clearCsrfToken();
+        delete axiosConfig.defaults.headers.common["Authorization"];
+        localStorage.removeItem("auth-storage");
       },
 
+      setUserOrganizations: (orgs) => {
+        set({ userOrganizations: orgs });
+      },
+
+      fetchUserOrganizations: async () => {
+        try {
+          const response = await organizationsApi.getUserOrganizations();
+          set({ userOrganizations: response || [] });
+        } catch (error) {
+          console.error("Failed to fetch user organizations:", error);
+        }
+      },
+
+      fetchCurrentUser: async () => {
+  try {
+    console.log("fetchCurrentUser - Making API call to /auth/me...");
+    const response = await axiosConfig.get("/auth/me");
+    console.log("fetchCurrentUser - Full user data received:", response.data);
+
+    // Store the complete user data including studentProfile
+    set({
+      user: response.data,
+      isAuthenticated: true,
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("fetchCurrentUser - Error:", error);
+    // If unauthorized, clear the user
+    if ((error as any)?.response?.status === 401) {
+      set({
+        user: null,
+        isAuthenticated: false,
+        token: null,
+        userOrganizations: [],
+      });
+      delete axiosConfig.defaults.headers.common["Authorization"];
+      clearCsrfToken();
+    }
+    return null;
+  }
+},
+
+      // ============================================
+      // REGISTER - NO AUTO-LOGIN
+      // ============================================
       register: async (data: RegisterData) => {
         set({ isLoading: true });
         try {
@@ -56,39 +189,87 @@ export const useAuthStore = create<AuthState>()(
             username: data.username,
             password: data.password,
           });
-          const user = response.data;
-          set({ user, isAuthenticated: true, isLoading: false });
+
+          console.log("Registration response:", response.data);
+
+          set({ isLoading: false });
           return response.data;
         } catch (error: any) {
+          console.error("Registration error:", error);
           set({ isLoading: false });
           throw error.response?.data || error;
         }
       },
 
+      // ============================================
+      // LOGIN - Sets HTTP-only cookies AND stores token
+      // ============================================
       login: async (identifier: string, password: string) => {
         set({ isLoading: true });
         try {
+          console.log("Logging in...");
           const response = await axiosConfig.post("/auth/login", {
             identifier,
             password,
           });
-          const { user } = response.data;
-          set({ user, isAuthenticated: true, isLoading: false });
+
+          console.log("Login response:", response.data);
+
+          // Get user data and access token from response
+          const { accessToken, ...userData } = response.data;
+
+          console.log("Access token received:", accessToken ? "Yes" : "No");
+
+          set({
+            user: userData,
+            isAuthenticated: true,
+            isLoading: false,
+            token: accessToken || null,
+          });
+
+          if (accessToken) {
+            axiosConfig.defaults.headers.common["Authorization"] =
+              `Bearer ${accessToken}`;
+          }
+
+          await get().fetchUserOrganizations();
+
+          console.log("Login successful, user:", userData);
           return response.data;
         } catch (error: any) {
+          console.error("Login error:", error);
           set({ isLoading: false });
           throw error.response?.data || error;
         }
       },
 
+      // ============================================
+      // LOGOUT
+      // ============================================
       logout: async () => {
+        console.log("logout - Starting logout process...");
+
         try {
+          console.log("logout - Calling /auth/logout");
           await axiosConfig.post("/auth/logout");
-        } catch (error) {
-          console.error("Logout error:", error);
+          console.log("logout - Logout API call successful");
+        } catch (error: any) {
+          console.error("logout - API error:", error);
         } finally {
-          set({ user: null, isAuthenticated: false });
+          console.log("logout - Clearing local state...");
+
+          set({
+            user: null,
+            isAuthenticated: false,
+            token: null,
+            userOrganizations: [],
+          });
+
+          delete axiosConfig.defaults.headers.common["Authorization"];
           clearCsrfToken();
+          localStorage.removeItem("auth-storage");
+
+          console.log("logout - State cleared successfully");
         }
       },
 
@@ -96,7 +277,13 @@ export const useAuthStore = create<AuthState>()(
         try {
           await axiosConfig.post("/auth/refresh");
         } catch (error) {
-          set({ user: null, isAuthenticated: false });
+          set({
+            user: null,
+            isAuthenticated: false,
+            token: null,
+            userOrganizations: [],
+          });
+          delete axiosConfig.defaults.headers.common["Authorization"];
           clearCsrfToken();
           throw error;
         }
@@ -123,13 +310,113 @@ export const useAuthStore = create<AuthState>()(
           throw error.response?.data || error;
         }
       },
+
+      checkOnboardingStatus: async () => {
+        const { user, isAuthenticated } = get();
+
+        if (!isAuthenticated || !user) {
+          return {
+            needsOnboarding: true,
+            onboardingCompleted: false,
+            onboardingStep: "PERSONAL_INFO",
+            redirectTo: "/signin",
+          };
+        }
+
+        const hasOnboardingCompleted =
+          user.profile?.onboardingCompleted || false;
+        const onboardingStep = user.profile?.onboardingStep || "PERSONAL_INFO";
+
+        if (hasOnboardingCompleted) {
+          return {
+            needsOnboarding: false,
+            onboardingCompleted: true,
+            onboardingStep: "COMPLETED",
+            redirectTo: "/dashboard",
+          };
+        }
+
+        try {
+          const response = await axiosConfig.get("/onboarding/status");
+          const status = response.data;
+
+          if (user.profile) {
+            const newOnboardingStep = status.onboardingStep || onboardingStep;
+            const newOnboardingCompleted =
+              status.onboardingCompleted || hasOnboardingCompleted;
+
+            // Only update the store if values actually changed.
+            // Creating a new user object reference on every call
+            // triggers useEffect dependencies (user) in AuthGuard,
+            // OnboardingPage, and AuthInitializer, causing an infinite loop.
+            if (
+              newOnboardingStep !== user.profile.onboardingStep ||
+              newOnboardingCompleted !== user.profile.onboardingCompleted
+            ) {
+              set({
+                user: {
+                  ...user,
+                  profile: {
+                    ...user.profile,
+                    onboardingStep: newOnboardingStep,
+                    onboardingCompleted: newOnboardingCompleted,
+                  },
+                },
+              });
+            }
+          }
+
+          return {
+            needsOnboarding: !status.onboardingCompleted,
+            onboardingCompleted: status.onboardingCompleted || false,
+            onboardingStep: status.onboardingStep || onboardingStep,
+            redirectTo: status.onboardingCompleted
+              ? "/dashboard"
+              : "/onboarding",
+          };
+        } catch (error: unknown) {
+          const status = (error as { response?: { status?: number } })
+            ?.response?.status;
+          if (status === 404) {
+            console.warn(
+              "Onboarding status endpoint not found, using profile data",
+            );
+          } else {
+            console.error("Failed to check onboarding status:", error);
+          }
+
+          return {
+            needsOnboarding: !hasOnboardingCompleted,
+            onboardingCompleted: hasOnboardingCompleted,
+            onboardingStep: onboardingStep,
+            redirectTo: hasOnboardingCompleted ? "/dashboard" : "/onboarding",
+          };
+        }
+      },
+
+      updateUserOnboardingStatus: (completed: boolean, step: string) => {
+        const { user } = get();
+        if (!user) return;
+
+        set({
+          user: {
+            ...user,
+            profile: {
+              ...user.profile,
+              onboardingStep: step,
+              onboardingCompleted: completed,
+            },
+          },
+        });
+      },
     }),
     {
       name: "auth-storage",
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
+        token: state.token,
       }),
-    }
-  )
+    },
+  ),
 );

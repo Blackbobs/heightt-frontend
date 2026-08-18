@@ -7,6 +7,7 @@ import { NavLinks } from './NavLinks';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
 import { cn } from '@/lib/utils';
+import { useAuthStore } from '@/store/auth-store';
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -15,6 +16,11 @@ interface MobileMenuProps {
 
 export function MobileMenu({ isOpen, onToggle }: MobileMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
+  const { isAuthenticated, user } = useAuthStore();
+
+  // Check if user needs onboarding
+  const needsOnboarding = user ? !user.profile?.onboardingCompleted : false;
+  const dashboardHref = needsOnboarding ? '/onboarding' : '/dashboard';
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -78,18 +84,27 @@ export function MobileMenu({ isOpen, onToggle }: MobileMenuProps) {
             onClick={onToggle}
           />
           <div className="flex flex-col gap-3 pt-4 border-t border-border">
-            <Button variant="outline" size="default" className="w-full justify-center" asChild onClick={onToggle}>
-              <Link href="/signin">Sign In</Link>
-            </Button>
-            <Button
-              variant="primary"
-              size="default"
-              className="w-full justify-center"
-              asChild
-              onClick={onToggle}
-            >
-              <Link href="/signup">Create Account</Link>
-            </Button>
+            {isAuthenticated && user ? (
+              <>
+                <Button variant="primary" size="default" className="w-full justify-center" asChild onClick={onToggle}>
+                  <Link href={dashboardHref}>
+                    {needsOnboarding ? 'Complete Onboarding' : 'Dashboard'}
+                  </Link>
+                </Button>
+                <Button variant="outline" size="default" className="w-full justify-center" asChild onClick={onToggle}>
+                  <Link href="/signin">Sign Out</Link>
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="outline" size="default" className="w-full justify-center" asChild onClick={onToggle}>
+                  <Link href="/signin">Sign In</Link>
+                </Button>
+                <Button variant="primary" size="default" className="w-full justify-center" asChild onClick={onToggle}>
+                  <Link href="/signup">Create Account</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>
