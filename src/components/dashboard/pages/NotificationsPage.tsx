@@ -265,7 +265,7 @@ export function NotificationsPage() {
               {unreadCount || 0} unread
             </p>
           </div>
-          {unreadCount > 0 && (
+          {(unreadCount ?? 0) > 0 && (
             <button
               onClick={handleMarkAllAsRead}
               disabled={markAllAsReadMutation.isPending}
@@ -287,12 +287,12 @@ export function NotificationsPage() {
         {TABS.map((t) => {
           const count =
             t === "Unread"
-              ? unreadCount
+              ? (unreadCount ?? 0)
               : t === "All"
-                ? notifications?.length
-                : notifications?.filter(
+                ? (notifications?.length ?? 0)
+                : (notifications?.filter(
                     (n: Notification) => n.type === t.toUpperCase(),
-                  ).length;
+                  ).length ?? 0);
 
           return (
             <button

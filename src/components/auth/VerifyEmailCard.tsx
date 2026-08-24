@@ -11,7 +11,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuthStore } from "@/store/auth";
+import { useAuthStore } from "@/store/auth-store";
 
 const OTP_LENGTH = 6;
 const RESEND_COOLDOWN = 30;

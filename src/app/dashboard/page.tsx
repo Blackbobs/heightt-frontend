@@ -60,7 +60,10 @@ export default function DashboardPage() {
     <div className="flex h-screen bg-[#f0f2f5] overflow-hidden">
       <Sidebar />
       <div className="flex flex-col flex-1 min-w-0 h-full">
-        <DashboardHeader pageTitle="Dashboard" user={user} />
+        <DashboardHeader pageTitle="Dashboard" user={user} onNotificationClick={() => {
+          // Custom notification click handler
+          router.push("/notifications");
+        }} />
         <main className="flex-1 overflow-y-auto pb-20 lg:pb-0">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <MainDashboardView />

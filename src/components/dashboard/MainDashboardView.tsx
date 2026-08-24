@@ -20,7 +20,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDashboardData } from "@/hooks/queries/useDashboard";
-import { DueAssignment, OrganizationMembership } from "@/lib/api/finance";
+import { DueAssignment } from "@/lib/api/finance";
+import type { OrganizationMembership } from "@/lib/api/organizations";
 
 export function MainDashboardView() {
   const { data, isLoading, isError, error, refetch, isFetching } =

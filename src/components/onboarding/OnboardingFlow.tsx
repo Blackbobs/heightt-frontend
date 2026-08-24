@@ -192,7 +192,7 @@ export function OnboardingFlow() {
       updateUserOnboardingStatus(true, "COMPLETED");
       queryClient.invalidateQueries({ queryKey: queryKeys.user.current });
       queryClient.invalidateQueries({
-        queryKey: queryKeys.onboarding.status(user?.id),
+        queryKey: queryKeys.onboarding.status(user?.id ?? ""),
       });
       setIsSubmitting(false);
       setSubmitError(null);
@@ -350,28 +350,28 @@ export function OnboardingFlow() {
 
   const institutionOptions: SelectOption[] = (institutionsData?.data || []).map(
     (inst: Institution) => ({
+      ...inst,
       id: inst.id,
       label: `${inst.name} (${inst.shortName || inst.code})`,
       value: inst.id,
-      ...inst,
     }),
   );
 
   const facultyOptions: SelectOption[] = (facultiesData || []).map(
     (fac: Faculty) => ({
+      ...fac,
       id: fac.id,
       label: fac.name,
       value: fac.id,
-      ...fac,
     }),
   );
 
   const departmentOptions: SelectOption[] = (departmentsData || []).map(
     (dept: Department) => ({
+      ...dept,
       id: dept.id,
       label: dept.name,
       value: dept.id,
-      ...dept,
     }),
   );
 
@@ -695,7 +695,9 @@ export function OnboardingFlow() {
               value={selectedInstitutionId}
               onChange={(id, option) => {
                 setSelectedInstitutionId(id);
-                setSelectedInstitution((option as Institution) || null);
+                setSelectedInstitution(
+                  (option as unknown as Institution) || null,
+                );
                 setInstError("");
                 // Reset dependent fields when institution changes
                 setSelectedFacultyId("");
@@ -756,7 +758,9 @@ export function OnboardingFlow() {
               value={selectedFacultyId}
               onChange={(id, option) => {
                 setSelectedFacultyId(id);
-                setSelectedFaculty((option as Faculty) || null);
+                setSelectedFaculty(
+                  (option as unknown as Faculty) || null,
+                );
                 // Reset department when faculty changes
                 setSelectedDepartmentId("");
                 setSelectedDepartment(null);
@@ -781,7 +785,9 @@ export function OnboardingFlow() {
               value={selectedDepartmentId}
               onChange={(id, option) => {
                 setSelectedDepartmentId(id);
-                setSelectedDepartment((option as Department) || null);
+                setSelectedDepartment(
+                  (option as unknown as Department) || null,
+                );
                 setDeptError("");
               }}
               label="Department"

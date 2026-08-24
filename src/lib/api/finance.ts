@@ -1,4 +1,7 @@
+// src/lib/api/finance.ts
+
 import { axiosConfig } from "@/utils/axios-config";
+import { nairaToKobo } from "@/lib/utils";
 
 export interface DueItem {
   id: string;
@@ -109,9 +112,10 @@ export interface IdempotencyKeyResponse {
 }
 
 export const financeApi = {
-  // Get dues for the authenticated user
+  // Get dues for the authenticated user - updated to use the correct endpoint
   getMyDues: async (): Promise<DueAssignment[]> => {
     try {
+      // Use the correct endpoint that fetches all dues across all organizations
       const response = await axiosConfig.get("/finance/dues/student");
       return response.data || [];
     } catch (error) {
@@ -234,7 +238,13 @@ export const financeApi = {
     data: PaymentRequest,
     idempotencyKey: string,
   ): Promise<PaymentResponse> => {
-    const response = await axiosConfig.post("/finance/payments", data, {
+    // Amounts are handled in Naira throughout the UI, but the backend
+    // expects Kobo — convert just before sending the request.
+    const payload: PaymentRequest = {
+      ...data,
+      amount: nairaToKobo(data.amount),
+    };
+    const response = await axiosConfig.post("/finance/payments", payload, {
       headers: { "Idempotency-Key": idempotencyKey },
     });
     return response.data;

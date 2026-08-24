@@ -1,3 +1,5 @@
+// apps/web/app/dashboard/payments/page.tsx
+
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
@@ -10,6 +12,7 @@ import {
   Search,
   Loader2,
   X,
+  Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMyDues, useMakePayment } from "@/hooks/queries/usePayments";
@@ -51,7 +54,9 @@ export function PaymentsPage() {
 
   useEffect(() => {
     if (highlightDueId && dues?.length) {
-      const due = dues.find((d) => d.id === highlightDueId);
+      const due = dues.find(
+        (d) => d.id === highlightDueId || d.dueId === highlightDueId,
+      );
       if (due && !due.isPaid) setSelectedDue(due);
     }
   }, [highlightDueId, dues]);
@@ -98,7 +103,7 @@ export function PaymentsPage() {
         amount: due.amount,
         organizationId: due.due.organizationId,
         paymentMethod: "CARD",
-        dueAssignmentId: due.id,
+        dueAssignmentId: due.isAutoAssigned ? undefined : due.id,
         dueId: due.dueId,
         description: due.due.name || "Due payment",
         successUrl: `${origin}/dashboard/payments?status=success`,
@@ -149,8 +154,11 @@ export function PaymentsPage() {
     );
   }
 
+  const unpaidDues = dues?.filter((d) => !d.isPaid) || [];
+
   return (
     <div className="space-y-5 pb-6">
+      {/* Status Banner */}
       {statusBanner && (
         <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 text-emerald-700 text-sm font-medium flex items-start justify-between gap-3">
           <span>{statusBanner}</span>
@@ -175,6 +183,7 @@ export function PaymentsPage() {
         </div>
       )}
 
+      {/* Unpaid Alert */}
       {stats.unpaidCount > 0 && (
         <div className="bg-[#fff8ec] border border-[#f5d08a] rounded-[16px] px-4 py-4 flex items-start gap-3">
           <div className="w-8 h-8 rounded-[8px] bg-amber-100 flex items-center justify-center flex-shrink-0">
@@ -192,31 +201,22 @@ export function PaymentsPage() {
         </div>
       )}
 
-      {/* Stats */}
-      {/* <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white border border-[#e8ecf1] rounded-[14px] p-3.5">
-          <p className="text-[0.6rem] text-[#7a8ba3] font-medium uppercase tracking-wide mb-1">
-            Unpaid
-          </p>
-          <p className="text-[1.2rem] font-extrabold text-amber-600">
-            ₦{stats.unpaidTotal.toLocaleString()}
-          </p>
-          <p className="text-[0.6rem] text-[#7a8ba3]">
-            {stats.unpaidCount} item{stats.unpaidCount !== 1 ? "s" : ""}
-          </p>
+      {dues && dues.length === 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-[16px] px-4 py-4 flex items-start gap-3">
+          <div className="w-8 h-8 rounded-[8px] bg-blue-100 flex items-center justify-center flex-shrink-0">
+            <Building2 className="w-4 h-4 text-blue-600" />
+          </div>
+          <div>
+            <p className="text-[0.82rem] font-semibold text-[#1a3a7a]">
+              No dues assigned
+            </p>
+            <p className="text-[0.7rem] text-[#4a6a9a] mt-0.5">
+              You don't have any active dues. Join an organization to see
+              assigned dues.
+            </p>
+          </div>
         </div>
-        <div className="bg-white border border-[#e8ecf1] rounded-[14px] p-3.5">
-          <p className="text-[0.6rem] text-[#7a8ba3] font-medium uppercase tracking-wide mb-1">
-            Paid
-          </p>
-          <p className="text-[1.2rem] font-extrabold text-emerald-600">
-            ₦{stats.paidTotal.toLocaleString()}
-          </p>
-          <p className="text-[0.6rem] text-[#7a8ba3]">
-            {stats.paidCount} item{stats.paidCount !== 1 ? "s" : ""}
-          </p>
-        </div>
-      </div> */}
+      )}
 
       {/* Search */}
       <div className="relative">
@@ -263,7 +263,9 @@ export function PaymentsPage() {
               No dues found
             </p>
             <p className="text-[0.65rem] text-[#7a8ba3] mt-1">
-              Join an organization to see assigned dues
+              {search
+                ? "No matching dues found. Try adjusting your search."
+                : "Join an organization to see assigned dues"}
             </p>
           </div>
         )}
@@ -273,6 +275,7 @@ export function PaymentsPage() {
             due.due?.dueDate &&
             new Date(due.due.dueDate) < new Date();
           const isPaying = payingId === due.id;
+          const isAutoAssigned = due.isAutoAssigned;
 
           return (
             <div
@@ -289,8 +292,15 @@ export function PaymentsPage() {
                 <p className="text-[0.82rem] font-semibold text-[#1a1a2e] truncate">
                   {due.due?.name || "Due Payment"}
                 </p>
-                <p className="text-[0.6rem] text-[#7a8ba3] mt-0.5">
-                  {due.due?.organization?.name || "Unknown"} ·{" "}
+                <p className="text-[0.6rem] text-[#7a8ba3] mt-0.5 flex items-center gap-1 flex-wrap">
+                  <Building2 className="w-3 h-3 flex-shrink-0" />
+                  {due.due?.organization?.name || "Unknown"}
+                  {isAutoAssigned && (
+                    <span className="ml-1 text-[0.55rem] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full font-medium">
+                      Available
+                    </span>
+                  )}
+                  <span className="text-[#b0bac8]">·</span>
                   {due.due?.dueDate
                     ? new Date(due.due.dueDate).toLocaleDateString()
                     : "No deadline"}
@@ -323,12 +333,22 @@ export function PaymentsPage() {
                       {isOverdue ? "Overdue" : "Pending"}
                     </span>
                     <button
-                      onClick={() => setSelectedDue(due)}
+                      onClick={() => {
+                        setSelectedDue(due);
+                      }}
                       disabled={isPaying}
-                      className="py-1.5 px-4 rounded-lg bg-[#1a5cff] hover:bg-[#0f4ad0] text-white text-xs font-semibold border-none cursor-pointer disabled:opacity-60 transition-colors"
+                      className={cn(
+                        "py-1.5 px-4 rounded-lg text-xs font-semibold border-none cursor-pointer transition-colors flex items-center gap-1.5",
+                        isPaying
+                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          : "bg-[#1a5cff] hover:bg-[#0f4ad0] text-white",
+                      )}
                     >
                       {isPaying ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          Processing...
+                        </>
                       ) : (
                         "Pay"
                       )}
@@ -376,6 +396,14 @@ export function PaymentsPage() {
                   ₦{selectedDue.amount.toLocaleString()}
                 </span>
               </div>
+              {selectedDue.isAutoAssigned && (
+                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">
+                  <p className="font-semibold">
+                    This due is available for you to pay. No prior assignment
+                    needed.
+                  </p>
+                </div>
+              )}
             </div>
 
             <p className="text-xs text-[#5b6d89]">
@@ -414,3 +442,5 @@ export function PaymentsPage() {
     </div>
   );
 }
+
+export default PaymentsPage;
