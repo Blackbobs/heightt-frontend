@@ -33,6 +33,7 @@ export interface DueAssignment {
   createdAt: string;
   updatedAt: string;
   due: DueItem;
+  isAutoAssigned: boolean; // Add this property
 }
 
 export interface Transaction {
