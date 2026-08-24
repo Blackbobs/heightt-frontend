@@ -21,9 +21,24 @@ import { DueAssignment, PaymentResponse } from "@/lib/api/finance";
 type Tab = "all" | "unpaid" | "paid";
 
 function getCheckoutUrl(response: PaymentResponse): string | null {
+  // Check if response has a data wrapper with checkoutUrl
+  if (response.data && typeof response.data === "object") {
+    if (typeof response.data.checkoutUrl === "string") {
+      return response.data.checkoutUrl;
+    }
+    if (typeof response.data.url === "string") {
+      return response.data.url;
+    }
+    if (typeof response.data.paymentUrl === "string") {
+      return response.data.paymentUrl;
+    }
+  }
+
+  // Direct response properties (fallback)
   if (typeof response.checkoutUrl === "string") return response.checkoutUrl;
   if (typeof response.url === "string") return response.url;
   if (typeof response.paymentUrl === "string") return response.paymentUrl;
+
   return null;
 }
 
@@ -110,8 +125,13 @@ export function PaymentsPage() {
         cancelUrl: `${origin}/dashboard/payments?status=cancelled`,
       });
 
+      console.log("Payment response:", result); // Debug log to see the response structure
+
       const checkoutUrl = getCheckoutUrl(result);
+      console.log("Extracted checkout URL:", checkoutUrl); // Debug log
+
       if (checkoutUrl) {
+        // Redirect to the checkout URL
         window.location.href = checkoutUrl;
       } else {
         setPaymentError("Payment initiated but no checkout URL was returned.");
