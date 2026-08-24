@@ -20,9 +20,15 @@ import { DueAssignment, PaymentResponse } from "@/lib/api/finance";
 
 type Tab = "all" | "unpaid" | "paid";
 
+// Helper function to safely check if a value is an object
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function getCheckoutUrl(response: PaymentResponse): string | null {
   // Check if response has a data wrapper with checkoutUrl
-  if (response.data && typeof response.data === "object") {
+  if (isObject(response.data)) {
+    // Check for checkoutUrl in the data object
     if (typeof response.data.checkoutUrl === "string") {
       return response.data.checkoutUrl;
     }
