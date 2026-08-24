@@ -120,6 +120,11 @@ export function PaymentsPage() {
 
     try {
       const origin = window.location.origin;
+      const encodedDueName = encodeURIComponent(due.due?.name || "Due payment");
+      const encodedOrg = encodeURIComponent(due.due?.organization?.name || "");
+      const amountParam = due.amount;
+      const dueIdParam = due.dueId || due.id;
+
       const result = await makePayment.mutateAsync({
         amount: due.amount,
         organizationId: due.due.organizationId,
@@ -127,8 +132,8 @@ export function PaymentsPage() {
         dueAssignmentId: due.isAutoAssigned ? undefined : due.id,
         dueId: due.dueId,
         description: due.due.name || "Due payment",
-        successUrl: `${origin}/dashboard/payments?status=success`,
-        cancelUrl: `${origin}/dashboard/payments?status=cancelled`,
+        successUrl: `${origin}/dashboard/payments/success?dueId=${dueIdParam}&dueName=${encodedDueName}&amount=${amountParam}&org=${encodedOrg}`,
+        cancelUrl: `${origin}/dashboard/payments/cancelled?dueId=${dueIdParam}&dueName=${encodedDueName}&amount=${amountParam}&org=${encodedOrg}`,
       });
 
       console.log("Payment response:", result); // Debug log to see the response structure
