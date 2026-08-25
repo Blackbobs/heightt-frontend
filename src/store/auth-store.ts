@@ -91,6 +91,14 @@ interface RegisterData {
   password: string;
 }
 
+function applyAccessToken(token: string | null): void {
+  if (token) {
+    axiosConfig.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  } else {
+    delete axiosConfig.defaults.headers.common["Authorization"];
+  }
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -111,12 +119,7 @@ export const useAuthStore = create<AuthState>()(
 
       setToken: (token) => {
         set({ token });
-        if (token) {
-          axiosConfig.defaults.headers.common["Authorization"] =
-            `Bearer ${token}`;
-        } else {
-          delete axiosConfig.defaults.headers.common["Authorization"];
-        }
+        applyAccessToken(token);
       },
 
       setUser: (user) => {
@@ -131,7 +134,7 @@ export const useAuthStore = create<AuthState>()(
           userOrganizations: [],
         });
         clearCsrfToken();
-        delete axiosConfig.defaults.headers.common["Authorization"];
+        applyAccessToken(null);
         localStorage.removeItem("auth-storage");
       },
 
@@ -174,7 +177,7 @@ export const useAuthStore = create<AuthState>()(
               token: null,
               userOrganizations: [],
             });
-            delete axiosConfig.defaults.headers.common["Authorization"];
+            applyAccessToken(null);
             clearCsrfToken();
           }
           return null;
@@ -188,7 +191,13 @@ export const useAuthStore = create<AuthState>()(
         }
 
         try {
-          await axiosConfig.post("/auth/refresh");
+          const response = await axiosConfig.post("/auth/refresh");
+          const accessToken = response.data?.accessToken;
+
+          if (accessToken) {
+            set({ token: accessToken });
+            applyAccessToken(accessToken);
+          }
         } catch (error) {
           console.warn("restoreSession - Refresh failed:", error);
           return false;
@@ -263,8 +272,7 @@ export const useAuthStore = create<AuthState>()(
           });
 
           if (accessToken) {
-            axiosConfig.defaults.headers.common["Authorization"] =
-              `Bearer ${accessToken}`;
+            applyAccessToken(accessToken);
           }
 
           await get().fetchUserOrganizations();
@@ -304,7 +312,7 @@ export const useAuthStore = create<AuthState>()(
             userOrganizations: [],
           });
 
-          delete axiosConfig.defaults.headers.common["Authorization"];
+          applyAccessToken(null);
           clearCsrfToken();
           localStorage.removeItem("auth-storage");
 
@@ -314,7 +322,13 @@ export const useAuthStore = create<AuthState>()(
 
       refreshToken: async () => {
         try {
-          await axiosConfig.post("/auth/refresh");
+          const response = await axiosConfig.post("/auth/refresh");
+          const accessToken = response.data?.accessToken;
+
+          if (accessToken) {
+            set({ token: accessToken });
+            applyAccessToken(accessToken);
+          }
         } catch (error) {
           set({
             user: null,
@@ -322,7 +336,7 @@ export const useAuthStore = create<AuthState>()(
             token: null,
             userOrganizations: [],
           });
-          delete axiosConfig.defaults.headers.common["Authorization"];
+          applyAccessToken(null);
           clearCsrfToken();
           throw error;
         }
