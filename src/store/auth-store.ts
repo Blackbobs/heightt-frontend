@@ -212,46 +212,37 @@ export const useAuthStore = create<AuthState>()(
         try {
           console.log("[Auth] Login started for:", identifier);
 
-          // CRITICAL: Ensure CSRF token exists before login
-          console.log("[Auth] Ensuring CSRF token is available...");
+          // CRITICAL: Get CSRF token before login
+          console.log("[Auth] 🔄 Getting CSRF token before login...");
+          let csrfToken: string;
           try {
-            const token = await getCsrfToken();
+            csrfToken = await getCsrfToken();
             console.log(
-              "[Auth] CSRF token obtained:",
-              token ? token.substring(0, 10) + "..." : "No token",
+              "[Auth] ✅ CSRF token obtained:",
+              csrfToken.substring(0, 10) + "...",
             );
           } catch (csrfError) {
-            console.error("[Auth] Failed to get CSRF token:", csrfError);
-            // Try one more time with a direct fetch
-            console.log("[Auth] Retrying CSRF token fetch...");
+            console.error("[Auth] ❌ Failed to get CSRF token:", csrfError);
+            // Try one more time with a delay
             await new Promise((resolve) => setTimeout(resolve, 500));
-            const token = await getCsrfToken();
+            csrfToken = await getCsrfToken();
             console.log(
-              "[Auth] CSRF token on retry:",
-              token ? "Obtained" : "Failed",
+              "[Auth] ✅ CSRF token on retry:",
+              csrfToken.substring(0, 10) + "...",
             );
           }
 
-          console.log("[Auth] Making login request...");
+          console.log("[Auth] 📤 Making login request...");
           const response = await axiosConfig.post("/auth/login", {
             identifier,
             password,
           });
 
-          console.log("[Auth] Login response received");
+          console.log("[Auth] ✅ Login response received");
           console.log("[Auth] Response status:", response.status);
-          console.log(
-            "[Auth] Response data keys:",
-            Object.keys(response.data || {}),
-          );
 
           // Get user data and access token from response
           const { accessToken, ...userData } = response.data;
-
-          console.log(
-            "[Auth] Access token:",
-            accessToken ? "Received" : "Not received",
-          );
 
           set({
             user: userData,
@@ -268,12 +259,12 @@ export const useAuthStore = create<AuthState>()(
           await get().fetchUserOrganizations();
 
           console.log(
-            "[Auth] Login successful for:",
+            "[Auth] ✅ Login successful for:",
             userData.email || userData.username,
           );
           return response.data;
         } catch (error: any) {
-          console.error("[Auth] Login error:", error);
+          console.error("[Auth] ❌ Login error:", error);
           console.error("[Auth] Error response:", error.response?.data);
           set({ isLoading: false });
           throw error.response?.data || error;

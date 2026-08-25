@@ -7,11 +7,6 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 
-/**
- * ============================================================
- * API BASE URL
- * ============================================================
- */
 const baseURL =
   process.env.NEXT_PUBLIC_API_URL ||
   (process.env.NODE_ENV === "production"
@@ -19,12 +14,6 @@ const baseURL =
     : "http://localhost:3000/api/v1");
 
 console.log("[Axios] Base URL:", baseURL);
-
-/**
- * ============================================================
- * AXIOS INSTANCE
- * ============================================================
- */
 
 export const axiosConfig: AxiosInstance = axios.create({
   baseURL,
@@ -36,7 +25,6 @@ export const axiosConfig: AxiosInstance = axios.create({
   timeout: 30_000,
 });
 
-// Log when axios instance is created
 console.log("[Axios] Instance created with withCredentials: true");
 
 /**
@@ -47,10 +35,9 @@ console.log("[Axios] Instance created with withCredentials: true");
 
 let csrfToken: string | null = null;
 let csrfTokenFetching: Promise<string> | null = null;
-let csrfInitAttempts = 0;
-const MAX_CSRF_ATTEMPTS = 3;
-
-const CSRF_ENDPOINT = "/auth/csrf-token";
+let csrfTokenLastFetch: number = 0;
+let csrfTokenInitialized = false;
+const CSRF_TOKEN_EXPIRY = 5 * 60 * 1000; // 5 minutes
 
 /**
  * Helper to get CSRF token from cookie
@@ -87,21 +74,16 @@ function getCsrfTokenFromCookie(): string | null {
  */
 async function fetchCsrfToken(): Promise<string> {
   console.log("[CSRF] Fetching CSRF token from:", CSRF_ENDPOINT);
-  console.log("[CSRF] Environment:", process.env.NODE_ENV);
-  console.log("[CSRF] Base URL:", baseURL);
 
   try {
     // First check if token exists in cookie
     const cookieToken = getCsrfTokenFromCookie();
     if (cookieToken) {
-      console.log("[CSRF] Using token from cookie");
+      console.log("[CSRF] Using existing token from cookie");
       return cookieToken;
     }
 
-    // Make the request
-    const fullUrl = `${baseURL}${CSRF_ENDPOINT}`;
-    console.log("[CSRF] Full URL:", fullUrl);
-
+    // Make the request to get a fresh token
     const response = await axiosConfig.get(CSRF_ENDPOINT, {
       withCredentials: true,
       headers: {
@@ -110,7 +92,6 @@ async function fetchCsrfToken(): Promise<string> {
     });
 
     console.log("[CSRF] Response status:", response.status);
-    console.log("[CSRF] Response headers:", response.headers);
     console.log("[CSRF] Response data:", response.data);
 
     const token = response.data?.csrfToken || response.data?.token;
@@ -124,7 +105,20 @@ async function fetchCsrfToken(): Promise<string> {
       "[CSRF] Token received successfully:",
       token.substring(0, 10) + "...",
     );
-    csrfInitAttempts = 0;
+
+    // Store token in memory
+    csrfToken = token;
+    csrfTokenLastFetch = Date.now();
+    csrfTokenInitialized = true;
+
+    // Verify cookie was set by checking again
+    const cookieCheck = getCsrfTokenFromCookie();
+    if (!cookieCheck) {
+      console.warn(
+        "[CSRF] Token received but cookie not set - this may cause issues",
+      );
+    }
+
     return token;
   } catch (error: any) {
     console.error("[CSRF] Failed to fetch token:", error.message);
@@ -134,6 +128,8 @@ async function fetchCsrfToken(): Promise<string> {
     const cookieToken = getCsrfTokenFromCookie();
     if (cookieToken) {
       console.log("[CSRF] Using fallback token from cookie");
+      csrfToken = cookieToken;
+      csrfTokenInitialized = true;
       return cookieToken;
     }
 
@@ -141,28 +137,40 @@ async function fetchCsrfToken(): Promise<string> {
   }
 }
 
+const CSRF_ENDPOINT = "/auth/csrf-token";
+
 /**
  * Get the current CSRF token.
  */
 export async function getCsrfToken(): Promise<string> {
-  // Check cookie first (most reliable)
+  // First check cookie - this is the most reliable source
   const cookieToken = getCsrfTokenFromCookie();
   if (cookieToken) {
-    // If we have a cookie token but no memory token, store it
     if (!csrfToken) {
       csrfToken = cookieToken;
+      csrfTokenInitialized = true;
       console.log("[CSRF] Stored cookie token in memory");
     }
-    return cookieToken;
+    // Update last fetch time if token is valid
+    if (csrfToken && Date.now() - csrfTokenLastFetch < CSRF_TOKEN_EXPIRY) {
+      console.log("[CSRF] Using valid token from cookie/memory");
+      return csrfToken;
+    }
   }
 
-  // Return cached token if available
-  if (csrfToken) {
+  // Return cached token if still valid
+  if (csrfToken && Date.now() - csrfTokenLastFetch < CSRF_TOKEN_EXPIRY) {
     console.log(
       "[CSRF] Using cached token:",
       csrfToken.substring(0, 10) + "...",
     );
     return csrfToken;
+  }
+
+  // Clear expired token
+  if (csrfToken) {
+    console.log("[CSRF] Token expired, fetching new one");
+    csrfToken = null;
   }
 
   // If already fetching, wait for it
@@ -176,16 +184,18 @@ export async function getCsrfToken(): Promise<string> {
   csrfTokenFetching = fetchCsrfToken()
     .then((token) => {
       csrfToken = token;
+      csrfTokenLastFetch = Date.now();
+      csrfTokenInitialized = true;
       console.log("[CSRF] Token stored in memory");
       return token;
     })
     .catch((error) => {
       console.error("[CSRF] Fetch failed:", error);
-      // Try one more time from cookie
       const finalCookieToken = getCsrfTokenFromCookie();
       if (finalCookieToken) {
         console.log("[CSRF] Using final fallback from cookie");
         csrfToken = finalCookieToken;
+        csrfTokenInitialized = true;
         return finalCookieToken;
       }
       throw error;
@@ -204,7 +214,8 @@ export function clearCsrfToken(): void {
   console.log("[CSRF] Clearing token");
   csrfToken = null;
   csrfTokenFetching = null;
-  csrfInitAttempts = 0;
+  csrfTokenLastFetch = 0;
+  csrfTokenInitialized = false;
 }
 
 /**
@@ -216,11 +227,10 @@ export async function initializeCsrf(): Promise<void> {
     const token = await getCsrfToken();
     console.log(
       "[CSRF] Initialization successful:",
-      token ? "Token obtained" : "No token",
+      token ? "Token obtained: " + token.substring(0, 10) + "..." : "No token",
     );
   } catch (error) {
     console.error("[CSRF] Initialization failed:", error);
-    // Don't throw - allow app to continue
   }
 }
 
@@ -231,13 +241,7 @@ export async function initializeCsrf(): Promise<void> {
  */
 
 const SAFE_METHODS = ["get", "head", "options"];
-const CSRF_EXEMPT_ENDPOINTS = [
-  CSRF_ENDPOINT,
-  "/auth/login",
-  "/auth/register",
-  "/auth/refresh",
-  "/auth/logout",
-];
+const CSRF_EXEMPT_ENDPOINTS = [CSRF_ENDPOINT];
 
 function isCsrfEndpoint(config: AxiosRequestConfig): boolean {
   if (!config.url) return false;
@@ -271,9 +275,9 @@ axiosConfig.interceptors.request.use(
       return config;
     }
 
-    // Skip CSRF for exempt endpoints
+    // Skip CSRF for the CSRF token endpoint itself
     if (isCsrfEndpoint(config)) {
-      console.log(`[Axios] Skipping CSRF for exempt endpoint: ${config.url}`);
+      console.log(`[Axios] Skipping CSRF for CSRF endpoint: ${config.url}`);
       return config;
     }
 
@@ -282,48 +286,24 @@ axiosConfig.interceptors.request.use(
     );
 
     try {
-      // Get the token
+      // Get the token - this will fetch if not available
       const token = await getCsrfToken();
 
       if (token) {
-        // Set the token in headers
+        // CRITICAL: Set the token in the header
         config.headers.set("X-CSRF-Token", token);
         console.log(
-          `[Axios] CSRF token attached to ${config.method?.toUpperCase()} ${config.url}`,
+          `[Axios] ✅ CSRF token attached to ${config.method?.toUpperCase()} ${config.url}: ${token.substring(0, 10)}...`,
         );
       } else {
-        console.error(`[Axios] No CSRF token available for ${config.url}`);
-        // In production, try to get from cookie one more time
-        const cookieToken = getCsrfTokenFromCookie();
-        if (cookieToken) {
-          config.headers.set("X-CSRF-Token", cookieToken);
-          console.log(
-            `[Axios] Using cookie token as fallback for ${config.url}`,
-          );
-        } else {
-          // We'll let the request proceed and handle 403 in response interceptor
-          console.warn(
-            `[Axios] Proceeding without CSRF token for ${config.url}`,
-          );
-        }
+        console.error(`[Axios] ❌ No CSRF token available for ${config.url}`);
+        return Promise.reject(new Error("CSRF token not available"));
       }
     } catch (error) {
       console.error(
-        `[Axios] Failed to get CSRF token for ${config.url}:`,
+        `[Axios] ❌ Failed to get CSRF token for ${config.url}:`,
         error,
       );
-      // In production, try cookie as fallback
-      if (process.env.NODE_ENV === "production") {
-        const cookieToken = getCsrfTokenFromCookie();
-        if (cookieToken) {
-          config.headers.set("X-CSRF-Token", cookieToken);
-          console.log(
-            `[Axios] Using cookie token as emergency fallback for ${config.url}`,
-          );
-          return config;
-        }
-      }
-      // Reject to prevent request without CSRF token
       return Promise.reject(error);
     }
 
@@ -375,7 +355,8 @@ function isCsrfError(error: AxiosError): boolean {
     message.includes("csrf") ||
     message.includes("invalid csrf token") ||
     message.includes("csrf token mismatch") ||
-    message.includes("ebadcsrftoken")
+    message.includes("ebadcsrftoken") ||
+    message.includes("forbiddenerror: invalid csrf token")
   );
 }
 
@@ -392,7 +373,7 @@ function isAuthEndpoint(config: AxiosRequestConfig): boolean {
 axiosConfig.interceptors.response.use(
   (response) => {
     console.log(
-      `[Axios] Response: ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`,
+      `[Axios] ✅ Response: ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`,
     );
     return response;
   },
@@ -409,7 +390,7 @@ axiosConfig.interceptors.response.use(
 
     const status = error.response?.status;
     console.log(
-      `[Axios] Error: ${status} - ${error.message} for ${originalRequest.method?.toUpperCase()} ${originalRequest.url}`,
+      `[Axios] ❌ Error: ${status} - ${error.message} for ${originalRequest.method?.toUpperCase()} ${originalRequest.url}`,
     );
 
     /**
@@ -422,7 +403,7 @@ axiosConfig.interceptors.response.use(
       !originalRequest._csrfRetry &&
       !isCsrfEndpoint(originalRequest)
     ) {
-      console.warn("[CSRF] Token rejected, refreshing...");
+      console.warn("[CSRF] 🔄 Token rejected, refreshing...");
 
       originalRequest._csrfRetry = true;
       clearCsrfToken();
@@ -430,10 +411,10 @@ axiosConfig.interceptors.response.use(
       try {
         const newToken = await getCsrfToken();
         originalRequest.headers.set("X-CSRF-Token", newToken);
-        console.log("[CSRF] Retrying with new token");
+        console.log("[CSRF] ✅ Retrying with new token");
         return axiosConfig(originalRequest);
       } catch (csrfError) {
-        console.error("[CSRF] Failed to refresh:", csrfError);
+        console.error("[CSRF] ❌ Failed to refresh:", csrfError);
         return Promise.reject(csrfError);
       }
     }
@@ -497,11 +478,10 @@ axiosConfig.interceptors.response.use(
  * ============================================================
  */
 
-// Initialize CSRF immediately when this module loads in the browser
 if (typeof window !== "undefined") {
-  console.log("[CSRF] Browser detected, auto-initializing...");
+  console.log("[CSRF] 🌐 Browser detected, auto-initializing...");
 
-  // Immediate initialization
+  // Immediate initialization - this will fetch the token
   initializeCsrf().catch((error) => {
     console.error("[CSRF] Auto-initialization failed:", error);
   });
@@ -509,26 +489,24 @@ if (typeof window !== "undefined") {
   // Also initialize after a delay as fallback
   setTimeout(() => {
     if (!csrfToken) {
-      console.log("[CSRF] Delayed initialization fallback...");
+      console.log("[CSRF] ⏰ Delayed initialization fallback...");
       initializeCsrf().catch(console.error);
     }
   }, 1000);
 
-  // Check again when tab becomes visible
-  document.addEventListener("visibilitychange", () => {
-    if (!document.hidden && !csrfToken) {
-      console.log("[CSRF] Tab visible, checking token...");
-      initializeCsrf().catch(console.error);
-    }
-  });
-
-  // Log cookie status
+  // Log token status after 2 seconds
   setTimeout(() => {
-    const cookieToken = getCsrfTokenFromCookie();
+    const token = getCsrfTokenFromCookie();
     console.log(
-      "[CSRF] Cookie check after 2s:",
-      cookieToken ? "Token found" : "No token",
+      "[CSRF] 📋 Token status after 2s:",
+      token ? "✅ Token found in cookie" : "❌ No token in cookie",
     );
+    if (csrfToken) {
+      console.log(
+        "[CSRF] 📋 Memory token:",
+        csrfToken.substring(0, 10) + "...",
+      );
+    }
   }, 2000);
 }
 
