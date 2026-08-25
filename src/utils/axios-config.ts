@@ -11,17 +11,6 @@ import axios, {
  * ============================================================
  * API BASE URL
  * ============================================================
- *
- * NEXT_PUBLIC_* variables are injected by Next.js at build time.
- *
- * Production:
- *   NEXT_PUBLIC_API_URL=https://heightt-backend.onrender.com/api/v1
- *
- * Development:
- *   NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1
- *
- * The production fallback is useful if the Vercel environment
- * variable was accidentally omitted.
  */
 const baseURL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -39,89 +28,114 @@ console.log("[Axios] Base URL:", baseURL);
 
 export const axiosConfig: AxiosInstance = axios.create({
   baseURL,
-
-  /**
-   * Required because authentication and CSRF protection use
-   * cookies.
-   */
   withCredentials: true,
-
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
   },
-
   timeout: 30_000,
 });
+
+// Log when axios instance is created
+console.log("[Axios] Instance created with withCredentials: true");
 
 /**
  * ============================================================
  * CSRF TOKEN MANAGEMENT
  * ============================================================
- *
- * The backend should expose:
- *
- * GET /auth/csrf-token
- *
- * That endpoint should:
- *
- * 1. Generate/initialize the CSRF token.
- * 2. Set the CSRF cookie.
- * 3. Return the token in the response body.
- *
- * Example:
- *
- * {
- *   "csrfToken": "..."
- * }
- *
- * We keep the token in memory rather than localStorage.
  */
 
 let csrfToken: string | null = null;
-
 let csrfTokenFetching: Promise<string> | null = null;
+let csrfInitAttempts = 0;
+const MAX_CSRF_ATTEMPTS = 3;
 
-/**
- * Endpoint used to obtain a CSRF token.
- */
 const CSRF_ENDPOINT = "/auth/csrf-token";
 
 /**
+ * Helper to get CSRF token from cookie
+ */
+function getCsrfTokenFromCookie(): string | null {
+  if (typeof document === "undefined") {
+    console.log("[CSRF] Not in browser, cannot read cookie");
+    return null;
+  }
+
+  try {
+    const cookies = document.cookie.split(";");
+    for (const cookie of cookies) {
+      const [name, value] = cookie.trim().split("=");
+      if (name === "_csrf") {
+        const decoded = decodeURIComponent(value);
+        console.log(
+          "[CSRF] Found token in cookie:",
+          decoded.substring(0, 10) + "...",
+        );
+        return decoded;
+      }
+    }
+    console.log("[CSRF] No _csrf cookie found");
+    return null;
+  } catch (error) {
+    console.error("[CSRF] Error reading cookie:", error);
+    return null;
+  }
+}
+
+/**
  * Fetch a fresh CSRF token from the backend.
- *
- * IMPORTANT:
- * We deliberately use axiosConfig here, but the request
- * interceptor explicitly skips this endpoint so that this
- * request does not recursively try to fetch another token.
  */
 async function fetchCsrfToken(): Promise<string> {
+  console.log("[CSRF] Fetching CSRF token from:", CSRF_ENDPOINT);
+  console.log("[CSRF] Environment:", process.env.NODE_ENV);
+  console.log("[CSRF] Base URL:", baseURL);
+
   try {
-    console.log("[CSRF] Fetching CSRF token...");
+    // First check if token exists in cookie
+    const cookieToken = getCsrfTokenFromCookie();
+    if (cookieToken) {
+      console.log("[CSRF] Using token from cookie");
+      return cookieToken;
+    }
+
+    // Make the request
+    const fullUrl = `${baseURL}${CSRF_ENDPOINT}`;
+    console.log("[CSRF] Full URL:", fullUrl);
 
     const response = await axiosConfig.get(CSRF_ENDPOINT, {
-      /**
-       * Explicitly ensure cookies are included.
-       */
       withCredentials: true,
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+      },
     });
 
-    const token = response.data?.csrfToken;
+    console.log("[CSRF] Response status:", response.status);
+    console.log("[CSRF] Response headers:", response.headers);
+    console.log("[CSRF] Response data:", response.data);
+
+    const token = response.data?.csrfToken || response.data?.token;
 
     if (!token) {
-      console.error(
-        "[CSRF] Backend responded without a csrfToken:",
-        response.data,
-      );
-
+      console.error("[CSRF] No token in response:", response.data);
       throw new Error("No CSRF token received from server");
     }
 
-    console.log("[CSRF] CSRF token received");
-
+    console.log(
+      "[CSRF] Token received successfully:",
+      token.substring(0, 10) + "...",
+    );
+    csrfInitAttempts = 0;
     return token;
-  } catch (error) {
-    console.error("[CSRF] Failed to fetch CSRF token:", error);
+  } catch (error: any) {
+    console.error("[CSRF] Failed to fetch token:", error.message);
+    console.error("[CSRF] Error details:", error.response?.data || error);
+
+    // Try to get token from cookie as fallback
+    const cookieToken = getCsrfTokenFromCookie();
+    if (cookieToken) {
+      console.log("[CSRF] Using fallback token from cookie");
+      return cookieToken;
+    }
 
     throw error;
   }
@@ -129,36 +143,52 @@ async function fetchCsrfToken(): Promise<string> {
 
 /**
  * Get the current CSRF token.
- *
- * If we already have one in memory, reuse it.
- *
- * If another request is already fetching a token, wait for
- * that request instead of creating multiple simultaneous
- * CSRF requests.
  */
 export async function getCsrfToken(): Promise<string> {
-  /**
-   * Existing token.
-   */
+  // Check cookie first (most reliable)
+  const cookieToken = getCsrfTokenFromCookie();
+  if (cookieToken) {
+    // If we have a cookie token but no memory token, store it
+    if (!csrfToken) {
+      csrfToken = cookieToken;
+      console.log("[CSRF] Stored cookie token in memory");
+    }
+    return cookieToken;
+  }
+
+  // Return cached token if available
   if (csrfToken) {
+    console.log(
+      "[CSRF] Using cached token:",
+      csrfToken.substring(0, 10) + "...",
+    );
     return csrfToken;
   }
 
-  /**
-   * Another request is already fetching the token.
-   */
+  // If already fetching, wait for it
   if (csrfTokenFetching) {
+    console.log("[CSRF] Waiting for existing fetch...");
     return csrfTokenFetching;
   }
 
-  /**
-   * Start a new fetch.
-   */
+  // Start new fetch
+  console.log("[CSRF] Starting new token fetch...");
   csrfTokenFetching = fetchCsrfToken()
     .then((token) => {
       csrfToken = token;
-
+      console.log("[CSRF] Token stored in memory");
       return token;
+    })
+    .catch((error) => {
+      console.error("[CSRF] Fetch failed:", error);
+      // Try one more time from cookie
+      const finalCookieToken = getCsrfTokenFromCookie();
+      if (finalCookieToken) {
+        console.log("[CSRF] Using final fallback from cookie");
+        csrfToken = finalCookieToken;
+        return finalCookieToken;
+      }
+      throw error;
     })
     .finally(() => {
       csrfTokenFetching = null;
@@ -169,16 +199,29 @@ export async function getCsrfToken(): Promise<string> {
 
 /**
  * Clear the in-memory token.
- *
- * This is useful when:
- *
- * - CSRF validation fails
- * - User logs out
- * - Session expires
- * - We need to obtain a fresh token
  */
 export function clearCsrfToken(): void {
+  console.log("[CSRF] Clearing token");
   csrfToken = null;
+  csrfTokenFetching = null;
+  csrfInitAttempts = 0;
+}
+
+/**
+ * Initialize CSRF token proactively.
+ */
+export async function initializeCsrf(): Promise<void> {
+  console.log("[CSRF] Initializing...");
+  try {
+    const token = await getCsrfToken();
+    console.log(
+      "[CSRF] Initialization successful:",
+      token ? "Token obtained" : "No token",
+    );
+  } catch (error) {
+    console.error("[CSRF] Initialization failed:", error);
+    // Don't throw - allow app to continue
+  }
 }
 
 /**
@@ -187,44 +230,22 @@ export function clearCsrfToken(): void {
  * ============================================================
  */
 
-/**
- * HTTP methods that don't normally mutate server state.
- *
- * CSRF protection is generally unnecessary for these methods.
- */
 const SAFE_METHODS = ["get", "head", "options"];
+const CSRF_EXEMPT_ENDPOINTS = [
+  CSRF_ENDPOINT,
+  "/auth/login",
+  "/auth/register",
+  "/auth/refresh",
+  "/auth/logout",
+];
 
-/**
- * Requests that must NOT attempt to fetch a CSRF token.
- *
- * The CSRF endpoint itself is the important one here.
- *
- * Do NOT put /auth/login, /auth/register, /auth/logout,
- * or /auth/refresh here because those endpoints mutate
- * authentication state and your backend currently protects
- * them with CSRF.
- */
-const CSRF_EXEMPT_ENDPOINTS = [CSRF_ENDPOINT];
-
-/**
- * Check whether a request is the CSRF token endpoint.
- */
 function isCsrfEndpoint(config: AxiosRequestConfig): boolean {
-  if (!config.url) {
-    return false;
-  }
-
-  return CSRF_EXEMPT_ENDPOINTS.some((url) =>
-    config.url!.includes(url),
-  );
+  if (!config.url) return false;
+  return CSRF_EXEMPT_ENDPOINTS.some((url) => config.url!.includes(url));
 }
 
-/**
- * Check whether the request uses a safe HTTP method.
- */
 function isSafeMethod(config: AxiosRequestConfig): boolean {
   const method = config.method?.toLowerCase() || "get";
-
   return SAFE_METHODS.includes(method);
 }
 
@@ -232,96 +253,84 @@ function isSafeMethod(config: AxiosRequestConfig): boolean {
  * ============================================================
  * REQUEST INTERCEPTOR
  * ============================================================
- *
- * For every state-changing request:
- *
- * POST
- * PUT
- * PATCH
- * DELETE
- *
- * we obtain the CSRF token and attach:
- *
- * X-CSRF-Token: <token>
  */
+
 axiosConfig.interceptors.request.use(
   async (
     config: InternalAxiosRequestConfig,
   ): Promise<InternalAxiosRequestConfig> => {
-    /**
-     * Safe requests don't require CSRF.
-     */
+    console.log(
+      `[Axios] Request: ${config.method?.toUpperCase()} ${config.url}`,
+    );
+
+    // Skip CSRF for safe methods
     if (isSafeMethod(config)) {
+      console.log(
+        `[Axios] Skipping CSRF for safe method: ${config.method?.toUpperCase()} ${config.url}`,
+      );
       return config;
     }
 
-    /**
-     * The CSRF endpoint itself doesn't require a CSRF token.
-     *
-     * Otherwise we'd have:
-     *
-     * POST login
-     *   ↓
-     * interceptor
-     *   ↓
-     * fetch CSRF
-     *   ↓
-     * interceptor
-     *   ↓
-     * fetch CSRF
-     *   ↓
-     * infinite recursion
-     */
+    // Skip CSRF for exempt endpoints
     if (isCsrfEndpoint(config)) {
+      console.log(`[Axios] Skipping CSRF for exempt endpoint: ${config.url}`);
       return config;
     }
+
+    console.log(
+      `[Axios] CSRF required for: ${config.method?.toUpperCase()} ${config.url}`,
+    );
 
     try {
-      /**
-       * Get the token.
-       *
-       * This will either:
-       *
-       * - return the cached token
-       * - wait for an existing fetch
-       * - fetch a new token
-       */
+      // Get the token
       const token = await getCsrfToken();
 
-      /**
-       * Attach CSRF token.
-       */
-      config.headers.set("X-CSRF-Token", token);
-
-      /**
-       * Helpful debugging in development.
-       */
-      if (process.env.NODE_ENV !== "production") {
+      if (token) {
+        // Set the token in headers
+        config.headers.set("X-CSRF-Token", token);
         console.log(
-          `[CSRF] Added token to ${config.method?.toUpperCase()} ${config.url}`,
+          `[Axios] CSRF token attached to ${config.method?.toUpperCase()} ${config.url}`,
         );
+      } else {
+        console.error(`[Axios] No CSRF token available for ${config.url}`);
+        // In production, try to get from cookie one more time
+        const cookieToken = getCsrfTokenFromCookie();
+        if (cookieToken) {
+          config.headers.set("X-CSRF-Token", cookieToken);
+          console.log(
+            `[Axios] Using cookie token as fallback for ${config.url}`,
+          );
+        } else {
+          // We'll let the request proceed and handle 403 in response interceptor
+          console.warn(
+            `[Axios] Proceeding without CSRF token for ${config.url}`,
+          );
+        }
       }
     } catch (error) {
-      /**
-       * IMPORTANT:
-       *
-       * Don't silently continue with a request that requires
-       * CSRF if we couldn't obtain the token.
-       *
-       * Otherwise the backend will reject it anyway.
-       */
       console.error(
-        `[CSRF] Unable to obtain token for ${config.method?.toUpperCase()} ${config.url}`,
+        `[Axios] Failed to get CSRF token for ${config.url}:`,
         error,
       );
-
+      // In production, try cookie as fallback
+      if (process.env.NODE_ENV === "production") {
+        const cookieToken = getCsrfTokenFromCookie();
+        if (cookieToken) {
+          config.headers.set("X-CSRF-Token", cookieToken);
+          console.log(
+            `[Axios] Using cookie token as emergency fallback for ${config.url}`,
+          );
+          return config;
+        }
+      }
+      // Reject to prevent request without CSRF token
       return Promise.reject(error);
     }
 
     return config;
   },
-
   (error) => {
+    console.error("[Axios] Request interceptor error:", error);
     return Promise.reject(error);
   },
 );
@@ -330,25 +339,16 @@ axiosConfig.interceptors.request.use(
  * ============================================================
  * RESPONSE INTERCEPTOR
  * ============================================================
- *
- * Handles:
- *
- * 1. CSRF expiration/mismatch
- * 2. Authentication token/session expiration
  */
-let isRefreshing = false;
 
+let isRefreshing = false;
 type FailedRequest = {
   resolve: (value: unknown) => void;
   reject: (reason?: unknown) => void;
   config: InternalAxiosRequestConfig;
 };
-
 let failedQueue: FailedRequest[] = [];
 
-/**
- * Resolve/reject requests waiting for authentication refresh.
- */
 function processQueue(error: unknown | null): void {
   failedQueue.forEach((request) => {
     if (error) {
@@ -357,31 +357,18 @@ function processQueue(error: unknown | null): void {
       request.resolve(axiosConfig(request.config));
     }
   });
-
   failedQueue = [];
 }
 
-/**
- * Determine whether an error is a CSRF validation error.
- */
 function isCsrfError(error: AxiosError): boolean {
   const status = error.response?.status;
-
-  if (status !== 403) {
-    return false;
-  }
+  if (status !== 403) return false;
 
   const responseData = error.response?.data as
-    | {
-        message?: string;
-        error?: string;
-      }
+    | { message?: string; error?: string }
     | undefined;
-
   const message = String(
-    responseData?.message ||
-      responseData?.error ||
-      "",
+    responseData?.message || responseData?.error || "",
   ).toLowerCase();
 
   return (
@@ -392,116 +379,61 @@ function isCsrfError(error: AxiosError): boolean {
   );
 }
 
-/**
- * Determine whether the request is an authentication endpoint.
- */
 function isAuthEndpoint(config: AxiosRequestConfig): boolean {
   const url = config.url || "";
-
-  const authEndpoints = [
+  return [
     "/auth/login",
     "/auth/register",
     "/auth/refresh",
     "/auth/logout",
-  ];
-
-  return authEndpoints.some((endpoint) =>
-    url.includes(endpoint),
-  );
+  ].some((endpoint) => url.includes(endpoint));
 }
 
-/**
- * ============================================================
- * RESPONSE INTERCEPTOR
- * ============================================================
- */
-
 axiosConfig.interceptors.response.use(
-  /**
-   * Successful response.
-   */
   (response) => {
+    console.log(
+      `[Axios] Response: ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`,
+    );
     return response;
   },
-
-  /**
-   * Failed response.
-   */
   async (error: AxiosError) => {
-    const originalRequest =
-      error.config as InternalAxiosRequestConfig & {
-        _csrfRetry?: boolean;
-        _authRetry?: boolean;
-      };
+    const originalRequest = error.config as InternalAxiosRequestConfig & {
+      _csrfRetry?: boolean;
+      _authRetry?: boolean;
+    };
 
-    /**
-     * If Axios doesn't give us the original request,
-     * just propagate the error.
-     */
     if (!originalRequest) {
+      console.error("[Axios] No original request in error:", error);
       return Promise.reject(error);
     }
 
     const status = error.response?.status;
+    console.log(
+      `[Axios] Error: ${status} - ${error.message} for ${originalRequest.method?.toUpperCase()} ${originalRequest.url}`,
+    );
 
     /**
      * ========================================================
-     * CSRF ERROR
+     * CSRF ERROR HANDLING
      * ========================================================
-     *
-     * The CSRF token may expire or become invalid.
-     *
-     * In that situation:
-     *
-     * 1. Clear cached token.
-     * 2. Fetch a fresh token.
-     * 3. Retry original request once.
-     *
-     * We MUST only retry once to avoid infinite loops.
      */
     if (
       isCsrfError(error) &&
       !originalRequest._csrfRetry &&
       !isCsrfEndpoint(originalRequest)
     ) {
-      console.warn(
-        "[CSRF] Server rejected CSRF token. Refreshing token...",
-      );
+      console.warn("[CSRF] Token rejected, refreshing...");
 
       originalRequest._csrfRetry = true;
-
-      /**
-       * Remove cached token.
-       */
       clearCsrfToken();
 
       try {
-        /**
-         * Fetch a fresh token.
-         *
-         * This also establishes/refreshes the CSRF cookie.
-         */
         const newToken = await getCsrfToken();
-
-        /**
-         * Attach the new token.
-         */
-        originalRequest.headers.set(
-          "X-CSRF-Token",
-          newToken,
-        );
-
-        console.log(
-          "[CSRF] Retrying original request with fresh token",
-        );
-
+        originalRequest.headers.set("X-CSRF-Token", newToken);
+        console.log("[CSRF] Retrying with new token");
         return axiosConfig(originalRequest);
       } catch (csrfError) {
-        console.error(
-          "[CSRF] Failed to refresh CSRF token:",
-          csrfError,
-        );
-
+        console.error("[CSRF] Failed to refresh:", csrfError);
         return Promise.reject(csrfError);
       }
     }
@@ -510,16 +442,6 @@ axiosConfig.interceptors.response.use(
      * ========================================================
      * AUTHENTICATION REFRESH
      * ========================================================
-     *
-     * Only handle 401 here.
-     *
-     * A 403 should NOT automatically trigger authentication
-     * refresh because 403 normally means:
-     *
-     * - CSRF failure
-     * - permission denied
-     *
-     * not expired authentication.
      */
     if (
       status === 401 &&
@@ -528,76 +450,30 @@ axiosConfig.interceptors.response.use(
     ) {
       originalRequest._authRetry = true;
 
-      /**
-       * Another request is already refreshing.
-       *
-       * Queue this request.
-       */
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
-          failedQueue.push({
-            resolve,
-            reject,
-            config: originalRequest,
-          });
+          failedQueue.push({ resolve, reject, config: originalRequest });
         });
       }
 
       isRefreshing = true;
 
       try {
-        /**
-         * Refresh authentication session/token.
-         *
-         * IMPORTANT:
-         * Because /auth/refresh is a POST endpoint and your
-         * backend protects it with CSRF, the request interceptor
-         * will automatically obtain and attach the CSRF token.
-         */
         await axiosConfig.post("/auth/refresh");
-
-        /**
-         * Refresh succeeded.
-         */
         processQueue(null);
-
-        /**
-         * Retry original request.
-         */
         return axiosConfig(originalRequest);
       } catch (refreshError) {
-        /**
-         * Refresh failed.
-         *
-         * Reject all queued requests.
-         */
         processQueue(refreshError);
 
-        /**
-         * Clear authentication state.
-         */
         try {
-          const { useAuthStore } =
-            await import("@/store/auth-store");
-
-          const state = useAuthStore.getState();
-
-          state.clearUser();
+          const { useAuthStore } = await import("@/store/auth-store");
+          useAuthStore.getState().clearUser();
         } catch (storeError) {
-          console.error(
-            "[Auth] Failed to clear auth store:",
-            storeError,
-          );
+          console.error("[Auth] Failed to clear store:", storeError);
         }
 
-        /**
-         * Clear CSRF token as well.
-         */
         clearCsrfToken();
 
-        /**
-         * Redirect browser to signin.
-         */
         if (
           typeof window !== "undefined" &&
           window.location.pathname !== "/signin"
@@ -611,47 +487,51 @@ axiosConfig.interceptors.response.use(
       }
     }
 
-    /**
-     * Any other error is passed back to the caller.
-     */
     return Promise.reject(error);
   },
 );
 
 /**
  * ============================================================
- * OPTIONAL INITIALIZATION
+ * AUTO-INITIALIZATION
  * ============================================================
- *
- * You don't strictly need to call this on application startup.
- *
- * The first POST/PUT/PATCH/DELETE will automatically obtain
- * the CSRF token.
- *
- * If you want to eagerly initialize the token when the browser
- * loads, you can call:
- *
- *   initializeCsrf()
- *
- * from your client-side application.
  */
-export async function initializeCsrf(): Promise<void> {
-  try {
-    await getCsrfToken();
 
-    console.log("[CSRF] Initialization successful");
-  } catch (error) {
-    console.error(
-      "[CSRF] Initialization failed:",
-      error,
+// Initialize CSRF immediately when this module loads in the browser
+if (typeof window !== "undefined") {
+  console.log("[CSRF] Browser detected, auto-initializing...");
+
+  // Immediate initialization
+  initializeCsrf().catch((error) => {
+    console.error("[CSRF] Auto-initialization failed:", error);
+  });
+
+  // Also initialize after a delay as fallback
+  setTimeout(() => {
+    if (!csrfToken) {
+      console.log("[CSRF] Delayed initialization fallback...");
+      initializeCsrf().catch(console.error);
+    }
+  }, 1000);
+
+  // Check again when tab becomes visible
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && !csrfToken) {
+      console.log("[CSRF] Tab visible, checking token...");
+      initializeCsrf().catch(console.error);
+    }
+  });
+
+  // Log cookie status
+  setTimeout(() => {
+    const cookieToken = getCsrfTokenFromCookie();
+    console.log(
+      "[CSRF] Cookie check after 2s:",
+      cookieToken ? "Token found" : "No token",
     );
-  }
+  }, 2000);
 }
 
-/**
- * ============================================================
- * DEFAULT EXPORT
- * ============================================================
- */
+console.log("[Axios] Module loaded successfully");
 
 export default axiosConfig;

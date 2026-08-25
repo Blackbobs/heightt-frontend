@@ -148,34 +148,37 @@ export const useAuthStore = create<AuthState>()(
       },
 
       fetchCurrentUser: async () => {
-  try {
-    console.log("fetchCurrentUser - Making API call to /auth/me...");
-    const response = await axiosConfig.get("/auth/me");
-    console.log("fetchCurrentUser - Full user data received:", response.data);
+        try {
+          console.log("fetchCurrentUser - Making API call to /auth/me...");
+          const response = await axiosConfig.get("/auth/me");
+          console.log(
+            "fetchCurrentUser - Full user data received:",
+            response.data,
+          );
 
-    // Store the complete user data including studentProfile
-    set({
-      user: response.data,
-      isAuthenticated: true,
-    });
+          // Store the complete user data including studentProfile
+          set({
+            user: response.data,
+            isAuthenticated: true,
+          });
 
-    return response.data;
-  } catch (error) {
-    console.error("fetchCurrentUser - Error:", error);
-    // If unauthorized, clear the user
-    if ((error as any)?.response?.status === 401) {
-      set({
-        user: null,
-        isAuthenticated: false,
-        token: null,
-        userOrganizations: [],
-      });
-      delete axiosConfig.defaults.headers.common["Authorization"];
-      clearCsrfToken();
-    }
-    return null;
-  }
-},
+          return response.data;
+        } catch (error) {
+          console.error("fetchCurrentUser - Error:", error);
+          // If unauthorized, clear the user
+          if ((error as any)?.response?.status === 401) {
+            set({
+              user: null,
+              isAuthenticated: false,
+              token: null,
+              userOrganizations: [],
+            });
+            delete axiosConfig.defaults.headers.common["Authorization"];
+            clearCsrfToken();
+          }
+          return null;
+        }
+      },
 
       // ============================================
       // REGISTER - NO AUTO-LOGIN
@@ -207,22 +210,48 @@ export const useAuthStore = create<AuthState>()(
       login: async (identifier: string, password: string) => {
         set({ isLoading: true });
         try {
-          // Ensure a CSRF token exists BEFORE posting. /auth/login is a
-          // non-GET request and the backend (csurf) enforces a valid
-          // X-CSRF-Token header, otherwise it returns 403 EBADCSRFTOKEN.
-          await getCsrfToken();
-          console.log("Logging in...");
+          console.log("[Auth] Login started for:", identifier);
+
+          // CRITICAL: Ensure CSRF token exists before login
+          console.log("[Auth] Ensuring CSRF token is available...");
+          try {
+            const token = await getCsrfToken();
+            console.log(
+              "[Auth] CSRF token obtained:",
+              token ? token.substring(0, 10) + "..." : "No token",
+            );
+          } catch (csrfError) {
+            console.error("[Auth] Failed to get CSRF token:", csrfError);
+            // Try one more time with a direct fetch
+            console.log("[Auth] Retrying CSRF token fetch...");
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            const token = await getCsrfToken();
+            console.log(
+              "[Auth] CSRF token on retry:",
+              token ? "Obtained" : "Failed",
+            );
+          }
+
+          console.log("[Auth] Making login request...");
           const response = await axiosConfig.post("/auth/login", {
             identifier,
             password,
           });
 
-          console.log("Login response:", response.data);
+          console.log("[Auth] Login response received");
+          console.log("[Auth] Response status:", response.status);
+          console.log(
+            "[Auth] Response data keys:",
+            Object.keys(response.data || {}),
+          );
 
           // Get user data and access token from response
           const { accessToken, ...userData } = response.data;
 
-          console.log("Access token received:", accessToken ? "Yes" : "No");
+          console.log(
+            "[Auth] Access token:",
+            accessToken ? "Received" : "Not received",
+          );
 
           set({
             user: userData,
@@ -238,10 +267,14 @@ export const useAuthStore = create<AuthState>()(
 
           await get().fetchUserOrganizations();
 
-          console.log("Login successful, user:", userData);
+          console.log(
+            "[Auth] Login successful for:",
+            userData.email || userData.username,
+          );
           return response.data;
         } catch (error: any) {
-          console.error("Login error:", error);
+          console.error("[Auth] Login error:", error);
+          console.error("[Auth] Error response:", error.response?.data);
           set({ isLoading: false });
           throw error.response?.data || error;
         }
@@ -379,8 +412,8 @@ export const useAuthStore = create<AuthState>()(
               : "/onboarding",
           };
         } catch (error: unknown) {
-          const status = (error as { response?: { status?: number } })
-            ?.response?.status;
+          const status = (error as { response?: { status?: number } })?.response
+            ?.status;
           if (status === 404) {
             console.warn(
               "Onboarding status endpoint not found, using profile data",
