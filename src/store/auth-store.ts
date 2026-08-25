@@ -10,6 +10,7 @@ import {
   axiosConfig,
   clearCsrfToken,
   getCsrfToken,
+  getCsrfTokenFromCookie,
 } from "@/utils/axios-config";
 
 export interface UserProfile {
@@ -212,23 +213,40 @@ export const useAuthStore = create<AuthState>()(
         try {
           console.log("[Auth] Login started for:", identifier);
 
-          // CRITICAL: Get CSRF token before login
-          console.log("[Auth] 🔄 Getting CSRF token before login...");
-          let csrfToken: string;
-          try {
-            csrfToken = await getCsrfToken();
-            console.log(
-              "[Auth] ✅ CSRF token obtained:",
-              csrfToken.substring(0, 10) + "...",
+          // CRITICAL: Clear any existing token and get a fresh one
+          // This ensures we have a valid token that matches the cookie
+          console.log("[Auth] 🔄 Getting fresh CSRF token for login...");
+
+          // Clear memory token to force a fresh fetch
+          clearCsrfToken();
+
+          // Get fresh token - this will call the endpoint and set the cookie
+          const csrfToken = await getCsrfToken();
+          console.log(
+            "[Auth] ✅ CSRF token obtained:",
+            csrfToken ? csrfToken.substring(0, 10) + "..." : "No token",
+          );
+
+          // Verify the cookie was set
+          const cookieToken = getCsrfTokenFromCookie();
+          console.log(
+            "[Auth] 📋 Cookie token:",
+            cookieToken
+              ? cookieToken.substring(0, 10) + "..."
+              : "No cookie token",
+          );
+
+          if (!cookieToken || (csrfToken && cookieToken !== csrfToken)) {
+            console.warn(
+              "[Auth] ⚠️ Token mismatch - cookie and memory token don't match",
             );
-          } catch (csrfError) {
-            console.error("[Auth] ❌ Failed to get CSRF token:", csrfError);
-            // Try one more time with a delay
-            await new Promise((resolve) => setTimeout(resolve, 500));
-            csrfToken = await getCsrfToken();
+            // Force a new fetch
+            clearCsrfToken();
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            const newToken = await getCsrfToken();
             console.log(
-              "[Auth] ✅ CSRF token on retry:",
-              csrfToken.substring(0, 10) + "...",
+              "[Auth] ✅ New token fetched:",
+              newToken.substring(0, 10) + "...",
             );
           }
 
