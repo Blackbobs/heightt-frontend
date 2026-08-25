@@ -105,6 +105,9 @@ export interface PaymentResponse {
   paymentUrl?: string;
   checkoutId?: string;
   pendingPaymentId?: string;
+  baseAmount?: number;
+  platformFee?: number;
+  totalBeforeGatewayFee?: number;
   data?: unknown;
   [key: string]: unknown;
 }

@@ -28,6 +28,44 @@ interface PaymentSuccessViewProps {
   isEmbeddedInDashboard?: boolean;
 }
 
+type PaymentBreakdown = {
+  organizationAmount: number;
+  platformFee: number;
+  subtotal: number;
+};
+
+const PAYMENT_BREAKDOWN_STORAGE_KEY = "heightt.paymentBreakdown";
+
+function formatNaira(amount: number) {
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    minimumFractionDigits: 2,
+  }).format(amount);
+}
+
+function readPaymentBreakdown(): PaymentBreakdown | null {
+  if (typeof window === "undefined") return null;
+
+  const stored = sessionStorage.getItem(PAYMENT_BREAKDOWN_STORAGE_KEY);
+  if (!stored) return null;
+
+  try {
+    const parsed = JSON.parse(stored);
+    if (
+      typeof parsed.organizationAmount !== "number" ||
+      typeof parsed.platformFee !== "number" ||
+      typeof parsed.subtotal !== "number"
+    ) {
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
 export function PaymentSuccessView({
   isEmbeddedInDashboard = false,
 }: PaymentSuccessViewProps) {
@@ -61,6 +99,8 @@ export function PaymentSuccessView({
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [currentDate, setCurrentDate] = useState("");
+  const [paymentBreakdown, setPaymentBreakdown] =
+    useState<PaymentBreakdown | null>(null);
 
   const downloadMutation = useDownloadReceipt();
   const { data: receipts } = useReceipts({ limit: 5 });
@@ -76,6 +116,7 @@ export function PaymentSuccessView({
         minute: "2-digit",
       })
     );
+    setPaymentBreakdown(readPaymentBreakdown());
   }, []);
 
   // Try to find matching receipt from recent receipts if amount/ref match
@@ -177,6 +218,44 @@ export function PaymentSuccessView({
           </span>
         </div>
       </div>
+
+      {paymentBreakdown && (
+        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xl overflow-hidden">
+          <div className="px-6 py-4 bg-slate-50/70">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600">
+              Payment Breakdown
+            </h2>
+          </div>
+
+          <div className="p-6 space-y-3 text-sm">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-500 font-medium">
+                Organization payment
+              </span>
+              <span className="font-bold text-slate-900">
+                {formatNaira(paymentBreakdown.organizationAmount)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-500 font-medium">
+                Heightt platform fee
+              </span>
+              <span className="font-bold text-slate-900">
+                {formatNaira(paymentBreakdown.platformFee)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
+              <span className="font-bold text-slate-700">Subtotal</span>
+              <span className="font-extrabold text-[#0b1a33]">
+                {formatNaira(paymentBreakdown.subtotal)}
+              </span>
+            </div>
+            <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-700">
+              A separate payment-processing fee may be added by Bachs.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Payment Details Breakdown Card */}
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xl overflow-hidden divide-y divide-slate-100">

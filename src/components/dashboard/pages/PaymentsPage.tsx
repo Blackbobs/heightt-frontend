@@ -19,10 +19,24 @@ import { useMyDues, useMakePayment } from "@/hooks/queries/usePayments";
 import { DueAssignment, PaymentResponse } from "@/lib/api/finance";
 
 type Tab = "all" | "unpaid" | "paid";
+type PaymentBreakdown = {
+  organizationAmount: number;
+  platformFee: number;
+  subtotal: number;
+};
+
+const PAYMENT_BREAKDOWN_STORAGE_KEY = "heightt.paymentBreakdown";
 
 // Helper function to safely check if a value is an object
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function formatNaira(amount: number) {
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+  }).format(amount);
 }
 
 function getCheckoutUrl(response: PaymentResponse): string | null {
@@ -63,6 +77,27 @@ function getPendingPaymentId(response: PaymentResponse): string | null {
   }
 
   return null;
+}
+
+function getPaymentBreakdown(response: PaymentResponse): PaymentBreakdown | null {
+  const source = isObject(response.data) ? response.data : response;
+  const baseAmount = source.baseAmount;
+  const platformFee = source.platformFee;
+  const totalBeforeGatewayFee = source.totalBeforeGatewayFee;
+
+  if (
+    typeof baseAmount !== "number" ||
+    typeof platformFee !== "number" ||
+    typeof totalBeforeGatewayFee !== "number"
+  ) {
+    return null;
+  }
+
+  return {
+    organizationAmount: baseAmount / 100,
+    platformFee: platformFee / 100,
+    subtotal: totalBeforeGatewayFee / 100,
+  };
 }
 
 export function PaymentsPage() {
@@ -164,6 +199,7 @@ export function PaymentsPage() {
       const checkoutUrl = getCheckoutUrl(result);
       console.log("Extracted checkout URL:", checkoutUrl); // Debug log
       const pendingPaymentId = getPendingPaymentId(result);
+      const paymentBreakdown = getPaymentBreakdown(result);
 
       if (pendingPaymentId) {
         sessionStorage.setItem(
@@ -173,6 +209,15 @@ export function PaymentsPage() {
             startedAt: Date.now(),
           }),
         );
+      }
+
+      if (paymentBreakdown) {
+        sessionStorage.setItem(
+          PAYMENT_BREAKDOWN_STORAGE_KEY,
+          JSON.stringify(paymentBreakdown),
+        );
+      } else {
+        sessionStorage.removeItem(PAYMENT_BREAKDOWN_STORAGE_KEY);
       }
 
       if (checkoutUrl) {
@@ -456,10 +501,14 @@ export function PaymentsPage() {
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Amount</span>
+                <span className="text-slate-500">Organization payment</span>
                 <span className="font-extrabold text-[#0b1a33]">
-                  ₦{selectedDue.amount.toLocaleString()}
+                  {formatNaira(selectedDue.amount)}
                 </span>
+              </div>
+              <div className="rounded-xl border border-dashed border-slate-200 bg-white px-3 py-2 text-xs text-slate-500">
+                Heightt platform fee and subtotal will be shown after checkout
+                starts. Bachs may add a separate payment-processing fee.
               </div>
               {selectedDue.isAutoAssigned && (
                 <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">
