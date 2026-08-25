@@ -74,15 +74,16 @@ axiosConfig.interceptors.request.use(
     const skipMethods = ["get", "head", "options"];
     const method = config.method?.toLowerCase() || "";
 
-    const skipUrls = [
-      "/auth/login",
-      "/auth/register",
-      "/auth/csrf-token",
-      "/auth/refresh",
-    ];
-    const isAuthEndpoint = skipUrls.some((url) => config.url?.includes(url));
+    // Only the CSRF-token endpoint itself is skipped (to avoid a recursion
+    // loop). The backend enforces CSRF on mutated auth endpoints too —
+    // /auth/login, /auth/register, /auth/refresh and /auth/logout return
+    // 403 "invalid csrf token" when the X-CSRF-Token header is missing — so
+    // they MUST NOT be skipped here, otherwise the token is never fetched and
+    // sent for those calls.
+    const skipUrls = ["/auth/csrf-token"];
+    const isSkippedUrl = skipUrls.some((url) => config.url?.includes(url));
 
-    if (skipMethods.includes(method) || isAuthEndpoint) {
+    if (skipMethods.includes(method) || isSkippedUrl) {
       return config;
     }
 

@@ -207,6 +207,10 @@ export const useAuthStore = create<AuthState>()(
       login: async (identifier: string, password: string) => {
         set({ isLoading: true });
         try {
+          // Ensure a CSRF token exists BEFORE posting. /auth/login is a
+          // non-GET request and the backend (csurf) enforces a valid
+          // X-CSRF-Token header, otherwise it returns 403 EBADCSRFTOKEN.
+          await getCsrfToken();
           console.log("Logging in...");
           const response = await axiosConfig.post("/auth/login", {
             identifier,
