@@ -182,8 +182,8 @@ export function PaymentCallbackView() {
     return (
       <PaymentStatusMessage
         icon={<AlertCircle className="h-10 w-10 text-amber-500" />}
-        title="Confirmation is taking longer than expected"
-        description="Your payment may still be processing. You have not been charged again. Check your receipts shortly."
+        title="Payment confirmation is taking longer than expected"
+        description="Do not make another payment. Please check your payment history shortly."
       />
     );
   }
