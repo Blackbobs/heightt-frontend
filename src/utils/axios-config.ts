@@ -2,8 +2,17 @@
 
 import axios from "axios";
 
+// NEXT_PUBLIC_ env vars are inlined by Next.js AT BUILD TIME. The local .env is
+// gitignored and may not exist in the production build environment, so if the
+// platform doesn't set NEXT_PUBLIC_API_URL, `process.env.NEXT_PUBLIC_API_URL`
+// will be undefined here. To avoid silently hitting `localhost` in production
+// (which makes the CSRF endpoint "disappear"), default to the real backend URL
+// when running a production build; keep localhost only for local dev.
 const baseURL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/v1";
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === "production"
+    ? "https://heightt-backend.onrender.com/api/v1"
+    : "http://localhost:3000/api/v1");
 
 console.log("Axios baseURL:", baseURL);
 
