@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Globe, ArrowRight, Play } from 'lucide-react';
 import Link from 'next/link';
+import { useAuthStore } from '@/store/auth-store';
 
 interface HeroContentProps {
   onBadgeRef: (el: HTMLDivElement | null) => void;
@@ -22,6 +23,13 @@ export function HeroContent({
   onStatsRef,
 }: HeroContentProps) {
   const statsRef = useRef<HTMLDivElement>(null);
+
+   const { isAuthenticated, user } = useAuthStore();
+  
+  // Check if user needs onboarding
+  const needsOnboarding = user ? !user.profile?.onboardingCompleted : false;
+  const dashboardHref = needsOnboarding ? '/onboarding' : '/dashboard';
+
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -97,20 +105,32 @@ export function HeroContent({
         with your student community — all in one place.
       </p>
 
-      <div
-        ref={onActionsRef}
-        className="flex flex-col sm:flex-row gap-4 flex-wrap mt-2 opacity-0 translate-y-8"
-      >
-        <Button
-          variant="primary"
-          size="lg"
-          asChild
-        >
-          <Link href="/signup">
-            <ArrowRight className="w-5 h-5" />
-            Get Started
+     <div ref={onActionsRef} className="flex flex-col sm:flex-row gap-4 mt-8">
+        {isAuthenticated && user ? (
+          <Link
+            href={dashboardHref}
+            className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-[#1a5cff] rounded-2xl hover:bg-[#0f4ad0] transition-all shadow-[0_8px_24px_rgba(26,92,255,0.25)] hover:shadow-[0_12px_28px_rgba(26,92,255,0.35)]"
+          >
+            {needsOnboarding ? 'Complete Onboarding' : 'Go to Dashboard'}
+            <ArrowRight className="ml-2 w-5 h-5" />
           </Link>
-        </Button>
+        ) : (
+          <>
+            <Link
+              href="/signup"
+              className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-[#1a5cff] rounded-2xl hover:bg-[#0f4ad0] transition-all shadow-[0_8px_24px_rgba(26,92,255,0.25)] hover:shadow-[0_12px_28px_rgba(26,92,255,0.35)]"
+            >
+              Get Started Free
+              <ArrowRight className="ml-2 w-5 h-5" />
+            </Link>
+            <Link
+              href="/signin"
+              className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-[#1a5cff] bg-white border-2 border-[#1a5cff] rounded-2xl hover:bg-[#f0f4ff] transition-all"
+            >
+              Sign In
+            </Link>
+          </>
+        )}
       </div>
 
       <div

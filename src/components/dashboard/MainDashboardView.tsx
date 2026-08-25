@@ -1,7 +1,9 @@
-﻿'use client';
+﻿// src/components/dashboard/MainDashboardView.tsx
 
-import React, { useState, useMemo } from 'react';
-import Link from 'next/link';
+"use client";
+
+import React, { useState, useMemo } from "react";
+import Link from "next/link";
 import {
   CreditCard,
   Receipt,
@@ -14,219 +16,120 @@ import {
   Clock,
   FileText,
   ExternalLink,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-
-export interface DueItem {
-  id: string;
-  title: string;
-  org: string;
-  orgCategory: 'Computer Science' | 'Faculty of Computing' | 'Students Association' | 'Agriculture Students Association';
-  amount: number;
-  dueDate: string;
-  status: 'outstanding' | 'pending' | 'paid';
-  receiptNo?: string;
-  paidDate?: string;
-}
-
-export interface AnnouncementItem {
-  id: string;
-  title: string;
-  org: string;
-  orgCategory: 'Computer Science' | 'Faculty of Computing' | 'Students Association' | 'Agriculture Students Association';
-  date: string;
-  unread: boolean;
-}
-
-export interface NotificationItem {
-  id: string;
-  title: string;
-  time: string;
-  type: 'due' | 'announcement' | 'receipt';
-  unread: boolean;
-}
-
-const ORG_OPTIONS = [
-  { id: 'all', label: 'All Organizations' },
-  { id: 'Computer Science', label: 'Computer Science' },
-  { id: 'Faculty of Computing', label: 'Faculty of Computing' },
-  { id: 'Students Association', label: 'Students Association' },
-  { id: 'Agriculture Students Association', label: 'Agriculture Students Association' },
-];
-
-const INITIAL_DUES: DueItem[] = [
-  {
-    id: 'due-1',
-    title: 'Departmental Dues',
-    org: 'Computer Science Department',
-    orgCategory: 'Computer Science',
-    amount: 5000,
-    dueDate: 'Dec 15, 2025',
-    status: 'outstanding',
-  },
-  {
-    id: 'due-2',
-    title: 'Student Association Dues',
-    org: 'Students Association',
-    orgCategory: 'Students Association',
-    amount: 2500,
-    dueDate: 'Dec 20, 2025',
-    status: 'outstanding',
-  },
-  {
-    id: 'due-3',
-    title: 'Faculty Technology Levy',
-    org: 'Faculty of Computing',
-    orgCategory: 'Faculty of Computing',
-    amount: 3500,
-    dueDate: 'Jan 10, 2026',
-    status: 'pending',
-  },
-  {
-    id: 'due-4',
-    title: 'Annual Society Dues',
-    org: 'Agriculture Students Association',
-    orgCategory: 'Agriculture Students Association',
-    amount: 1500,
-    dueDate: 'Jan 15, 2026',
-    status: 'pending',
-  },
-  {
-    id: 'due-paid-1',
-    title: 'Faculty Annual Dues 2024/25',
-    org: 'Faculty of Computing',
-    orgCategory: 'Faculty of Computing',
-    amount: 15000,
-    dueDate: 'Paid Oct 12, 2025',
-    status: 'paid',
-    receiptNo: 'HT-8920',
-    paidDate: 'Oct 12, 2025',
-  },
-  {
-    id: 'due-paid-2',
-    title: 'SUG Election Registration Pass',
-    org: 'Students Association',
-    orgCategory: 'Students Association',
-    amount: 2000,
-    dueDate: 'Paid Nov 04, 2025',
-    status: 'paid',
-    receiptNo: 'HT-8919',
-    paidDate: 'Nov 04, 2025',
-  },
-  {
-    id: 'due-paid-3',
-    title: 'Departmental Lab Access Fee',
-    org: 'Computer Science Department',
-    orgCategory: 'Computer Science',
-    amount: 10000,
-    dueDate: 'Paid Nov 18, 2025',
-    status: 'paid',
-    receiptNo: 'HT-8914',
-    paidDate: 'Nov 18, 2025',
-  },
-];
-
-const INITIAL_ANNOUNCEMENTS: AnnouncementItem[] = [
-  {
-    id: 'ann-1',
-    title: 'Mid-semester Test Schedule Released',
-    org: 'Computer Science Department',
-    orgCategory: 'Computer Science',
-    date: '2 hours ago',
-    unread: true,
-  },
-  {
-    id: 'ann-2',
-    title: 'Annual Computing Exhibition & Hackathon Registration Open',
-    org: 'Faculty of Computing',
-    orgCategory: 'Faculty of Computing',
-    date: 'Yesterday',
-    unread: true,
-  },
-  {
-    id: 'ann-3',
-    title: 'Students Association General Congress & Welfare Update',
-    org: 'Students Association',
-    orgCategory: 'Students Association',
-    date: '3 days ago',
-    unread: false,
-  },
-  {
-    id: 'ann-4',
-    title: 'Agriculture Excursion & Practical Field Session Notice',
-    org: 'Agriculture Students Association',
-    orgCategory: 'Agriculture Students Association',
-    date: '4 days ago',
-    unread: false,
-  },
-];
-
-const INITIAL_NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: 'notif-1',
-    title: 'Departmental Dues of ₦5,000 is due in 7 days',
-    time: '10 mins ago',
-    type: 'due',
-    unread: true,
-  },
-  {
-    id: 'notif-2',
-    title: 'Receipt #HT-8920 generated for Faculty Annual Dues',
-    time: '1 hour ago',
-    type: 'receipt',
-    unread: true,
-  },
-  {
-    id: 'notif-3',
-    title: 'New Announcement: Mid-semester Test Schedule Released',
-    time: '2 hours ago',
-    type: 'announcement',
-    unread: false,
-  },
-];
+  Loader2,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useDashboardData } from "@/hooks/queries/useDashboard";
+import { DueAssignment } from "@/lib/api/finance";
+import type { OrganizationMembership } from "@/lib/api/organizations";
 
 export function MainDashboardView() {
-  const [selectedOrg, setSelectedOrg] = useState<string>('all');
-  const [selectedReceipt, setSelectedReceipt] = useState<DueItem | null>(null);
+  const { data, isLoading, isError, error, refetch, isFetching } =
+    useDashboardData();
+  const [selectedOrgId, setSelectedOrgId] = useState<string>("all");
+  const [selectedReceipt, setSelectedReceipt] = useState<any | null>(null);
 
   // Time-of-day greeting
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
   }, []);
 
-  // Filtered dues based on selected org
-  const filteredDues = useMemo(() => {
-    if (selectedOrg === 'all') return INITIAL_DUES;
-    return INITIAL_DUES.filter((d) => d.orgCategory === selectedOrg);
-  }, [selectedOrg]);
+  // Build organization options from real data
+  const orgOptions = useMemo(() => {
+    const orgs = data?.organizations || [];
+    return [
+      { id: "all", label: "All Organizations" },
+      ...orgs.map((org: OrganizationMembership) => ({
+        id: org.organizationId,
+        label: org.organization?.name || "Unknown Organization",
+      })),
+    ];
+  }, [data?.organizations]);
 
-  // Unpaid Dues (Outstanding & Pending)
+  // Filter dues based on selected organization
+  const filteredDues = useMemo(() => {
+    const dues = data?.dues || [];
+    if (selectedOrgId === "all") return dues;
+    return dues.filter(
+      (d: DueAssignment) => d.due?.organizationId === selectedOrgId,
+    );
+  }, [data?.dues, selectedOrgId]);
+
+  // Unpaid Dues
   const pendingDues = useMemo(() => {
-    return filteredDues.filter((d) => d.status === 'outstanding' || d.status === 'pending');
+    return filteredDues.filter((d: DueAssignment) => !d.isPaid);
   }, [filteredDues]);
 
   // Paid Dues
   const paidDues = useMemo(() => {
-    return filteredDues.filter((d) => d.status === 'paid');
+    return filteredDues.filter((d: DueAssignment) => d.isPaid);
   }, [filteredDues]);
 
   // Sums
   const totalPendingAmount = useMemo(() => {
-    return pendingDues.reduce((sum, item) => sum + item.amount, 0);
+    return pendingDues.reduce(
+      (sum: number, item: DueAssignment) => sum + item.amount,
+      0,
+    );
   }, [pendingDues]);
 
   const totalPaidAmount = useMemo(() => {
-    return paidDues.reduce((sum, item) => sum + item.amount, 0);
+    return paidDues.reduce(
+      (sum: number, item: DueAssignment) => sum + item.amount,
+      0,
+    );
   }, [paidDues]);
 
-  // Filtered announcements
-  const filteredAnnouncements = useMemo(() => {
-    if (selectedOrg === 'all') return INITIAL_ANNOUNCEMENTS;
-    return INITIAL_ANNOUNCEMENTS.filter((a) => a.orgCategory === selectedOrg);
-  }, [selectedOrg]);
+  const userName = useMemo(() => {
+    const user = data?.user;
+    console.log("MainDashboardView - user data:", user);
+
+    if (!user) return "User";
+
+    // Try to get name from profile first
+    const firstName = user.profile?.firstName || "";
+    const lastName = user.profile?.lastName || "";
+
+    if (firstName && lastName) {
+      return `${firstName} ${lastName}`;
+    }
+    if (firstName) {
+      return firstName;
+    }
+    // Fallback to username or email
+    return user.username || user.email?.split("@")[0] || "User";
+  }, [data?.user]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 text-[#1a5cff] animate-spin" />
+          <span className="text-sm text-[#5b6d89] font-medium">
+            Loading dashboard...
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-red-600">
+        <p className="font-semibold">Error loading dashboard</p>
+        <p className="text-sm">{error?.message || "Something went wrong"}</p>
+        <button
+          onClick={() => refetch()}
+          className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 w-full max-w-full overflow-hidden">
@@ -234,38 +137,41 @@ export function MainDashboardView() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
         <div className="min-w-0 flex-1">
           <h1 className="text-xl sm:text-2xl font-bold text-[#0b1a33] tracking-tight truncate">
-            {greeting}, <span className="text-[#1a5cff]">John</span>
+            {greeting},{" "}
+            <span className="text-[#1a5cff]">{userName.split(" ")[0]}</span>
           </h1>
           <p className="text-xs sm:text-sm text-[#5b6d89] mt-0.5 font-medium leading-normal">
             What do you need to pay or know right now?
           </p>
         </div>
 
-        {/* Clean Organization Context Selector */}
-        <div className="relative shrink-0 w-full md:w-auto min-w-[220px]">
-          <label htmlFor="orgSelect" className="sr-only">
-            Filter by Organization
-          </label>
-          <div className="relative flex items-center w-full">
-            <Building2 className="w-4 h-4 text-[#1a5cff] absolute left-3.5 pointer-events-none shrink-0" />
-            <select
-              id="orgSelect"
-              value={selectedOrg}
-              onChange={(e) => setSelectedOrg(e.target.value)}
-              className="w-full appearance-none pl-9 pr-9 py-2.5 bg-[#f8faff] hover:bg-[#eef4ff] border border-slate-200 hover:border-[#1a5cff]/40 rounded-xl text-xs sm:text-sm font-semibold text-[#0b1a33] cursor-pointer transition-all outline-none focus:ring-4 focus:ring-[#1a5cff]/10 truncate"
-            >
-              {ORG_OPTIONS.map((opt) => (
-                <option key={opt.id} value={opt.id}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 pointer-events-none shrink-0" />
+        {/* Organization Context Selector */}
+        {orgOptions.length > 1 && (
+          <div className="relative shrink-0 w-full md:w-auto min-w-[200px]">
+            <label htmlFor="orgSelect" className="sr-only">
+              Filter by Organization
+            </label>
+            <div className="relative flex items-center w-full">
+              <Building2 className="w-4 h-4 text-[#1a5cff] absolute left-3.5 pointer-events-none shrink-0" />
+              <select
+                id="orgSelect"
+                value={selectedOrgId}
+                onChange={(e) => setSelectedOrgId(e.target.value)}
+                className="w-full appearance-none pl-9 pr-9 py-2.5 bg-[#f8faff] hover:bg-[#eef4ff] border border-slate-200 hover:border-[#1a5cff]/40 rounded-xl text-xs sm:text-sm font-semibold text-[#0b1a33] cursor-pointer transition-all outline-none focus:ring-4 focus:ring-[#1a5cff]/10 truncate"
+              >
+                {orgOptions.map((opt) => (
+                  <option key={opt.id} value={opt.id}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 pointer-events-none shrink-0" />
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* ===== 3 KEY METRIC CARDS: DUES PAID, DUES PENDING, RECEIPTS ===== */}
+      {/* ===== 3 KEY METRIC CARDS ===== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
         {/* Dues Paid Card */}
         <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col justify-between min-w-0">
@@ -285,7 +191,10 @@ export function MainDashboardView() {
           </div>
           <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-[#5b6d89]">
             <span className="truncate">Completed dues</span>
-            <Link href="/dashboard/receipts" className="text-[#1a5cff] font-semibold hover:underline no-underline shrink-0 ml-2">
+            <Link
+              href="/dashboard/receipts"
+              className="text-[#1a5cff] font-semibold hover:underline no-underline shrink-0 ml-2"
+            >
               View receipts
             </Link>
           </div>
@@ -309,7 +218,10 @@ export function MainDashboardView() {
           </div>
           <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-[#5b6d89]">
             <span className="truncate">Action required</span>
-            <Link href="/dashboard/payments" className="text-[#1a5cff] font-semibold hover:underline no-underline shrink-0 ml-2">
+            <Link
+              href="/dashboard/payments"
+              className="text-[#1a5cff] font-semibold hover:underline no-underline shrink-0 ml-2"
+            >
               Pay now →
             </Link>
           </div>
@@ -324,23 +236,26 @@ export function MainDashboardView() {
                 Receipts
               </span>
               <span className="text-[0.68rem] font-bold text-[#1a5cff] bg-[#eef4ff] border border-[#1a5cff]/20 px-2 py-0.5 rounded-full shrink-0">
-                {paidDues.length} Generated
+                {data?.receipts?.length || 0} Generated
               </span>
             </div>
             <div className="text-2xl sm:text-3xl font-extrabold text-[#0b1a33] tracking-tight mt-1 truncate">
-              {paidDues.length} Receipts
+              {data?.receipts?.length || 0} Receipts
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-[#5b6d89]">
             <span className="truncate">Official proof</span>
-            <Link href="/dashboard/receipts" className="text-[#1a5cff] font-semibold hover:underline no-underline shrink-0 ml-2">
-              Download all
+            <Link
+              href="/dashboard/receipts"
+              className="text-[#1a5cff] font-semibold hover:underline no-underline shrink-0 ml-2"
+            >
+              View all
             </Link>
           </div>
         </div>
       </div>
 
-      {/* ===== DUES PENDING / OUTSTANDING SECTION ===== */}
+      {/* ===== DUES PENDING SECTION ===== */}
       <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
         <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
           <div>
@@ -352,7 +267,9 @@ export function MainDashboardView() {
                 </span>
               )}
             </h2>
-            <p className="text-xs text-[#5b6d89]">Payments required for your registered organizations</p>
+            <p className="text-xs text-[#5b6d89]">
+              Payments required for your registered organizations
+            </p>
           </div>
           <Link
             href="/dashboard/payments"
@@ -363,50 +280,66 @@ export function MainDashboardView() {
         </div>
 
         <div className="space-y-2.5">
-          {pendingDues.map((due) => (
-            <div
-              key={due.id}
-              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-xl bg-[#f8faff] hover:bg-[#eef4ff] border border-slate-200/70 transition-all"
-            >
-              <div className="space-y-1 min-w-0 flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-bold text-[#0b1a33] truncate max-w-full">{due.title}</span>
-                  <span
-                    className={cn(
-                      'text-[0.65rem] font-semibold px-2 py-0.5 rounded-full shrink-0',
-                      due.status === 'outstanding'
-                        ? 'bg-red-50 text-red-600 border border-red-200/60'
-                        : 'bg-amber-50 text-amber-700 border border-amber-200/60'
-                    )}
-                  >
-                    {due.status}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-[#5b6d89] flex-wrap">
-                  <span className="truncate">{due.org}</span>
-                  <span className="hidden sm:inline">•</span>
-                  <span className="shrink-0">Due {due.dueDate}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/50">
-                <span className="text-sm font-extrabold text-[#0b1a33]">
-                  ₦{due.amount.toLocaleString()}
-                </span>
-                <Link
-                  href="/dashboard/payments"
-                  className="py-1.5 px-4 rounded-lg bg-[#1a5cff] hover:bg-[#0f4ad0] text-white text-xs font-semibold no-underline transition-colors shadow-sm shrink-0"
+          {pendingDues.length > 0 ? (
+            pendingDues.map((due: DueAssignment) => {
+              const isOverdue = due.due?.dueDate
+                ? new Date(due.due.dueDate) < new Date()
+                : false;
+              return (
+                <div
+                  key={due.id}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-xl bg-[#f8faff] hover:bg-[#eef4ff] border border-slate-200/70 transition-all"
                 >
-                  Pay Dues
-                </Link>
-              </div>
-            </div>
-          ))}
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-bold text-[#0b1a33] truncate max-w-full">
+                        {due.due?.name || "Due Payment"}
+                      </span>
+                      <span
+                        className={cn(
+                          "text-[0.65rem] font-semibold px-2 py-0.5 rounded-full shrink-0",
+                          isOverdue
+                            ? "bg-red-50 text-red-600 border border-red-200/60"
+                            : "bg-amber-50 text-amber-700 border border-amber-200/60",
+                        )}
+                      >
+                        {isOverdue ? "Overdue" : "Pending"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-[#5b6d89] flex-wrap">
+                      <span className="truncate">
+                        {due.due?.organization?.name || "Unknown"}
+                      </span>
+                      <span className="hidden sm:inline">•</span>
+                      <span className="shrink-0">
+                        Due{" "}
+                        {due.due?.dueDate
+                          ? new Date(due.due.dueDate).toLocaleDateString()
+                          : "N/A"}
+                      </span>
+                    </div>
+                  </div>
 
-          {pendingDues.length === 0 && (
+                  <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/50">
+                    <span className="text-sm font-extrabold text-[#0b1a33]">
+                      ₦{due.amount.toLocaleString()}
+                    </span>
+                    <Link
+                      href={`/dashboard/payments?dueId=${due.id}`}
+                      className="py-1.5 px-4 rounded-lg bg-[#1a5cff] hover:bg-[#0f4ad0] text-white text-xs font-semibold no-underline transition-colors shadow-sm shrink-0"
+                    >
+                      Pay Dues
+                    </Link>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
             <div className="text-center py-8 text-slate-400 text-xs flex flex-col items-center gap-2">
               <CheckCircle2 className="w-8 h-8 text-emerald-500" />
-              <span>You have no pending dues for the selected organization!</span>
+              <span>
+                You have no pending dues for the selected organization!
+              </span>
             </div>
           )}
         </div>
@@ -441,7 +374,9 @@ export function MainDashboardView() {
               <Receipt className="w-4 h-4 text-emerald-600 shrink-0" />
               <span>Dues Paid & Receipts</span>
             </h2>
-            <p className="text-xs text-[#5b6d89]">Verified payment records and official receipts</p>
+            <p className="text-xs text-[#5b6d89]">
+              Verified payment records and official receipts
+            </p>
           </div>
           <Link
             href="/dashboard/receipts"
@@ -452,53 +387,59 @@ export function MainDashboardView() {
         </div>
 
         <div className="space-y-2.5">
-          {paidDues.map((due) => (
-            <div
-              key={due.id}
-              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-xl bg-[#f8faff] hover:bg-[#eef4ff] border border-slate-200/70 transition-all"
-            >
-              <div className="space-y-1 min-w-0 flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-bold text-[#0b1a33] truncate max-w-full">{due.title}</span>
-                  <span className="text-[0.65rem] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 flex items-center gap-1 shrink-0">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
-                    Paid
+          {paidDues.length > 0 ? (
+            paidDues.map((due: DueAssignment) => (
+              <div
+                key={due.id}
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-xl bg-[#f8faff] hover:bg-[#eef4ff] border border-slate-200/70 transition-all"
+              >
+                <div className="space-y-1 min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-bold text-[#0b1a33] truncate max-w-full">
+                      {due.due?.name || "Due Payment"}
+                    </span>
+                    <span className="text-[0.65rem] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 flex items-center gap-1 shrink-0">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                      Paid
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-[#5b6d89] flex-wrap">
+                    <span className="truncate">
+                      {due.due?.organization?.name || "Unknown"}
+                    </span>
+                    <span>•</span>
+                    <span className="shrink-0">
+                      {due.paidAt
+                        ? new Date(due.paidAt).toLocaleDateString()
+                        : "N/A"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/50">
+                  <span className="text-sm font-extrabold text-[#0b1a33]">
+                    ₦{due.amount.toLocaleString()}
                   </span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-[#5b6d89] flex-wrap">
-                  <span className="truncate">{due.org}</span>
-                  <span>•</span>
-                  <span className="shrink-0">{due.paidDate}</span>
-                  <span>•</span>
-                  <span className="font-semibold text-slate-600 shrink-0">Receipt #{due.receiptNo}</span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedReceipt(due)}
+                    className="py-1.5 px-3 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold transition-colors flex items-center gap-1 shrink-0"
+                  >
+                    <FileText className="w-3.5 h-3.5 text-[#1a5cff]" />
+                    <span>Receipt</span>
+                  </button>
                 </div>
               </div>
-
-              <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/50">
-                <span className="text-sm font-extrabold text-[#0b1a33]">
-                  ₦{due.amount.toLocaleString()}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setSelectedReceipt(due)}
-                  className="py-1.5 px-3 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold transition-colors flex items-center gap-1 shrink-0"
-                >
-                  <FileText className="w-3.5 h-3.5 text-[#1a5cff]" />
-                  <span>Receipt</span>
-                </button>
-              </div>
-            </div>
-          ))}
-
-          {paidDues.length === 0 && (
+            ))
+          ) : (
             <div className="text-center py-6 text-slate-400 text-xs">
-              No payment receipts found for this organization.
+              No payment receipts found for the selected organization.
             </div>
           )}
         </div>
       </div>
 
-      {/* ===== 2-COLUMN GRID: ANNOUNCEMENTS & NOTIFICATIONS ===== */}
+      {/* ===== ANNOUNCEMENTS & NOTIFICATIONS ===== */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Recent Announcements */}
         <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col justify-between">
@@ -506,7 +447,9 @@ export function MainDashboardView() {
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <Bell className="w-4 h-4 text-[#1a5cff] shrink-0" />
-                <h2 className="text-base font-bold text-[#0b1a33] tracking-tight">Recent Announcements</h2>
+                <h2 className="text-base font-bold text-[#0b1a33] tracking-tight">
+                  Recent Announcements
+                </h2>
               </div>
               <Link
                 href="/dashboard/announcements"
@@ -516,30 +459,11 @@ export function MainDashboardView() {
               </Link>
             </div>
 
-            <div className="space-y-3">
-              {filteredAnnouncements.map((ann) => (
-                <div
-                  key={ann.id}
-                  className="p-3 rounded-xl bg-[#f8faff] hover:bg-[#eef4ff] border border-slate-200/70 transition-all cursor-pointer"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-xs font-bold text-[#0b1a33] leading-snug">{ann.title}</span>
-                    {ann.unread && (
-                      <span className="w-2 h-2 rounded-full bg-[#1a5cff] shrink-0 mt-1" />
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between gap-2 text-[0.72rem] text-[#5b6d89] mt-2">
-                    <span className="font-medium text-[#1a5cff] truncate">{ann.org}</span>
-                    <span className="shrink-0">{ann.date}</span>
-                  </div>
-                </div>
-              ))}
-
-              {filteredAnnouncements.length === 0 && (
-                <div className="text-center py-6 text-slate-400 text-xs">
-                  No announcements found for this organization.
-                </div>
-              )}
+            <div className="text-center py-8 text-slate-400 text-xs">
+              <p>No announcements yet</p>
+              <p className="text-[0.65rem] mt-1">
+                Announcements from your organizations will appear here
+              </p>
             </div>
           </div>
         </div>
@@ -550,30 +474,20 @@ export function MainDashboardView() {
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-[#1a5cff] shrink-0" />
-                <h2 className="text-base font-bold text-[#0b1a33] tracking-tight">Recent Notifications</h2>
+                <h2 className="text-base font-bold text-[#0b1a33] tracking-tight">
+                  Recent Notifications
+                </h2>
               </div>
               <span className="text-xs font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full shrink-0">
-                {INITIAL_NOTIFICATIONS.filter((n) => n.unread).length} unread
+                0 unread
               </span>
             </div>
 
-            <div className="space-y-3">
-              {INITIAL_NOTIFICATIONS.map((notif) => (
-                <div
-                  key={notif.id}
-                  className="flex items-start gap-3 p-3 rounded-xl bg-[#f8faff] hover:bg-[#eef4ff] border border-slate-200/70 transition-all"
-                >
-                  <div className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 mt-0.5">
-                    {notif.type === 'due' && <AlertCircle className="w-3.5 h-3.5 text-amber-500" />}
-                    {notif.type === 'announcement' && <Bell className="w-3.5 h-3.5 text-[#1a5cff]" />}
-                    {notif.type === 'receipt' && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-[#0b1a33] leading-snug">{notif.title}</p>
-                    <span className="text-[0.7rem] text-[#5b6d89]">{notif.time}</span>
-                  </div>
-                </div>
-              ))}
+            <div className="text-center py-8 text-slate-400 text-xs">
+              <p>No notifications</p>
+              <p className="text-[0.65rem] mt-1">
+                Notifications will appear here when you have activity
+              </p>
             </div>
           </div>
         </div>
@@ -586,7 +500,9 @@ export function MainDashboardView() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
                 <Receipt className="w-5 h-5 text-[#1a5cff]" />
-                <h3 className="text-base font-bold text-[#0b1a33]">Payment Receipt</h3>
+                <h3 className="text-base font-bold text-[#0b1a33]">
+                  Payment Receipt
+                </h3>
               </div>
               <button
                 type="button"
@@ -599,28 +515,36 @@ export function MainDashboardView() {
 
             <div className="bg-[#f8faff] p-4 rounded-2xl border border-slate-200/80 space-y-2 text-xs">
               <div className="flex justify-between">
-                <span className="text-slate-500">Receipt No:</span>
-                <span className="font-bold text-[#0b1a33]">#{selectedReceipt.receiptNo}</span>
-              </div>
-              <div className="flex justify-between">
                 <span className="text-slate-500">Item:</span>
-                <span className="font-bold text-[#0b1a33]">{selectedReceipt.title}</span>
+                <span className="font-bold text-[#0b1a33]">
+                  {selectedReceipt.due?.name || "Due Payment"}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Organization:</span>
-                <span className="font-semibold text-[#1a5cff]">{selectedReceipt.org}</span>
+                <span className="font-semibold text-[#1a5cff]">
+                  {selectedReceipt.due?.organization?.name || "Unknown"}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Amount Paid:</span>
-                <span className="font-extrabold text-[#0b1a33]">₦{selectedReceipt.amount.toLocaleString()}</span>
+                <span className="font-extrabold text-[#0b1a33]">
+                  ₦{selectedReceipt.amount.toLocaleString()}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Date Paid:</span>
-                <span className="font-medium text-slate-700">{selectedReceipt.paidDate}</span>
+                <span className="font-medium text-slate-700">
+                  {selectedReceipt.paidAt
+                    ? new Date(selectedReceipt.paidAt).toLocaleDateString()
+                    : "N/A"}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Status:</span>
-                <span className="font-bold text-emerald-600">Verified Paid</span>
+                <span className="font-bold text-emerald-600">
+                  Verified Paid
+                </span>
               </div>
             </div>
 

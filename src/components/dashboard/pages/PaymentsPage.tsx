@@ -1,101 +1,260 @@
-'use client';
+// apps/web/app/dashboard/payments/page.tsx
 
-import React, { useState } from 'react';
-import { CreditCard, AlertCircle, CheckCircle2, Clock, ChevronRight, Search } from 'lucide-react';
-import { cn } from '@/lib/utils';
+"use client";
 
-type Status = 'paid' | 'outstanding' | 'pending';
+import React, { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import {
+  CreditCard,
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+  Search,
+  Loader2,
+  X,
+  Building2,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useMyDues, useMakePayment } from "@/hooks/queries/usePayments";
+import { DueAssignment, PaymentResponse } from "@/lib/api/finance";
 
-interface Payment {
-  id: string;
-  title: string;
-  org: string;
-  amount: number;
-  deadline: string;
-  status: Status;
-  category: string;
+type Tab = "all" | "unpaid" | "paid";
+
+// Helper function to safely check if a value is an object
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-const PAYMENTS: Payment[] = [
-  { id: 'p1', title: 'Departmental Dues 2025/26',   org: 'Comp. Sci. Dept',     amount: 25000, deadline: 'Dec 15, 2025', status: 'outstanding', category: 'Dues'   },
-  { id: 'p2', title: 'Faculty Dues 2025/26',         org: 'Faculty of Science',  amount: 15000, deadline: 'Dec 20, 2025', status: 'pending',     category: 'Dues'   },
-  { id: 'p3', title: 'SUG Levy 2025/26',             org: 'Student Union Govt',  amount: 5000,  deadline: 'Jan 10, 2026', status: 'outstanding', category: 'Levy'   },
-  { id: 'p4', title: 'Library Card Renewal',         org: 'University Library',  amount: 2000,  deadline: 'Nov 30, 2025', status: 'paid',        category: 'Others' },
-  { id: 'p5', title: 'ICT Conference Registration',  org: 'NACOSS',              amount: 8000,  deadline: 'Oct 20, 2025', status: 'paid',        category: 'Events' },
-  { id: 'p6', title: 'Faculty Week Ticket',          org: 'Faculty of Science',  amount: 5000,  deadline: 'Nov 30, 2025', status: 'pending',     category: 'Events' },
-  { id: 'p7', title: 'Lab Consumables Fee',          org: 'Comp. Sci. Dept',     amount: 4500,  deadline: 'Dec 5, 2025',  status: 'outstanding', category: 'Dues'   },
-];
+function getCheckoutUrl(response: PaymentResponse): string | null {
+  // Check if response has a data wrapper with checkoutUrl
+  if (isObject(response.data)) {
+    // Check for checkoutUrl in the data object
+    if (typeof response.data.checkoutUrl === "string") {
+      return response.data.checkoutUrl;
+    }
+    if (typeof response.data.url === "string") {
+      return response.data.url;
+    }
+    if (typeof response.data.paymentUrl === "string") {
+      return response.data.paymentUrl;
+    }
+  }
 
-const STATUS_CONFIG: Record<Status, { label: string; icon: React.ReactNode; badge: string; rowBg: string }> = {
-  outstanding: {
-    label: 'Outstanding',
-    icon: <AlertCircle className="w-3 h-3" />,
-    badge: 'bg-[#fde8e8] text-[#c05a5a]',
-    rowBg: '',
-  },
-  pending: {
-    label: 'Pending',
-    icon: <Clock className="w-3 h-3" />,
-    badge: 'bg-[#fff4e6] text-[#b86b1f]',
-    rowBg: '',
-  },
-  paid: {
-    label: 'Paid',
-    icon: <CheckCircle2 className="w-3 h-3" />,
-    badge: 'bg-[#e6f7f0] text-[#0f7b4a]',
-    rowBg: '',
-  },
-};
+  // Direct response properties (fallback)
+  if (typeof response.checkoutUrl === "string") return response.checkoutUrl;
+  if (typeof response.url === "string") return response.url;
+  if (typeof response.paymentUrl === "string") return response.paymentUrl;
 
-const TABS = ['All', 'Dues', 'Events', 'Others'];
+  return null;
+}
 
 export function PaymentsPage() {
-  const [tab, setTab] = useState('All');
-  const [search, setSearch] = useState('');
+  const searchParams = useSearchParams();
+  const highlightDueId = searchParams.get("dueId");
+  const paymentStatus = searchParams.get("status");
 
-  const totalOutstanding = PAYMENTS.filter(p => p.status !== 'paid').reduce((a, p) => a + p.amount, 0);
+  const { data: dues, isLoading, isError, error, refetch } = useMyDues();
+  const makePayment = useMakePayment();
 
-  const filtered = PAYMENTS.filter((p) => {
-    const tabMatch = tab === 'All' || p.category === tab;
-    const searchMatch = !search || p.title.toLowerCase().includes(search.toLowerCase()) || p.org.toLowerCase().includes(search.toLowerCase());
-    return tabMatch && searchMatch;
-  });
+  const [tab, setTab] = useState<Tab>("all");
+  const [search, setSearch] = useState("");
+  const [payingId, setPayingId] = useState<string | null>(null);
+  const [selectedDue, setSelectedDue] = useState<DueAssignment | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [statusBanner, setStatusBanner] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (paymentStatus === "success") {
+      setStatusBanner(
+        "Payment initiated successfully. Your receipt will appear shortly.",
+      );
+    } else if (paymentStatus === "cancelled") {
+      setStatusBanner("Payment was cancelled.");
+    }
+  }, [paymentStatus]);
+
+  useEffect(() => {
+    if (highlightDueId && dues?.length) {
+      const due = dues.find(
+        (d) => d.id === highlightDueId || d.dueId === highlightDueId,
+      );
+      if (due && !due.isPaid) setSelectedDue(due);
+    }
+  }, [highlightDueId, dues]);
+
+  const filtered = useMemo(() => {
+    if (!dues) return [];
+    return dues.filter((d) => {
+      const tabMatch =
+        tab === "all" ||
+        (tab === "unpaid" && !d.isPaid) ||
+        (tab === "paid" && d.isPaid);
+      const q = search.toLowerCase();
+      const searchMatch =
+        !q ||
+        d.due?.name?.toLowerCase().includes(q) ||
+        d.due?.organization?.name?.toLowerCase().includes(q);
+      return tabMatch && searchMatch;
+    });
+  }, [dues, tab, search]);
+
+  const stats = useMemo(() => {
+    const unpaid = dues?.filter((d) => !d.isPaid) || [];
+    const paid = dues?.filter((d) => d.isPaid) || [];
+    return {
+      unpaidCount: unpaid.length,
+      paidCount: paid.length,
+      unpaidTotal: unpaid.reduce((s, d) => s + d.amount, 0),
+      paidTotal: paid.reduce((s, d) => s + d.amount, 0),
+    };
+  }, [dues]);
+
+  const handlePay = async (due: DueAssignment) => {
+    if (!due.due?.organizationId) {
+      setPaymentError("Organization information is missing for this due.");
+      return;
+    }
+
+    setPayingId(due.id);
+    setPaymentError(null);
+
+    try {
+      const origin = window.location.origin;
+      const encodedDueName = encodeURIComponent(due.due?.name || "Due payment");
+      const encodedOrg = encodeURIComponent(due.due?.organization?.name || "");
+      const amountParam = due.amount;
+      const dueIdParam = due.dueId || due.id;
+
+      const result = await makePayment.mutateAsync({
+        amount: due.amount,
+        organizationId: due.due.organizationId,
+        paymentMethod: "CARD",
+        dueAssignmentId: due.isAutoAssigned ? undefined : due.id,
+        dueId: due.dueId,
+        description: due.due.name || "Due payment",
+        successUrl: `${origin}/dashboard/payments/success?dueId=${dueIdParam}&dueName=${encodedDueName}&amount=${amountParam}&org=${encodedOrg}`,
+        cancelUrl: `${origin}/dashboard/payments/cancelled?dueId=${dueIdParam}&dueName=${encodedDueName}&amount=${amountParam}&org=${encodedOrg}`,
+      });
+
+      console.log("Payment response:", result); // Debug log to see the response structure
+
+      const checkoutUrl = getCheckoutUrl(result);
+      console.log("Extracted checkout URL:", checkoutUrl); // Debug log
+
+      if (checkoutUrl) {
+        // Redirect to the checkout URL
+        window.location.href = checkoutUrl;
+      } else {
+        setPaymentError("Payment initiated but no checkout URL was returned.");
+      }
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message || "Failed to initiate payment. Please try again.";
+      setPaymentError(message);
+    } finally {
+      setPayingId(null);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 text-[#1a5cff] animate-spin" />
+          <span className="text-sm text-[#5b6d89] font-medium">
+            Loading your dues...
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-red-600">
+        <p className="font-semibold">Error loading dues</p>
+        <p className="text-sm">{error?.message || "Something went wrong"}</p>
+        <button
+          onClick={() => refetch()}
+          className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  const unpaidDues = dues?.filter((d) => !d.isPaid) || [];
 
   return (
     <div className="space-y-5 pb-6">
-      {/* Alert banner */}
-      <div className="bg-[#fff8ec] border border-[#f5d08a] rounded-[16px] px-4 py-4 flex items-start gap-3">
-        <div className="w-8 h-8 rounded-[8px] bg-amber-100 flex items-center justify-center flex-shrink-0">
-          <AlertCircle className="w-4 h-4 text-amber-600" />
+      {/* Status Banner */}
+      {statusBanner && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 text-emerald-700 text-sm font-medium flex items-start justify-between gap-3">
+          <span>{statusBanner}</span>
+          <button
+            onClick={() => setStatusBanner(null)}
+            className="text-emerald-600 hover:text-emerald-800 border-none bg-transparent cursor-pointer p-0"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
-        <div>
-          <p className="text-[0.82rem] font-semibold text-[#7a4a00]">You have unpaid dues</p>
-          <p className="text-[0.7rem] text-[#a06020] mt-0.5">
-            ₦{totalOutstanding.toLocaleString()} total outstanding across 3 payments. Some have upcoming deadlines.
-          </p>
-        </div>
-      </div>
+      )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { label: 'Paid',        value: PAYMENTS.filter(p => p.status === 'paid').length,        color: 'text-[#0f7b4a]' },
-          { label: 'Outstanding', value: PAYMENTS.filter(p => p.status === 'outstanding').length,  color: 'text-[#c05a5a]' },
-          { label: 'Pending',     value: PAYMENTS.filter(p => p.status === 'pending').length,      color: 'text-[#b86b1f]' },
-        ].map((s) => (
-          <div key={s.label} className="bg-white border border-[#e8ecf1] rounded-[14px] p-3.5 text-center">
-            <p className={`text-[1.2rem] font-extrabold ${s.color}`}>{s.value}</p>
-            <p className="text-[0.6rem] text-[#7a8ba3] mt-0.5 font-medium">{s.label}</p>
+      {paymentError && (
+        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-700 text-sm font-medium flex items-start justify-between gap-3">
+          <span>{paymentError}</span>
+          <button
+            onClick={() => setPaymentError(null)}
+            className="text-red-600 hover:text-red-800 border-none bg-transparent cursor-pointer p-0"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Unpaid Alert */}
+      {stats.unpaidCount > 0 && (
+        <div className="bg-[#fff8ec] border border-[#f5d08a] rounded-[16px] px-4 py-4 flex items-start gap-3">
+          <div className="w-8 h-8 rounded-[8px] bg-amber-100 flex items-center justify-center flex-shrink-0">
+            <AlertCircle className="w-4 h-4 text-amber-600" />
           </div>
-        ))}
-      </div>
+          <div>
+            <p className="text-[0.82rem] font-semibold text-[#7a4a00]">
+              You have {stats.unpaidCount} unpaid due
+              {stats.unpaidCount !== 1 ? "s" : ""}
+            </p>
+            <p className="text-[0.7rem] text-[#a06020] mt-0.5">
+              ₦{stats.unpaidTotal.toLocaleString()} total outstanding
+            </p>
+          </div>
+        </div>
+      )}
+
+      {dues && dues.length === 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-[16px] px-4 py-4 flex items-start gap-3">
+          <div className="w-8 h-8 rounded-[8px] bg-blue-100 flex items-center justify-center flex-shrink-0">
+            <Building2 className="w-4 h-4 text-blue-600" />
+          </div>
+          <div>
+            <p className="text-[0.82rem] font-semibold text-[#1a3a7a]">
+              No dues assigned
+            </p>
+            <p className="text-[0.7rem] text-[#4a6a9a] mt-0.5">
+              You don't have any active dues. Join an organization to see
+              assigned dues.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Search */}
       <div className="relative">
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7a8ba3]" />
         <input
           type="text"
-          placeholder="Search payments…"
+          placeholder="Search dues…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full bg-white border border-[#e8ecf1] rounded-[12px] pl-10 pr-4 py-3 text-[0.82rem] text-[#1a1a2e] placeholder-[#b0bac8] outline-none focus:border-[#1a5cff] transition-colors"
@@ -103,61 +262,216 @@ export function PaymentsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
-        {TABS.map((t) => (
+      <div className="flex gap-1.5">
+        {(
+          [
+            { key: "all", label: "All" },
+            { key: "unpaid", label: "Unpaid" },
+            { key: "paid", label: "Paid" },
+          ] as const
+        ).map(({ key, label }) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={key}
+            onClick={() => setTab(key)}
             className={cn(
-              'flex-shrink-0 text-[0.72rem] font-semibold px-4 py-2 rounded-full border-none cursor-pointer transition-all',
-              tab === t
-                ? 'bg-[#1a5cff] text-white'
-                : 'bg-white border border-[#e8ecf1] text-[#6b7a8f] hover:border-[#1a5cff] hover:text-[#1a5cff]'
+              "text-[0.72rem] font-semibold px-4 py-2 rounded-full border-none cursor-pointer transition-all",
+              tab === key
+                ? "bg-[#1a5cff] text-white"
+                : "bg-white border border-[#e8ecf1] text-[#6b7a8f] hover:border-[#1a5cff] hover:text-[#1a5cff]",
             )}
           >
-            {t}
+            {label}
           </button>
         ))}
       </div>
 
-      {/* Payment list */}
+      {/* Due list */}
       <div className="bg-white border border-[#e8ecf1] rounded-[16px] divide-y divide-[#f0f2f5] overflow-hidden">
         {filtered.length === 0 && (
           <div className="flex flex-col items-center justify-center py-10 text-center">
             <CreditCard className="w-8 h-8 text-[#c8d0db] mb-2" />
-            <p className="text-[0.82rem] font-medium text-[#6b7a8f]">No payments found</p>
+            <p className="text-[0.82rem] font-medium text-[#6b7a8f]">
+              No dues found
+            </p>
+            <p className="text-[0.65rem] text-[#7a8ba3] mt-1">
+              {search
+                ? "No matching dues found. Try adjusting your search."
+                : "Join an organization to see assigned dues"}
+            </p>
           </div>
         )}
-        {filtered.map((p) => {
-          const cfg = STATUS_CONFIG[p.status];
+        {filtered.map((due) => {
+          const isOverdue =
+            !due.isPaid &&
+            due.due?.dueDate &&
+            new Date(due.due.dueDate) < new Date();
+          const isPaying = payingId === due.id;
+          const isAutoAssigned = due.isAutoAssigned;
+
           return (
-            <div key={p.id} className="flex items-center gap-3 px-4 py-4 hover:bg-[#fafbff] transition-colors cursor-pointer group">
+            <div
+              key={due.id}
+              className={cn(
+                "flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-4 hover:bg-[#fafbff] transition-colors",
+                highlightDueId === due.id && "bg-[#eef4ff]",
+              )}
+            >
               <div className="w-9 h-9 rounded-[10px] bg-[#eef3ff] flex items-center justify-center flex-shrink-0">
                 <CreditCard className="w-4 h-4 text-[#1a5cff]" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[0.82rem] font-semibold text-[#1a1a2e] truncate">{p.title}</p>
-                <p className="text-[0.6rem] text-[#7a8ba3] mt-0.5">{p.org} · {p.deadline}</p>
+                <p className="text-[0.82rem] font-semibold text-[#1a1a2e] truncate">
+                  {due.due?.name || "Due Payment"}
+                </p>
+                <p className="text-[0.6rem] text-[#7a8ba3] mt-0.5 flex items-center gap-1 flex-wrap">
+                  <Building2 className="w-3 h-3 flex-shrink-0" />
+                  {due.due?.organization?.name || "Unknown"}
+                  {isAutoAssigned && (
+                    <span className="ml-1 text-[0.55rem] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full font-medium">
+                      Available
+                    </span>
+                  )}
+                  <span className="text-[#b0bac8]">·</span>
+                  {due.due?.dueDate
+                    ? new Date(due.due.dueDate).toLocaleDateString()
+                    : "No deadline"}
+                </p>
               </div>
-              <div className="flex flex-col items-end gap-1.5">
-                <span className="text-[0.82rem] font-bold text-[#1a1a2e]">₦{p.amount.toLocaleString()}</span>
-                <span className={cn('inline-flex items-center gap-1 text-[0.58rem] font-semibold px-2 py-0.5 rounded-full', cfg.badge)}>
-                  {cfg.icon}
-                  {cfg.label}
+              <div className="flex items-center justify-between sm:justify-end gap-3">
+                <span className="text-[0.82rem] font-bold text-[#1a1a2e]">
+                  ₦{due.amount.toLocaleString()}
                 </span>
+                {due.isPaid ? (
+                  <span className="inline-flex items-center gap-1 text-[0.58rem] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Paid
+                  </span>
+                ) : (
+                  <>
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1 text-[0.58rem] font-semibold px-2 py-0.5 rounded-full",
+                        isOverdue
+                          ? "bg-red-50 text-red-600"
+                          : "bg-amber-50 text-amber-700",
+                      )}
+                    >
+                      {isOverdue ? (
+                        <AlertCircle className="w-3 h-3" />
+                      ) : (
+                        <Clock className="w-3 h-3" />
+                      )}
+                      {isOverdue ? "Overdue" : "Pending"}
+                    </span>
+                    <button
+                      onClick={() => {
+                        setSelectedDue(due);
+                      }}
+                      disabled={isPaying}
+                      className={cn(
+                        "py-1.5 px-4 rounded-lg text-xs font-semibold border-none cursor-pointer transition-colors flex items-center gap-1.5",
+                        isPaying
+                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          : "bg-[#1a5cff] hover:bg-[#0f4ad0] text-white",
+                      )}
+                    >
+                      {isPaying ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        "Pay"
+                      )}
+                    </button>
+                  </>
+                )}
               </div>
-              <ChevronRight className="w-3.5 h-3.5 text-[#c8d0db] group-hover:text-[#6b7a8f] transition-colors flex-shrink-0 ml-1" />
             </div>
           );
         })}
       </div>
 
-      {/* Pay all outstanding CTA */}
-      {PAYMENTS.some(p => p.status === 'outstanding') && (
-        <button className="w-full bg-gradient-to-r from-[#1a5cff] to-[#4a7aff] text-white rounded-[14px] py-3.5 text-[0.85rem] font-bold border-none cursor-pointer hover:from-[#0f4ad0] hover:to-[#3a5be8] active:scale-[0.98] transition-all shadow-[0_4px_16px_rgba(26,92,255,0.25)]">
-          Pay All Outstanding — ₦{PAYMENTS.filter(p => p.status === 'outstanding').reduce((a, p) => a + p.amount, 0).toLocaleString()}
-        </button>
+      {/* Pay confirmation modal */}
+      {selectedDue && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full border border-slate-200 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-bold text-[#0b1a33]">
+                Confirm Payment
+              </h3>
+              <button
+                onClick={() => setSelectedDue(null)}
+                className="text-slate-400 hover:text-slate-600 border-none bg-transparent cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="bg-[#f8faff] p-4 rounded-2xl border border-slate-200/80 space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-slate-500">Due</span>
+                <span className="font-bold text-[#0b1a33]">
+                  {selectedDue.due?.name || "Due Payment"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Organization</span>
+                <span className="font-semibold text-[#1a5cff]">
+                  {selectedDue.due?.organization?.name || "Unknown"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Amount</span>
+                <span className="font-extrabold text-[#0b1a33]">
+                  ₦{selectedDue.amount.toLocaleString()}
+                </span>
+              </div>
+              {selectedDue.isAutoAssigned && (
+                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">
+                  <p className="font-semibold">
+                    This due is available for you to pay. No prior assignment
+                    needed.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <p className="text-xs text-[#5b6d89]">
+              You will be redirected to a secure checkout page to complete your
+              payment.
+            </p>
+
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={() => setSelectedDue(null)}
+                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-colors cursor-pointer bg-white"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  handlePay(selectedDue);
+                  setSelectedDue(null);
+                }}
+                disabled={payingId === selectedDue.id}
+                className="flex-1 py-2.5 rounded-xl bg-[#1a5cff] hover:bg-[#0f4ad0] text-white font-semibold text-sm transition-colors cursor-pointer border-none disabled:opacity-60 flex items-center justify-center gap-2"
+              >
+                {payingId === selectedDue.id ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  "Proceed to Pay"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
 }
+
+export default PaymentsPage;
