@@ -13,6 +13,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     pathname === "/verify-email" ||
     pathname === "/verify-email-sent" ||
     pathname === "/onboarding" ||
+    pathname.startsWith("/payment") ||
     pathname.startsWith("/dashboard");
 
   if (isAuthPage) {

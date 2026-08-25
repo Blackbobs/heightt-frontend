@@ -19,6 +19,17 @@ const signinSchema = z.object({
 
 type SigninFormData = z.infer<typeof signinSchema>;
 
+function getSafeReturnTo(): string | null {
+  if (typeof window === "undefined") return null;
+
+  const returnTo = new URLSearchParams(window.location.search).get("returnTo");
+  if (!returnTo || !returnTo.startsWith("/") || returnTo.startsWith("//")) {
+    return null;
+  }
+
+  return returnTo;
+}
+
 /* ─── Component ──────────────────────────────────────────────── */
 interface SigninCardProps {
   borderless?: boolean;
@@ -56,11 +67,14 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
       const onboardingStatus = await useAuthStore
         .getState()
         .checkOnboardingStatus();
+      const returnTo = getSafeReturnTo();
 
       // Use router.replace to avoid history issues
       setTimeout(() => {
         if (onboardingStatus.needsOnboarding) {
           router.replace("/onboarding");
+        } else if (returnTo) {
+          router.replace(returnTo);
         } else {
           router.replace("/dashboard");
         }

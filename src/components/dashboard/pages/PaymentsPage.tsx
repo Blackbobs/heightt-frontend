@@ -48,6 +48,23 @@ function getCheckoutUrl(response: PaymentResponse): string | null {
   return null;
 }
 
+function getPendingPaymentId(response: PaymentResponse): string | null {
+  if (isObject(response.data)) {
+    if (typeof response.data.pendingPaymentId === "string") {
+      return response.data.pendingPaymentId;
+    }
+    if (typeof response.data.id === "string") {
+      return response.data.id;
+    }
+  }
+
+  if (typeof response.pendingPaymentId === "string") {
+    return response.pendingPaymentId;
+  }
+
+  return null;
+}
+
 export function PaymentsPage() {
   const searchParams = useSearchParams();
   const highlightDueId = searchParams.get("dueId");
@@ -124,6 +141,12 @@ export function PaymentsPage() {
       const encodedOrg = encodeURIComponent(due.due?.organization?.name || "");
       const amountParam = due.amount;
       const dueIdParam = due.dueId || due.id;
+      const callbackParams = new URLSearchParams({
+        dueId: dueIdParam,
+        dueName: due.due?.name || "Due payment",
+        amount: String(amountParam),
+        org: due.due?.organization?.name || "",
+      });
 
       const result = await makePayment.mutateAsync({
         amount: due.amount,
@@ -132,14 +155,25 @@ export function PaymentsPage() {
         dueAssignmentId: due.isAutoAssigned ? undefined : due.id,
         dueId: due.dueId,
         description: due.due.name || "Due payment",
-        successUrl: `${origin}/dashboard/payments/success?dueId=${dueIdParam}&dueName=${encodedDueName}&amount=${amountParam}&org=${encodedOrg}`,
-        cancelUrl: `${origin}/dashboard/payments/cancelled?dueId=${dueIdParam}&dueName=${encodedDueName}&amount=${amountParam}&org=${encodedOrg}`,
+        successUrl: `${origin}/payment/callback?${callbackParams.toString()}`,
+        cancelUrl: `${origin}/payment/cancelled?dueId=${dueIdParam}&dueName=${encodedDueName}&amount=${amountParam}&org=${encodedOrg}`,
       });
 
       console.log("Payment response:", result); // Debug log to see the response structure
 
       const checkoutUrl = getCheckoutUrl(result);
       console.log("Extracted checkout URL:", checkoutUrl); // Debug log
+      const pendingPaymentId = getPendingPaymentId(result);
+
+      if (pendingPaymentId) {
+        sessionStorage.setItem(
+          "heightt.pendingPayment",
+          JSON.stringify({
+            pendingPaymentId,
+            startedAt: Date.now(),
+          }),
+        );
+      }
 
       if (checkoutUrl) {
         // Redirect to the checkout URL

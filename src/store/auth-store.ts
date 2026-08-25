@@ -10,7 +10,6 @@ import {
   axiosConfig,
   clearCsrfToken,
   getCsrfToken,
-  getCsrfTokenFromCookie,
 } from "@/utils/axios-config";
 
 export interface UserProfile {
@@ -80,6 +79,7 @@ interface AuthState {
   }>;
   updateUserOnboardingStatus: (completed: boolean, step: string) => void;
   initialize: () => void;
+  restoreSession: () => Promise<boolean>;
   getToken: () => string | null;
   fetchCurrentUser: () => Promise<User | null>;
   setToken: (token: string | null) => void;
@@ -181,6 +181,23 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      restoreSession: async () => {
+        const user = await get().fetchCurrentUser();
+        if (user) {
+          return true;
+        }
+
+        try {
+          await axiosConfig.post("/auth/refresh");
+        } catch (error) {
+          console.warn("restoreSession - Refresh failed:", error);
+          return false;
+        }
+
+        const refreshedUser = await get().fetchCurrentUser();
+        return !!refreshedUser;
+      },
+
       // ============================================
       // REGISTER - NO AUTO-LOGIN
       // ============================================
@@ -213,8 +230,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           console.log("[Auth] Login started for:", identifier);
 
-          // CRITICAL: Clear any existing token and get a fresh one
-          // This ensures we have a valid token that matches the cookie
+          // CRITICAL: Clear any existing token and get a fresh one.
           console.log("[Auth] 🔄 Getting fresh CSRF token for login...");
 
           // Clear memory token to force a fresh fetch
@@ -226,29 +242,6 @@ export const useAuthStore = create<AuthState>()(
             "[Auth] ✅ CSRF token obtained:",
             csrfToken ? csrfToken.substring(0, 10) + "..." : "No token",
           );
-
-          // Verify the cookie was set
-          const cookieToken = getCsrfTokenFromCookie();
-          console.log(
-            "[Auth] 📋 Cookie token:",
-            cookieToken
-              ? cookieToken.substring(0, 10) + "..."
-              : "No cookie token",
-          );
-
-          if (!cookieToken || (csrfToken && cookieToken !== csrfToken)) {
-            console.warn(
-              "[Auth] ⚠️ Token mismatch - cookie and memory token don't match",
-            );
-            // Force a new fetch
-            clearCsrfToken();
-            await new Promise((resolve) => setTimeout(resolve, 100));
-            const newToken = await getCsrfToken();
-            console.log(
-              "[Auth] ✅ New token fetched:",
-              newToken.substring(0, 10) + "...",
-            );
-          }
 
           console.log("[Auth] 📤 Making login request...");
           const response = await axiosConfig.post("/auth/login", {
