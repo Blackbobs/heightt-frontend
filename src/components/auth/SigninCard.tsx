@@ -53,12 +53,10 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
       setIsSubmitted(true);
 
       // Check onboarding status before redirecting
-      // Use a small delay to allow the UI to update before redirect
       const onboardingStatus = await useAuthStore
         .getState()
         .checkOnboardingStatus();
 
-      // Use router.replace to avoid history issues
       setTimeout(() => {
         if (onboardingStatus.needsOnboarding) {
           router.replace("/onboarding");
@@ -75,17 +73,17 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
   return (
     <div
       className={cn(
-        "w-full max-w-[520px] transition-shadow duration-200",
+        "w-full max-w-[520px] transition-all duration-200",
         borderless
-          ? "bg-transparent p-0 border-none shadow-none"
-          : "bg-white p-7 sm:p-9 md:p-10 rounded-[28px] sm:rounded-[32px] shadow-[0_20px_60px_rgba(0,20,40,0.08),0_8px_24px_rgba(0,0,0,0.02)] border border-slate-100",
+          ? "bg-white sm:bg-transparent p-6 sm:p-0 rounded-3xl sm:rounded-none border border-slate-200/90 sm:border-none shadow-xl shadow-slate-900/5 sm:shadow-none"
+          : "bg-white p-6 sm:p-9 md:p-10 rounded-[28px] sm:rounded-[32px] shadow-[0_20px_60px_rgba(0,20,40,0.08),0_8px_24px_rgba(0,0,0,0.02)] border border-slate-200/80",
         className,
       )}
       role="main"
       aria-labelledby="signin-heading"
     >
-      {/* Logo */}
-      <div className="mb-6">
+      {/* Logo - Hidden on mobile if header already has it */}
+      <div className="hidden sm:block mb-6">
         <Logo />
       </div>
 
@@ -95,7 +93,7 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
       >
         Welcome back
       </h1>
-      <p className="text-[0.95rem] text-[#5b6d89] mb-6 font-normal leading-snug">
+      <p className="text-[0.92rem] text-[#5b6d89] mb-6 font-normal leading-snug">
         Sign in to continue managing your campus finances.
       </p>
 
@@ -110,10 +108,10 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
       <form id="signinForm" onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="flex flex-col gap-4">
           {/* Email or Username */}
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1.5">
             <label
               htmlFor="signinIdentifier"
-              className="text-[0.75rem] font-semibold text-[#1f2a44] tracking-wide uppercase opacity-70"
+              className="text-[0.75rem] font-bold text-[#1f2a44] tracking-wide uppercase opacity-80"
             >
               Email or Username
             </label>
@@ -124,7 +122,7 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
               placeholder="Email or username"
               autoComplete="username"
               className={cn(
-                "bg-[#f8faff] border-[1.5px] border-[#e2e8f0] rounded-[14px] px-3.5 py-3 text-[0.95rem] font-medium text-[#0b1a33] transition-all duration-150 w-full placeholder:text-[#9aabbf] focus:outline-none focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10",
+                "bg-white sm:bg-[#f8faff] border-[1.5px] border-[#cbd5e1] rounded-[14px] px-3.5 py-3 text-[0.95rem] font-medium text-[#0b1a33] transition-all duration-150 w-full placeholder:text-[#9aabbf] focus:outline-none focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10 shadow-xs",
                 errors.identifier && "border-[#e53e3e] bg-[#fff8f8]",
               )}
             />
@@ -136,10 +134,10 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
           </div>
 
           {/* Password */}
-          <div className="flex flex-col gap-1 relative">
+          <div className="flex flex-col gap-1.5 relative">
             <label
               htmlFor="signinPassword"
-              className="text-[0.75rem] font-semibold text-[#1f2a44] tracking-wide uppercase opacity-70"
+              className="text-[0.75rem] font-bold text-[#1f2a44] tracking-wide uppercase opacity-80"
             >
               Password
             </label>
@@ -151,14 +149,14 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
                 placeholder="••••••••"
                 autoComplete="current-password"
                 className={cn(
-                  "bg-[#f8faff] border-[1.5px] border-[#e2e8f0] rounded-[14px] pl-3.5 pr-10 py-3 text-[0.95rem] font-medium text-[#0b1a33] transition-all duration-150 w-full placeholder:text-[#9aabbf] focus:outline-none focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10",
+                  "bg-white sm:bg-[#f8faff] border-[1.5px] border-[#cbd5e1] rounded-[14px] pl-3.5 pr-10 py-3 text-[0.95rem] font-medium text-[#0b1a33] transition-all duration-150 w-full placeholder:text-[#9aabbf] focus:outline-none focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10 shadow-xs",
                   errors.password && "border-[#e53e3e] bg-[#fff8f8]",
                 )}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((p) => !p)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none p-1"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? (
@@ -177,7 +175,7 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
 
           {/* Remember me & Forgot Password */}
           <div className="flex items-center justify-between my-1">
-            <label className="flex items-center gap-2 text-[0.88rem] text-[#1f2a44] cursor-pointer select-none">
+            <label className="flex items-center gap-2 text-[0.88rem] text-[#1f2a44] cursor-pointer select-none font-medium">
               <input
                 {...register("rememberMe")}
                 type="checkbox"
@@ -189,7 +187,7 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
 
             <a
               href="#"
-              className="text-[0.88rem] text-[#1a5cff] font-semibold hover:border-b hover:border-[#1a5cff] transition-all"
+              className="text-[0.88rem] text-[#1a5cff] font-semibold hover:underline transition-all"
             >
               Forgot password?
             </a>
@@ -201,7 +199,7 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
             id="signinSubmit"
             disabled={isLoading}
             className={cn(
-              "border-none rounded-[40px] px-5 py-4 text-base font-semibold text-white w-full cursor-pointer transition-all duration-200 mt-2 tracking-tight shadow-[0_8px_24px_rgba(26,92,255,0.25)] flex items-center justify-center gap-2 active:scale-[0.98]",
+              "border-none rounded-[40px] px-5 py-3.5 sm:py-4 text-base font-semibold text-white w-full cursor-pointer transition-all duration-200 mt-2 tracking-tight shadow-[0_8px_24px_rgba(26,92,255,0.25)] flex items-center justify-center gap-2 active:scale-[0.98]",
               isSubmitted
                 ? "bg-[#0f7b4a] shadow-[0_8px_24px_rgba(15,123,74,0.25)]"
                 : "bg-[#1a5cff] hover:bg-[#0f4ad0] hover:shadow-[0_12px_28px_rgba(26,92,255,0.3)]",
@@ -224,11 +222,11 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
           </button>
 
           {/* Signup link */}
-          <div className="text-center mt-4 text-[0.92rem] text-[#3d4f6b]">
+          <div className="text-center mt-3 sm:mt-4 text-[0.92rem] text-[#3d4f6b]">
             Don&apos;t have an account?{" "}
             <Link
               href="/signup"
-              className="text-[#1a5cff] font-semibold hover:border-b hover:border-[#1a5cff] transition-all"
+              className="text-[#1a5cff] font-semibold hover:underline transition-all"
             >
               Create one
             </Link>
@@ -237,7 +235,7 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
       </form>
 
       {/* Subtle hint */}
-      <div className="mt-5 text-[0.7rem] text-[#7a8ba3] text-center border-t border-[#edf2f7] pt-4 flex items-center justify-center gap-1.5">
+      <div className="mt-5 text-[0.72rem] text-[#7a8ba3] text-center border-t border-[#edf2f7] pt-4 flex items-center justify-center gap-1.5">
         <Sparkles className="w-3.5 h-3.5 text-amber-500" />
         <span>Secure sign in to your Heightt account</span>
       </div>
