@@ -2,45 +2,29 @@
 
 import { useEffect, useRef, useState } from 'react';
 import {
-  Wallet,
-  CheckCircle,
-  ArrowDown,
-  ArrowUp,
-  Clock,
-  Ticket,
-  ChevronRight,
-  Home,
-  Building,
+  CheckCircle2,
   Bell,
-  User,
   Signal,
   Wifi,
   Battery,
-  PiggyBank,
-  CreditCard,
   Receipt,
-  CalendarDays,
+  Users,
+  ShieldCheck,
+  Building,
+  UserPlus,
+  FilePlus2,
+  CreditCard,
+  QrCode,
+  Sparkles,
 } from 'lucide-react';
 import gsap from 'gsap';
 
-const transactions = [
-  {
-    icon: Building,
-    name: 'CS Society Dues',
-    desc: 'Today, 2:15 PM',
-    amount: '-₦5,000',
-    negative: true,
-  },
-  {
-    icon: ArrowUp,
-    name: 'Wallet Funding',
-    desc: 'Yesterday',
-    amount: '+₦10,000',
-    negative: false,
-  },
-];
+interface PhoneFrameProps {
+  currentStep?: number;
+  onStepSelect?: (step: number) => void;
+}
 
-export function PhoneFrame() {
+export function PhoneFrame({ currentStep = 3, onStepSelect }: PhoneFrameProps) {
   const phoneRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [time, setTime] = useState('9:41');
@@ -64,187 +48,203 @@ export function PhoneFrame() {
 
     const handleMouseEnter = () => {
       gsap.to(phone, {
-        rotationX: 8,
-        rotationY: -5,
-        rotationZ: 2,
-        scale: 1.03,
-        duration: 0.6,
+        rotationX: 3,
+        rotationY: -2,
+        scale: 1.02,
+        duration: 0.5,
         ease: 'power2.out',
         overwrite: 'auto',
       });
-      gsap.to(wrapper, { z: 30, duration: 0.6, ease: 'power2.out' });
+      gsap.to(wrapper, { z: 20, duration: 0.5, ease: 'power2.out' });
     };
 
     const handleMouseLeave = () => {
       gsap.to(phone, {
         rotationX: 0,
         rotationY: 0,
-        rotationZ: 0,
         scale: 1,
-        duration: 0.8,
-        ease: 'elastic.out(1, 0.4)',
+        duration: 0.7,
+        ease: 'elastic.out(1, 0.6)',
         overwrite: 'auto',
       });
-      gsap.to(wrapper, { z: 0, duration: 0.6, ease: 'power2.out' });
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const rect = phone.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width;
-      const y = (e.clientY - rect.top) / rect.height;
-      gsap.to(phone, {
-        rotationX: (y - 0.5) * 12,
-        rotationY: (x - 0.5) * -12,
-        duration: 0.3,
-        ease: 'power1.out',
-        overwrite: 'auto',
-      });
+      gsap.to(wrapper, { z: 0, duration: 0.5, ease: 'power2.out' });
     };
 
     phone.addEventListener('mouseenter', handleMouseEnter);
     phone.addEventListener('mouseleave', handleMouseLeave);
-    phone.addEventListener('mousemove', handleMouseMove);
 
     return () => {
       phone.removeEventListener('mouseenter', handleMouseEnter);
       phone.removeEventListener('mouseleave', handleMouseLeave);
-      phone.removeEventListener('mousemove', handleMouseMove);
     };
   }, []);
 
   return (
-    <div ref={wrapperRef} className="perspective-1000">
+    <div ref={wrapperRef} className="perspective-1000 relative w-full flex justify-center items-center py-4">
+      {/* Background Ambient Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] sm:w-[450px] sm:h-[450px] bg-gradient-to-tr from-primary/25 to-primary-glow/20 rounded-full blur-3xl pointer-events-none -z-10" />
+
+      {/* Floating Card: Live Notification */}
+      <div className="hidden sm:flex absolute top-6 -left-6 lg:-left-10 z-30 bg-white/95 backdrop-blur-xl border border-white/80 p-3.5 rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.1)] items-center gap-3 animate-float-slow">
+        <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/30 flex-shrink-0">
+          <CheckCircle2 className="w-5 h-5" />
+        </div>
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-foreground">Dues Auto-Recorded</span>
+            <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full">Live</span>
+          </div>
+          <p className="text-xs text-muted-foreground">Toluwalase A. paid ₦12,500</p>
+        </div>
+      </div>
+
+      {/* Phone Hardware Shell */}
       <div
         ref={phoneRef}
-        className="w-full max-w-[260px] sm:max-w-[340px] lg:max-w-[420px] aspect-[9/19] bg-[#f8f9fc] rounded-[36px] sm:rounded-[48px] p-2 sm:p-4 shadow-[0_30px_80px_rgba(0,0,0,0.1),0_0_0_3px_oklch(46%_.18_265),0_0_0_8px_rgba(46,92,210,0.06),inset_0_0_0_1px_rgba(255,255,255,0.8)] relative transition-shadow duration-500 will-change-transform cursor-pointer mx-auto"
-        style={{ transformStyle: 'preserve-3d', willChange: 'transform' }}
+        className="w-full max-w-[290px] sm:max-w-[330px] lg:max-w-[360px] aspect-[9/18.5] bg-[#0c101c] rounded-[48px] p-3 sm:p-3.5 shadow-[0_30px_90px_rgba(26,92,255,0.22),0_0_0_1px_rgba(255,255,255,0.15),0_0_0_8px_rgba(15,23,42,0.7)] relative will-change-transform cursor-pointer"
       >
-        {/* Border ring */}
-        <div className="absolute -inset-1 rounded-[40px] sm:rounded-[52px] border border-border pointer-events-none" />
-
-        {/* Notch */}
-        <div className="absolute top-3 sm:top-5 left-1/2 -translate-x-1/2 w-[80px] sm:w-[130px] h-4 sm:h-7 bg-foreground rounded-[12px] sm:rounded-[18px] z-10 flex items-center justify-center gap-1.5 sm:gap-3 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]">
-          <div className="w-1.5 sm:w-2.5 h-1.5 sm:h-2.5 bg-[oklch(20%_.02_260)] rounded-full border border-[oklch(30%_.02_260)] relative">
-            <div className="absolute w-0.5 h-0.5 bg-primary/20 rounded-full top-0.5 left-0.5" />
-          </div>
-          <div className="w-[26px] sm:w-[48px] h-0.5 sm:h-1 bg-[oklch(20%_.02_260)] rounded border border-[oklch(30%_.02_260)]" />
+        {/* Dynamic Island / Notch */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[110px] h-5 bg-[#000000] rounded-full z-30 flex items-center justify-between px-2.5 shadow-inner">
+          <div className="w-2.5 h-2.5 bg-[#141824] rounded-full border border-[#23293d]" />
+          <div className="w-10 h-1 bg-[#141824] rounded-full" />
         </div>
 
-        {/* Screen */}
-        <div className="w-full h-full bg-white rounded-[24px] sm:rounded-[36px] overflow-hidden flex flex-col">
+        {/* Screen Content */}
+        <div className="w-full h-full bg-[#f8fafc] rounded-[36px] overflow-hidden flex flex-col justify-between p-3.5 sm:p-4 text-foreground relative shadow-inner">
           {/* Status Bar */}
-          <div className="flex justify-between items-center px-3 sm:px-4 pt-3 sm:pt-4 pb-1 text-[9px] sm:text-[11px] font-semibold text-foreground flex-shrink-0">
-            <span className="font-bold">{time}</span>
-            <div className="flex gap-1 sm:gap-1.5">
-              <Signal className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
-              <Wifi className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
-              <Battery className="w-3 h-2.5 sm:w-4 sm:h-3.5" />
+          <div className="flex justify-between items-center pt-2 pb-1 text-[10px] font-bold text-foreground flex-shrink-0">
+            <span>{time}</span>
+            <div className="flex gap-1 text-foreground">
+              <Signal className="w-3 h-3" />
+              <Wifi className="w-3 h-3" />
+              <Battery className="w-3.5 h-3" />
             </div>
           </div>
 
-          {/* Content — no overflow, everything fits with breathing room */}
-          <div className="flex-1 px-3 sm:px-4 flex flex-col gap-2.5 sm:gap-3 pb-2">
-
-            {/* Header */}
-            <div className="flex items-center justify-between pt-1 pb-2 border-b border-[#e8ecf1] flex-shrink-0">
-              <span className="text-[0.75rem] sm:text-[0.95rem] font-bold text-[#1a1a2e]">
-                Hi, <span className="text-[#1a5cff]">Adaeze</span>
-              </span>
-              <div className="flex items-center gap-1.5">
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#f0f2f5] flex items-center justify-center">
-                  <Bell className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#1a1a2e]" />
-                </div>
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-[#1a5cff] to-[#4a7aff] flex items-center justify-center text-white font-bold text-[0.45rem] sm:text-[0.55rem]">
-                  AO
-                </div>
+          {/* App Header */}
+          <div className="flex items-center justify-between pt-1 pb-2 border-b border-border/80 flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                H
+              </div>
+              <div>
+                <p className="text-xs font-bold text-foreground leading-tight">NACOS Portal</p>
+                <p className="text-[10px] text-muted-foreground">Step 0{currentStep + 1} Interactive View</p>
               </div>
             </div>
-
-            {/* Balance Card */}
-            <div className="bg-gradient-to-br from-[#1a5cff] to-[#0f4ad0] rounded-[12px] sm:rounded-[16px] px-3 sm:px-4 py-2.5 sm:py-3.5 text-white relative overflow-hidden flex-shrink-0">
-              <div className="absolute -top-8 -right-8 w-20 h-20 rounded-full bg-white/5 pointer-events-none" />
-              <p className="text-[0.45rem] sm:text-[0.6rem] text-white/70 font-medium uppercase tracking-wide mb-0.5">Total Balance</p>
-              <p className="text-[1.1rem] sm:text-[1.4rem] font-bold tracking-tight leading-none">₦184,500</p>
-              <p className="text-[0.42rem] sm:text-[0.58rem] text-white/60 mt-1">Avail. ₦122,300 · Locked ₦62,200</p>
-              <div className="flex gap-1.5 mt-2">
-                <button className="bg-white text-[#1a5cff] rounded-full px-2 sm:px-3 py-0.5 sm:py-1 text-[0.45rem] sm:text-[0.6rem] font-bold border-none">
-                  Add to wallet
-                </button>
-                <button className="bg-white/20 text-white rounded-full px-2 sm:px-3 py-0.5 sm:py-1 text-[0.45rem] sm:text-[0.6rem] font-bold border-none">
-                  Withdraw
-                </button>
-              </div>
+            <div className="w-6 h-6 rounded-full bg-white border border-border flex items-center justify-center text-muted-foreground shadow-sm">
+              <Bell className="w-3 h-3" />
             </div>
+          </div>
 
-            {/* Quick Actions */}
-            <div className="grid grid-cols-4 gap-1.5 sm:gap-2 flex-shrink-0">
-              {[
-                { label: 'Pay Dues',  desc: '2 pending', icon: CreditCard },
-                { label: 'Tickets',   desc: 'Events',    icon: CalendarDays },
-                { label: 'Save',      desc: '3 goals',   icon: PiggyBank },
-                { label: 'Receipts',  desc: '6 issued',  icon: Receipt },
-              ].map(({ label, desc, icon: Icon }) => (
-                <button
-                  key={label}
-                  className="bg-white border border-[#e8ecf1] rounded-[8px] sm:rounded-[10px] py-1.5 sm:py-2 px-0.5 flex flex-col items-center gap-0.5 sm:gap-1 w-full"
-                >
-                  <div className="w-4.5 h-4.5 sm:w-6 sm:h-6 rounded-[6px] bg-[#eef3ff] flex items-center justify-center text-[#1a5cff]">
-                    <Icon className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
-                  </div>
-                  <span className="text-[0.42rem] sm:text-[0.55rem] font-semibold text-[#1a1a2e] leading-tight text-center w-full truncate">{label}</span>
-                  <span className="text-[0.38rem] sm:text-[0.48rem] text-[#6b7a8f] text-center">{desc}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Recent Activity */}
-            <div className="flex-shrink-0">
-              <div className="flex justify-between items-center mb-1.5">
-                <span className="text-[0.48rem] sm:text-[0.6rem] font-semibold text-[#7a8ba3] uppercase tracking-wider">Recent Activity</span>
-                <span className="text-[0.48rem] sm:text-[0.6rem] text-[#1a5cff] font-medium flex items-center gap-0.5">
-                  View All <ChevronRight className="w-2 h-2" />
+          {/* Dynamic Content based on currentStep (0 to 4) */}
+          {currentStep === 0 && (
+            /* Step 01: Onboard Org */
+            <div className="space-y-2 flex-1 flex flex-col justify-center">
+              <div className="bg-white border border-border rounded-2xl p-4 shadow-sm text-center">
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-2 font-bold">
+                  <Building className="w-6 h-6" />
+                </div>
+                <h5 className="font-bold text-foreground text-sm">Computer Science Students</h5>
+                <p className="text-[11px] text-muted-foreground">Executive setup complete · 4 Excos</p>
+                <span className="inline-block mt-2 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                  Organisation Verified
                 </span>
               </div>
-              <div className="flex flex-col gap-1 sm:gap-1.5">
-                {transactions.map((tx, index) => (
-                  <div key={index} className="flex items-center justify-between py-1 sm:py-1.5 px-2 sm:px-2.5 bg-[#f8f9fc] rounded-[8px]">
-                    <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                      <div className="w-5 h-5 sm:w-6.5 sm:h-6.5 rounded-full bg-white border border-[#e8ecf1] flex items-center justify-center text-[#1a5cff] flex-shrink-0">
-                        <tx.icon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-[0.5rem] sm:text-[0.65rem] font-semibold text-[#1a1a2e] truncate">{tx.name}</div>
-                        <div className="text-[0.42rem] sm:text-[0.55rem] text-[#7a8ba3] truncate">{tx.desc}</div>
-                      </div>
-                    </div>
-                    <div className="text-right flex-shrink-0 ml-1">
-                      <div className={`text-[0.5rem] sm:text-[0.65rem] font-bold ${tx.negative ? 'text-rose-500' : 'text-emerald-500'}`}>
-                        {tx.amount}
-                      </div>
-                    </div>
+            </div>
+          )}
+
+          {currentStep === 1 && (
+            /* Step 02: Add Members */
+            <div className="space-y-2 flex-1 flex flex-col justify-center">
+              <div className="bg-white border border-border rounded-2xl p-3.5 shadow-sm space-y-2">
+                <div className="flex justify-between items-center text-xs font-bold">
+                  <span>Student Roster</span>
+                  <span className="text-primary text-[10px]">500 Enrolled</span>
+                </div>
+                <div className="space-y-1.5 text-[11px]">
+                  <div className="p-2 rounded-xl bg-muted/60 flex justify-between items-center">
+                    <span>Toluwalase A. (CSC/21/049)</span>
+                    <span className="font-bold text-emerald-600">Active</span>
                   </div>
-                ))}
+                  <div className="p-2 rounded-xl bg-muted/60 flex justify-between items-center">
+                    <span>Chioma O. (CSC/21/042)</span>
+                    <span className="font-bold text-emerald-600">Active</span>
+                  </div>
+                </div>
               </div>
             </div>
+          )}
 
-            {/* Bottom Nav */}
-            <div className="flex justify-around items-center pt-2 sm:pt-2.5 border-t border-[#e8ecf1] mt-auto flex-shrink-0">
-              {[
-                { icon: Home,         label: 'Home',    active: true },
-                { icon: Wallet,       label: 'Pay',     active: false },
-                { icon: CalendarDays, label: 'Events',  active: false },
-                { icon: User,         label: 'Profile', active: false },
-              ].map((item, index) => (
-                <button
-                  key={index}
-                  className={`flex flex-col items-center gap-0.5 text-[0.42rem] sm:text-[0.55rem] font-medium py-0.5 px-1.5 ${item.active ? 'text-[#1a5cff]' : 'text-[#7a8ba3]'}`}
-                >
-                  <item.icon className="w-3 h-3 sm:w-4 sm:h-4" />
-                  {item.label}
-                </button>
-              ))}
+          {currentStep === 2 && (
+            /* Step 03: Create a due */
+            <div className="space-y-2 flex-1 flex flex-col justify-center">
+              <div className="bg-white border border-border rounded-2xl p-4 shadow-sm space-y-2">
+                <span className="text-[10px] font-bold text-primary uppercase bg-primary/10 px-2 py-0.5 rounded-full">
+                  New Due Published
+                </span>
+                <h5 className="font-bold text-foreground text-sm">Departmental Annual Dues</h5>
+                <p className="text-xl font-extrabold text-foreground font-display">₦12,500</p>
+                <p className="text-[10px] text-muted-foreground">Session: 2025/2026 · All levels</p>
+              </div>
             </div>
+          )}
 
+          {(currentStep === 3 || currentStep === 4) && (
+            /* Step 04 & 05: Student Pay & Auto Record */
+            <div className="space-y-2.5 flex-shrink-0">
+              <div className="bg-gradient-to-br from-primary via-[#2065ff] to-[#124bda] rounded-2xl p-4 text-white shadow-xl shadow-primary/25 relative overflow-hidden">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-white/15 px-2.5 py-0.5 rounded-full backdrop-blur-sm">
+                    Annual Dues
+                  </span>
+                  <span className="flex items-center gap-1 text-[10px] bg-emerald-400/20 text-emerald-300 font-bold px-2 py-0.5 rounded-full border border-emerald-400/30">
+                    <CheckCircle2 className="w-3 h-3" /> Confirmed
+                  </span>
+                </div>
+
+                <p className="text-xs font-medium text-white/85">Computer Science Dept Dues</p>
+                <div className="flex items-baseline gap-1 my-1">
+                  <span className="text-2xl font-extrabold font-display">₦12,500</span>
+                  <span className="text-[10px] text-white/70">/ student</span>
+                </div>
+
+                <div className="mt-2.5 pt-2 border-t border-white/15 flex items-center justify-between text-[10px] text-white/90">
+                  <span className="flex items-center gap-1">
+                    <Receipt className="w-3 h-3 text-emerald-300" /> Receipt #HT-84920
+                  </span>
+                  <span className="font-mono text-white/75 font-semibold">AUTO-RECORDED</span>
+                </div>
+              </div>
+
+              {/* Real-time Tracking Feed */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                  <span>Executive Live Feed</span>
+                  <span className="text-primary font-semibold flex items-center gap-0.5">
+                    Live <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse" />
+                  </span>
+                </div>
+
+                <div className="bg-white border border-border/80 rounded-xl p-2 flex items-center justify-between text-[11px] shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[9px]">
+                      ✓
+                    </div>
+                    <div>
+                      <p className="font-bold text-foreground text-[10px] leading-tight">Chioma O. (CSC/21/042)</p>
+                      <p className="text-[8px] text-muted-foreground">Departmental Dues</p>
+                    </div>
+                  </div>
+                  <span className="font-bold text-emerald-600 text-[10px]">+₦12,500</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Bottom Security Tag */}
+          <div className="py-1.5 px-3 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center gap-1.5 text-[10px] text-primary font-bold text-center flex-shrink-0">
+            <ShieldCheck className="w-3.5 h-3.5" /> No spreadsheets · Instant audit logs
           </div>
         </div>
       </div>

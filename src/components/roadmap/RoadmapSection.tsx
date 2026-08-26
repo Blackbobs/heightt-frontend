@@ -1,197 +1,151 @@
 'use client';
 
-import { useRef } from 'react';
 import {
   Sparkles,
-  HandCoins,
+  Wallet,
+  Ticket,
+  FileText,
+  Megaphone,
+  Users2,
   Store,
-  Users,
   GraduationCap,
-  Landmark,
-  CreditCard,
+  Layers,
+  ArrowUpRight,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/Badge';
+import { ScrollReveal } from '@/components/ui/ScrollReveal';
 
-const roadmapFeatures = [
+const upcomingFeatures = [
   {
-    icon: HandCoins,
-    title: 'Student Loans',
-    description: 'Campus-backed micro-loans for emergencies.',
-    status: 'In development',
-    statusDot: 'bg-primary animate-pulse',
-    isFullWidth: false,
+    icon: Wallet,
+    title: 'Wallets & Savings',
+    description: 'Fund your Heightt wallet and save gradually towards upcoming campus expenses.',
+    status: 'Coming Soon',
+    badgeClass: 'bg-primary/10 text-primary border-primary/20',
+    dotClass: 'bg-primary animate-pulse',
+  },
+  {
+    icon: Ticket,
+    title: 'Event Tickets',
+    description: 'Create campus events, sell tickets and verify attendees digitally.',
+    status: 'Coming Soon',
+    badgeClass: 'bg-primary/10 text-primary border-primary/20',
+    dotClass: 'bg-primary animate-pulse',
+  },
+  {
+    icon: FileText,
+    title: 'Financial Reporting',
+    description: 'Generate and export structured financial reports for your organisation.',
+    status: 'Coming Soon',
+    badgeClass: 'bg-primary/10 text-primary border-primary/20',
+    dotClass: 'bg-primary animate-pulse',
+  },
+  {
+    icon: Megaphone,
+    title: 'Announcements',
+    description: 'Give organisations a central way to communicate important updates to their members.',
+    status: 'Coming Soon',
+    badgeClass: 'bg-primary/10 text-primary border-primary/20',
+    dotClass: 'bg-primary animate-pulse',
+  },
+  {
+    icon: Users2,
+    title: 'Group Savings',
+    description: 'Save towards shared goals with friends, classmates and student communities.',
+    status: 'Planned',
+    badgeClass: 'bg-amber-500/10 text-amber-700 border-amber-500/20',
+    dotClass: 'bg-amber-500',
   },
   {
     icon: Store,
     title: 'Marketplace',
-    description: 'Buy & sell textbooks, gowns, and gadgets in-app.',
-    status: 'Planning',
-    statusDot: 'bg-amber-500',
-    isFullWidth: false,
-  },
-  {
-    icon: Users,
-    title: 'Group Savings (Esusu)',
-    description: 'Pool funds with classmates for shared goals.',
-    status: 'In development',
-    statusDot: 'bg-primary animate-pulse',
-    isFullWidth: false,
+    description: 'A campus marketplace for textbooks, gadgets and other student essentials.',
+    status: 'Planned',
+    badgeClass: 'bg-amber-500/10 text-amber-700 border-amber-500/20',
+    dotClass: 'bg-amber-500',
   },
   {
     icon: GraduationCap,
-    title: 'Scholarship Wallets',
-    description: 'Restricted wallets funded by sponsors & alumni.',
-    status: 'Coming next',
-    statusDot: 'bg-emerald-500',
-    isFullWidth: true,
+    title: 'Scholarships & Sponsored Funds',
+    description: 'Infrastructure for sponsors and organisations to distribute funds directly to eligible students.',
+    status: 'Planned',
+    badgeClass: 'bg-amber-500/10 text-amber-700 border-amber-500/20',
+    dotClass: 'bg-amber-500',
   },
   {
-    icon: Landmark,
-    title: 'Bursary Integrations',
-    description: 'Direct deposits from school bursary.',
-    status: 'Planning',
-    statusDot: 'bg-amber-500',
-    isFullWidth: false,
-  },
-  {
-    icon: CreditCard,
-    title: 'Cards & Tap-to-Pay',
-    description: 'A Heightt card to spend at campus vendors.',
-    status: 'In development',
-    statusDot: 'bg-primary animate-pulse',
-    isFullWidth: false,
+    icon: Layers,
+    title: 'More Financial Tools',
+    description: 'We\'re building more ways for students and student organisations to manage money across campus.',
+    status: 'On the Roadmap',
+    badgeClass: 'bg-muted text-muted-foreground border-border',
+    dotClass: 'bg-muted-foreground',
   },
 ];
 
 export function RoadmapSection() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
-    if (!sectionRef.current || window.innerWidth <= 768) return;
-    const rect = sectionRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-
-    cardsRef.current.forEach((card) => {
-      if (!card) return;
-      const rotateX = y * 5;
-      const rotateY = x * -5;
-      card.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
-    });
-  };
-
-  const handleMouseLeave = () => {
-    cardsRef.current.forEach((card) => {
-      if (!card) return;
-      card.style.transform = '';
-    });
-  };
-
   return (
     <section
-      ref={sectionRef}
-      id="roadmap"
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className="py-20 md:py-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative overflow-hidden"
+      id="coming-soon"
+      className="py-24 md:py-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative overflow-hidden"
     >
+      {/* Background Glow */}
+      <div className="absolute top-1/3 left-1/3 w-[600px] h-[400px] bg-primary/5 rounded-full blur-[140px] pointer-events-none -z-10" />
+
       {/* Header */}
-      <div className="text-center mb-14 md:mb-18 relative z-10">
-        <Badge className="mb-4 inline-flex items-center gap-2 cursor-default hover:bg-primary hover:text-white transition-all duration-300">
-          <Sparkles className="w-4 h-4 text-primary group-hover:text-white" />
-          Coming Soon
-        </Badge>
-        <h2 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground mb-4 leading-tight">
-          The roadmap <br className="hidden sm:inline" />
-          <span className="text-primary relative inline-block">
-            our students asked for.
-            <span className="absolute bottom-1 left-0 right-0 h-1.5 md:h-2 bg-primary/15 rounded -z-10" />
+      <ScrollReveal direction="up" className="text-center mb-16 md:mb-20 relative z-10">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold shadow-sm mb-4">
+          <Sparkles className="w-3.5 h-3.5" />
+          What's Next
+        </div>
+        <h2 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground mb-4 leading-tight text-balance">
+          Dues are only <br className="hidden sm:inline" />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-glow to-primary">
+            the beginning.
           </span>
         </h2>
-        <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed">
-          Features we're building next — all based on student feedback.
+        <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+          We're starting with one of the biggest problems student organisations face: collecting and managing payments. But we're building Heightt into a broader financial infrastructure for student communities.
         </p>
-      </div>
+      </ScrollReveal>
 
-      {/* Roadmap Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 relative z-10">
-        {roadmapFeatures.map((feature, index) => {
-          const Icon = feature.icon;
-
-          if (feature.isFullWidth) {
-            return (
-              <div
-                key={index}
-                ref={(el) => {
-                  cardsRef.current[index] = el;
-                }}
-                className="roadmap-card col-span-1 sm:col-span-2 lg:col-span-3 bg-card border border-border rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-all duration-500 hover:shadow-2xl hover:border-primary/40 group"
-              >
-                <div className="flex items-start md:items-center gap-5">
-                  <div className="w-14 h-14 rounded-2xl bg-muted border border-border flex items-center justify-center flex-shrink-0 transition-all duration-400 group-hover:bg-primary group-hover:text-white group-hover:scale-105 group-hover:-rotate-3 shadow-sm">
-                    <Icon className="w-7 h-7 text-primary group-hover:text-white transition-colors" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-3 mb-1">
-                      <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
-                        {feature.title}
-                      </h3>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-muted px-3 py-1 rounded-full border border-border group-hover:bg-primary group-hover:text-white transition-all">
-                        Soon
-                      </span>
-                    </div>
-                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                      {feature.description}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground pt-3 md:pt-0 border-t md:border-t-0 border-border w-full md:w-auto">
-                  <span className={`w-2.5 h-2.5 rounded-full ${feature.statusDot}`} />
-                  <span>{feature.status}</span>
-                </div>
-              </div>
-            );
-          }
+      {/* Grid of 8 Features in Framer Bento Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
+        {upcomingFeatures.map((item, index) => {
+          const Icon = item.icon;
 
           return (
-            <div
-              key={index}
-              ref={(el) => {
-                cardsRef.current[index] = el;
-              }}
-              className="roadmap-card bg-card border border-border rounded-2xl p-6 relative overflow-hidden transition-all duration-500 hover:-translate-y-1.5 hover:shadow-2xl hover:border-primary/40 group flex flex-col justify-between"
-            >
-              <div>
-                {/* Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-muted border border-border flex items-center justify-center transition-all duration-400 group-hover:bg-primary group-hover:text-white group-hover:scale-105 group-hover:-rotate-3 shadow-sm">
-                    <Icon className="w-6 h-6 text-primary group-hover:text-white transition-colors" />
+            <ScrollReveal key={index} delay={index * 60} className="h-full">
+              <div className="bg-white border border-border rounded-3xl p-6 relative overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-2xl hover:border-primary/40 hover:-translate-y-1.5 transition-all duration-300 group flex flex-col justify-between h-full">
+                <div>
+                  <div className="flex items-start justify-between mb-5">
+                    <div className="w-12 h-12 rounded-2xl bg-muted border border-border flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:bg-primary group-hover:text-white shadow-sm">
+                      <Icon className="w-6 h-6 text-primary group-hover:text-white transition-colors" />
+                    </div>
+
+                    <span
+                      className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${item.badgeClass}`}
+                    >
+                      {item.status}
+                    </span>
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-muted px-3 py-1 rounded-full border border-border group-hover:bg-primary group-hover:text-white transition-all">
-                    Soon
-                  </span>
+
+                  <h3 className="text-lg font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                    {item.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                    {item.description}
+                  </p>
                 </div>
 
-                {/* Title & Description */}
-                <h3 className="text-lg font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
-                  {feature.title}
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {feature.description}
-                </p>
+                {/* Status footer with colored live dot */}
+                <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground pt-5 mt-5 border-t border-border/80">
+                  <div className="flex items-center gap-1.5">
+                    <span className={`w-2 h-2 rounded-full ${item.dotClass}`} />
+                    <span>{item.status}</span>
+                  </div>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </div>
-
-              {/* Status Indicator */}
-              <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground pt-4 mt-4 border-t border-border">
-                <span className={`w-2.5 h-2.5 rounded-full ${feature.statusDot}`} />
-                <span>{feature.status}</span>
-              </div>
-
-              {/* Hover top border gradient */}
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-primary-glow to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            </div>
+            </ScrollReveal>
           );
         })}
       </div>

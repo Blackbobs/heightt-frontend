@@ -13,36 +13,22 @@ import {
   Loader2,
   X,
   Building2,
+  ShieldCheck,
+  ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMyDues, useMakePayment } from "@/hooks/queries/usePayments";
 import { DueAssignment, PaymentResponse } from "@/lib/api/finance";
 
 type Tab = "all" | "unpaid" | "paid";
-type PaymentBreakdown = {
-  organizationAmount: number;
-  platformFee: number;
-  subtotal: number;
-};
-
-const PAYMENT_BREAKDOWN_STORAGE_KEY = "heightt.paymentBreakdown";
 
 // Helper function to safely check if a value is an object
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function formatNaira(amount: number) {
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
-  }).format(amount);
-}
-
 function getCheckoutUrl(response: PaymentResponse): string | null {
-  // Check if response has a data wrapper with checkoutUrl
   if (isObject(response.data)) {
-    // Check for checkoutUrl in the data object
     if (typeof response.data.checkoutUrl === "string") {
       return response.data.checkoutUrl;
     }
@@ -54,50 +40,11 @@ function getCheckoutUrl(response: PaymentResponse): string | null {
     }
   }
 
-  // Direct response properties (fallback)
   if (typeof response.checkoutUrl === "string") return response.checkoutUrl;
   if (typeof response.url === "string") return response.url;
   if (typeof response.paymentUrl === "string") return response.paymentUrl;
 
   return null;
-}
-
-function getPendingPaymentId(response: PaymentResponse): string | null {
-  if (isObject(response.data)) {
-    if (typeof response.data.pendingPaymentId === "string") {
-      return response.data.pendingPaymentId;
-    }
-    if (typeof response.data.id === "string") {
-      return response.data.id;
-    }
-  }
-
-  if (typeof response.pendingPaymentId === "string") {
-    return response.pendingPaymentId;
-  }
-
-  return null;
-}
-
-function getPaymentBreakdown(response: PaymentResponse): PaymentBreakdown | null {
-  const source = isObject(response.data) ? response.data : response;
-  const baseAmount = source.baseAmount;
-  const platformFee = source.platformFee;
-  const totalBeforeGatewayFee = source.totalBeforeGatewayFee;
-
-  if (
-    typeof baseAmount !== "number" ||
-    typeof platformFee !== "number" ||
-    typeof totalBeforeGatewayFee !== "number"
-  ) {
-    return null;
-  }
-
-  return {
-    organizationAmount: baseAmount / 100,
-    platformFee: platformFee / 100,
-    subtotal: totalBeforeGatewayFee / 100,
-  };
 }
 
 export function PaymentsPage() {
@@ -118,7 +65,7 @@ export function PaymentsPage() {
   useEffect(() => {
     if (paymentStatus === "success") {
       setStatusBanner(
-        "Payment initiated successfully. Your receipt will appear shortly.",
+        "Payment initiated successfully. Your official receipt will appear shortly.",
       );
     } else if (paymentStatus === "cancelled") {
       setStatusBanner("Payment was cancelled.");
@@ -151,80 +98,53 @@ export function PaymentsPage() {
   }, [dues, tab, search]);
 
   const stats = useMemo(() => {
-    const unpaid = dues?.filter((d) => !d.isPaid) || [];
-    const paid = dues?.filter((d) => d.isPaid) || [];
+    if (!dues) return { unpaidCount: 0, unpaidTotal: 0, paidTotal: 0 };
+    const unpaid = dues.filter((d) => !d.isPaid);
+    const paid = dues.filter((d) => d.isPaid);
     return {
       unpaidCount: unpaid.length,
-      paidCount: paid.length,
-      unpaidTotal: unpaid.reduce((s, d) => s + d.amount, 0),
-      paidTotal: paid.reduce((s, d) => s + d.amount, 0),
+      unpaidTotal: unpaid.reduce((sum, d) => sum + (d.amount || 0), 0),
+      paidTotal: paid.reduce((sum, d) => sum + (d.amount || 0), 0),
     };
   }, [dues]);
 
   const handlePay = async (due: DueAssignment) => {
-    if (!due.due?.organizationId) {
-      setPaymentError("Organization information is missing for this due.");
-      return;
-    }
-
-    setPayingId(due.id);
     setPaymentError(null);
+    setPayingId(due.id);
 
     try {
-      const origin = window.location.origin;
-      const encodedDueName = encodeURIComponent(due.due?.name || "Due payment");
-      const encodedOrg = encodeURIComponent(due.due?.organization?.name || "");
+      const dueIdParam = due.due?.id || due.dueId || due.id;
       const amountParam = due.amount;
-      const dueIdParam = due.dueId || due.id;
-      const callbackParams = new URLSearchParams({
-        dueId: dueIdParam,
-        dueName: due.due?.name || "Due payment",
-        amount: String(amountParam),
-        org: due.due?.organization?.name || "",
-      });
+      const encodedDueName = encodeURIComponent(due.due?.name || "Due Payment");
+      const encodedOrg = encodeURIComponent(
+        due.due?.organization?.name || "Organization",
+      );
 
-      const result = await makePayment.mutateAsync({
+      const origin =
+        typeof window !== "undefined"
+          ? window.location.origin
+          : "https://heightt.com";
+
+      const payload = {
         amount: due.amount,
-        organizationId: due.due.organizationId,
-        paymentMethod: "CARD",
-        dueAssignmentId: due.isAutoAssigned ? undefined : due.id,
-        dueId: due.dueId,
-        description: due.due.name || "Due payment",
-        successUrl: `${origin}/payment/callback?${callbackParams.toString()}`,
-        cancelUrl: `${origin}/payment/cancelled?dueId=${dueIdParam}&dueName=${encodedDueName}&amount=${amountParam}&org=${encodedOrg}`,
-      });
+        organizationId: due.due?.organizationId || due.due?.organization?.id || "",
+        paymentMethod: "CARD" as const,
+        dueId: dueIdParam,
+        dueAssignmentId: due.id,
+        description: `Payment for ${due.due?.name || "Student Due"}`,
+        successUrl: `${origin}/dashboard/payments/success?dueId=${dueIdParam}&dueName=${encodedDueName}&amount=${amountParam}&org=${encodedOrg}`,
+        cancelUrl: `${origin}/dashboard/payments/cancelled?dueId=${dueIdParam}&dueName=${encodedDueName}&amount=${amountParam}&org=${encodedOrg}`,
+      };
 
-      console.log("Payment response:", result); // Debug log to see the response structure
-
-      const checkoutUrl = getCheckoutUrl(result);
-      console.log("Extracted checkout URL:", checkoutUrl); // Debug log
-      const pendingPaymentId = getPendingPaymentId(result);
-      const paymentBreakdown = getPaymentBreakdown(result);
-
-      if (pendingPaymentId) {
-        sessionStorage.setItem(
-          "heightt.pendingPayment",
-          JSON.stringify({
-            pendingPaymentId,
-            startedAt: Date.now(),
-          }),
-        );
-      }
-
-      if (paymentBreakdown) {
-        sessionStorage.setItem(
-          PAYMENT_BREAKDOWN_STORAGE_KEY,
-          JSON.stringify(paymentBreakdown),
-        );
-      } else {
-        sessionStorage.removeItem(PAYMENT_BREAKDOWN_STORAGE_KEY);
-      }
+      const response = await makePayment.mutateAsync(payload);
+      const checkoutUrl = getCheckoutUrl(response);
 
       if (checkoutUrl) {
-        // Redirect to the checkout URL
         window.location.href = checkoutUrl;
       } else {
-        setPaymentError("Payment initiated but no checkout URL was returned.");
+        throw new Error(
+          "Payment initialized, but no checkout URL was returned. Please try again.",
+        );
       }
     } catch (err: unknown) {
       const message =
@@ -240,8 +160,8 @@ export function PaymentsPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 text-[#1a5cff] animate-spin" />
-          <span className="text-sm text-[#5b6d89] font-medium">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          <span className="text-sm text-muted-foreground font-medium">
             Loading your dues...
           </span>
         </div>
@@ -251,12 +171,12 @@ export function PaymentsPage() {
 
   if (isError) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-red-600">
-        <p className="font-semibold">Error loading dues</p>
-        <p className="text-sm">{error?.message || "Something went wrong"}</p>
+      <div className="bg-destructive/10 border border-destructive/20 rounded-2xl p-6 text-destructive">
+        <p className="font-bold">Error loading dues</p>
+        <p className="text-xs mt-1">{error?.message || "Something went wrong"}</p>
         <button
           onClick={() => refetch()}
-          className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700"
+          className="mt-3 px-4 py-2 bg-destructive text-white rounded-xl text-xs font-bold hover:opacity-90 cursor-pointer"
         >
           Retry
         </button>
@@ -264,13 +184,11 @@ export function PaymentsPage() {
     );
   }
 
-  const unpaidDues = dues?.filter((d) => !d.isPaid) || [];
-
   return (
     <div className="space-y-5 pb-6">
       {/* Status Banner */}
       {statusBanner && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 text-emerald-700 text-sm font-medium flex items-start justify-between gap-3">
+        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3 text-emerald-800 text-xs font-semibold flex items-start justify-between gap-3 shadow-xs">
           <span>{statusBanner}</span>
           <button
             onClick={() => setStatusBanner(null)}
@@ -282,69 +200,67 @@ export function PaymentsPage() {
       )}
 
       {paymentError && (
-        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-700 text-sm font-medium flex items-start justify-between gap-3">
+        <div className="bg-destructive/10 border border-destructive/20 rounded-2xl px-4 py-3 text-destructive text-xs font-semibold flex items-start justify-between gap-3 shadow-xs">
           <span>{paymentError}</span>
           <button
             onClick={() => setPaymentError(null)}
-            className="text-red-600 hover:text-red-800 border-none bg-transparent cursor-pointer p-0"
+            className="text-destructive hover:opacity-80 border-none bg-transparent cursor-pointer p-0"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
-      {/* Unpaid Alert */}
+      {/* Unpaid Alert Banner */}
       {stats.unpaidCount > 0 && (
-        <div className="bg-[#fff8ec] border border-[#f5d08a] rounded-[16px] px-4 py-4 flex items-start gap-3">
-          <div className="w-8 h-8 rounded-[8px] bg-amber-100 flex items-center justify-center flex-shrink-0">
-            <AlertCircle className="w-4 h-4 text-amber-600" />
+        <div className="bg-amber-50/90 border border-amber-200/80 rounded-2xl p-4 flex items-start gap-3 shadow-xs">
+          <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0 text-amber-700">
+            <AlertCircle className="w-4 h-4" />
           </div>
           <div>
-            <p className="text-[0.82rem] font-semibold text-[#7a4a00]">
-              You have {stats.unpaidCount} unpaid due
-              {stats.unpaidCount !== 1 ? "s" : ""}
+            <p className="text-xs font-bold text-amber-900">
+              You have {stats.unpaidCount} unpaid due{stats.unpaidCount !== 1 ? "s" : ""}
             </p>
-            <p className="text-[0.7rem] text-[#a06020] mt-0.5">
-              ₦{stats.unpaidTotal.toLocaleString()} total outstanding
+            <p className="text-[11px] text-amber-700 mt-0.5 font-medium">
+              ₦{stats.unpaidTotal.toLocaleString()} total outstanding for your registered organisations.
             </p>
           </div>
         </div>
       )}
 
       {dues && dues.length === 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-[16px] px-4 py-4 flex items-start gap-3">
-          <div className="w-8 h-8 rounded-[8px] bg-blue-100 flex items-center justify-center flex-shrink-0">
-            <Building2 className="w-4 h-4 text-blue-600" />
+        <div className="bg-primary/5 border border-primary/20 rounded-2xl p-5 flex items-start gap-3 shadow-xs">
+          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
+            <Building2 className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[0.82rem] font-semibold text-[#1a3a7a]">
-              No dues assigned
+            <p className="text-xs font-bold text-foreground">
+              No dues assigned yet
             </p>
-            <p className="text-[0.7rem] text-[#4a6a9a] mt-0.5">
-              You don't have any active dues. Join an organization to see
-              assigned dues.
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              You don't have any active dues. Join an organisation to see assigned dues and levies.
             </p>
           </div>
         </div>
       )}
 
-      {/* Search */}
+      {/* Search Input */}
       <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7a8ba3]" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <input
           type="text"
-          placeholder="Search dues…"
+          placeholder="Search dues by name or organisation…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full bg-white border border-[#e8ecf1] rounded-[12px] pl-10 pr-4 py-3 text-[0.82rem] text-[#1a1a2e] placeholder-[#b0bac8] outline-none focus:border-[#1a5cff] transition-colors"
+          className="w-full bg-white border border-border rounded-xl pl-10 pr-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-primary transition-colors shadow-xs"
         />
       </div>
 
-      {/* Tabs */}
+      {/* Dues Status Filter Tabs */}
       <div className="flex gap-1.5">
         {(
           [
-            { key: "all", label: "All" },
+            { key: "all", label: "All Dues" },
             { key: "unpaid", label: "Unpaid" },
             { key: "paid", label: "Paid" },
           ] as const
@@ -353,10 +269,10 @@ export function PaymentsPage() {
             key={key}
             onClick={() => setTab(key)}
             className={cn(
-              "text-[0.72rem] font-semibold px-4 py-2 rounded-full border-none cursor-pointer transition-all",
+              "text-xs font-semibold px-4 py-2 rounded-full border transition-all cursor-pointer",
               tab === key
-                ? "bg-[#1a5cff] text-white"
-                : "bg-white border border-[#e8ecf1] text-[#6b7a8f] hover:border-[#1a5cff] hover:text-[#1a5cff]",
+                ? "bg-primary text-white border-primary shadow-sm"
+                : "bg-white border-border text-muted-foreground hover:border-primary hover:text-primary",
             )}
           >
             {label}
@@ -364,21 +280,24 @@ export function PaymentsPage() {
         ))}
       </div>
 
-      {/* Due list */}
-      <div className="bg-white border border-[#e8ecf1] rounded-[16px] divide-y divide-[#f0f2f5] overflow-hidden">
+      {/* Dues List Card */}
+      <div className="bg-white border border-border rounded-2xl divide-y divide-border overflow-hidden shadow-sm">
         {filtered.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-10 text-center">
-            <CreditCard className="w-8 h-8 text-[#c8d0db] mb-2" />
-            <p className="text-[0.82rem] font-medium text-[#6b7a8f]">
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center mb-3">
+              <CreditCard className="w-5 h-5 text-muted-foreground" />
+            </div>
+            <p className="text-sm font-bold text-foreground">
               No dues found
             </p>
-            <p className="text-[0.65rem] text-[#7a8ba3] mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               {search
                 ? "No matching dues found. Try adjusting your search."
-                : "Join an organization to see assigned dues"}
+                : "Join an organisation to see assigned dues."}
             </p>
           </div>
         )}
+
         {filtered.map((due) => {
           const isOverdue =
             !due.isPaid &&
@@ -391,48 +310,54 @@ export function PaymentsPage() {
             <div
               key={due.id}
               className={cn(
-                "flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-4 hover:bg-[#fafbff] transition-colors",
-                highlightDueId === due.id && "bg-[#eef4ff]",
+                "flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 hover:bg-muted/40 transition-colors",
+                highlightDueId === due.id && "bg-primary/5 border-l-4 border-l-primary",
               )}
             >
-              <div className="w-9 h-9 rounded-[10px] bg-[#eef3ff] flex items-center justify-center flex-shrink-0">
-                <CreditCard className="w-4 h-4 text-[#1a5cff]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[0.82rem] font-semibold text-[#1a1a2e] truncate">
-                  {due.due?.name || "Due Payment"}
-                </p>
-                <p className="text-[0.6rem] text-[#7a8ba3] mt-0.5 flex items-center gap-1 flex-wrap">
-                  <Building2 className="w-3 h-3 flex-shrink-0" />
-                  {due.due?.organization?.name || "Unknown"}
-                  {isAutoAssigned && (
-                    <span className="ml-1 text-[0.55rem] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full font-medium">
-                      Available
+              <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
+                  <CreditCard className="w-5 h-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-foreground truncate">
+                    {due.due?.name || "Due Payment"}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1.5 flex-wrap">
+                    <Building2 className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>{due.due?.organization?.name || "Unknown"}</span>
+                    {isAutoAssigned && (
+                      <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.2 rounded-full font-bold">
+                        Available
+                      </span>
+                    )}
+                    <span>·</span>
+                    <span>
+                      {due.due?.dueDate
+                        ? `Due ${new Date(due.due.dueDate).toLocaleDateString()}`
+                        : "No deadline"}
                     </span>
-                  )}
-                  <span className="text-[#b0bac8]">·</span>
-                  {due.due?.dueDate
-                    ? new Date(due.due.dueDate).toLocaleDateString()
-                    : "No deadline"}
-                </p>
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center justify-between sm:justify-end gap-3">
-                <span className="text-[0.82rem] font-bold text-[#1a1a2e]">
+
+              <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/60">
+                <span className="text-sm font-extrabold text-foreground font-display">
                   ₦{due.amount.toLocaleString()}
                 </span>
+
                 {due.isPaid ? (
-                  <span className="inline-flex items-center gap-1 text-[0.58rem] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
-                    <CheckCircle2 className="w-3 h-3" />
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
                     Paid
                   </span>
                 ) : (
                   <>
                     <span
                       className={cn(
-                        "inline-flex items-center gap-1 text-[0.58rem] font-semibold px-2 py-0.5 rounded-full",
+                        "inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full border",
                         isOverdue
-                          ? "bg-red-50 text-red-600"
-                          : "bg-amber-50 text-amber-700",
+                          ? "bg-red-50 text-destructive border-red-200"
+                          : "bg-amber-50 text-amber-700 border-amber-200",
                       )}
                     >
                       {isOverdue ? (
@@ -442,16 +367,17 @@ export function PaymentsPage() {
                       )}
                       {isOverdue ? "Overdue" : "Pending"}
                     </span>
+
                     <button
                       onClick={() => {
                         setSelectedDue(due);
                       }}
                       disabled={isPaying}
                       className={cn(
-                        "py-1.5 px-4 rounded-lg text-xs font-semibold border-none cursor-pointer transition-colors flex items-center gap-1.5",
+                        "py-2 px-4 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm",
                         isPaying
-                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                          : "bg-[#1a5cff] hover:bg-[#0f4ad0] text-white",
+                          ? "bg-muted text-muted-foreground cursor-not-allowed"
+                          : "bg-primary hover:bg-primary/90 text-white shadow-primary/20",
                       )}
                     >
                       {isPaying ? (
@@ -460,7 +386,9 @@ export function PaymentsPage() {
                           Processing...
                         </>
                       ) : (
-                        "Pay"
+                        <>
+                          Pay Due <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
+                        </>
                       )}
                     </button>
                   </>
@@ -471,64 +399,52 @@ export function PaymentsPage() {
         })}
       </div>
 
-      {/* Pay confirmation modal */}
+      {/* Pay Confirmation Modal */}
       {selectedDue && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full border border-slate-200 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-[#0b1a33]">
-                Confirm Payment
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full border border-border shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h3 className="text-base font-bold text-foreground">
+                Confirm Due Payment
               </h3>
               <button
                 onClick={() => setSelectedDue(null)}
-                className="text-slate-400 hover:text-slate-600 border-none bg-transparent cursor-pointer"
+                className="text-muted-foreground hover:text-foreground border-none bg-transparent cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="bg-[#f8faff] p-4 rounded-2xl border border-slate-200/80 space-y-2 text-sm">
+            <div className="bg-muted/40 p-4 rounded-2xl border border-border space-y-2 text-xs">
               <div className="flex justify-between">
-                <span className="text-slate-500">Due</span>
-                <span className="font-bold text-[#0b1a33]">
+                <span className="text-muted-foreground">Due Name</span>
+                <span className="font-bold text-foreground">
                   {selectedDue.due?.name || "Due Payment"}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Organization</span>
-                <span className="font-semibold text-[#1a5cff]">
+                <span className="text-muted-foreground">Organisation</span>
+                <span className="font-semibold text-primary">
                   {selectedDue.due?.organization?.name || "Unknown"}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Organization payment</span>
-                <span className="font-extrabold text-[#0b1a33]">
-                  {formatNaira(selectedDue.amount)}
+              <div className="flex justify-between pt-1 border-t border-border/80">
+                <span className="text-muted-foreground">Total Amount</span>
+                <span className="font-extrabold text-foreground text-sm font-display">
+                  ₦{selectedDue.amount.toLocaleString()}
                 </span>
               </div>
-              <div className="rounded-xl border border-dashed border-slate-200 bg-white px-3 py-2 text-xs text-slate-500">
-                Heightt platform fee and subtotal will be shown after checkout
-                starts. Bachs may add a separate payment-processing fee.
-              </div>
-              {selectedDue.isAutoAssigned && (
-                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">
-                  <p className="font-semibold">
-                    This due is available for you to pay. No prior assignment
-                    needed.
-                  </p>
-                </div>
-              )}
             </div>
 
-            <p className="text-xs text-[#5b6d89]">
-              You will be redirected to a secure checkout page to complete your
-              payment.
-            </p>
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-primary/5 border border-primary/20 text-[11px] text-muted-foreground">
+              <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
+              <span>You will be redirected to the secure payment portal to complete this transaction.</span>
+            </div>
 
-            <div className="flex gap-2 pt-1">
+            <div className="flex gap-2.5 pt-1">
               <button
                 onClick={() => setSelectedDue(null)}
-                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-colors cursor-pointer bg-white"
+                className="flex-1 py-2.5 rounded-xl border border-border text-foreground font-bold text-xs hover:bg-muted transition-colors cursor-pointer bg-white"
               >
                 Cancel
               </button>
@@ -538,12 +454,12 @@ export function PaymentsPage() {
                   setSelectedDue(null);
                 }}
                 disabled={payingId === selectedDue.id}
-                className="flex-1 py-2.5 rounded-xl bg-[#1a5cff] hover:bg-[#0f4ad0] text-white font-semibold text-sm transition-colors cursor-pointer border-none disabled:opacity-60 flex items-center justify-center gap-2"
+                className="flex-1 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-xs transition-colors cursor-pointer border-none disabled:opacity-60 flex items-center justify-center gap-2 shadow-md shadow-primary/25"
               >
                 {payingId === selectedDue.id ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Processing...
+                    Redirecting...
                   </>
                 ) : (
                   "Proceed to Pay"

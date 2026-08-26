@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Eye, EyeOff, Check, Sparkles } from "lucide-react";
+import { Logo } from "@/components/ui/Logo";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth-store";
 
@@ -91,6 +92,11 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
       role="main"
       aria-labelledby="auth-heading"
     >
+      {/* Logo */}
+      <div className="mb-6">
+        <Logo />
+      </div>
+
       <h1
         id="auth-heading"
         className="text-2xl sm:text-[1.6rem] font-bold text-[#0b1a33] tracking-tight mb-1.5"

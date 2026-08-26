@@ -101,7 +101,7 @@ export function MobileMenu({ isOpen, onToggle }: MobileMenuProps) {
                   <Link href="/signin">Sign In</Link>
                 </Button>
                 <Button variant="primary" size="default" className="w-full justify-center" asChild onClick={onToggle}>
-                  <Link href="/signup">Create Account</Link>
+                  <Link href="/signup">Get Started</Link>
                 </Button>
               </>
             )}

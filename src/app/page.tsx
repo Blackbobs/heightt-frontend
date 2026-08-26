@@ -1,24 +1,32 @@
 'use client';
 
 import { HeroSection } from '@/components/hero/HeroSection';
-import { ForStudentsSection } from '@/components/students/ForStudentsSection';
+import { ProblemSection } from '@/components/problem/ProblemSection';
+import { AudienceSection } from '@/components/audience/AudienceSection';
 import { HowItWorksSection } from '@/components/how-it-works/HowItWorksSection';
-import { TransparencySection } from '@/components/transparency/TransparencySection';
-import { SavingsSection } from '@/components/savings/SavingsSection';
-import { RoadmapSection } from '@/components/roadmap/RoadmapSection';
+import { FinalCTASection } from '@/components/cta/FinalCTASection';
 import { FAQSection } from '@/components/faq/FAQSection';
-
 
 export default function Home() {
   return (
-    <main>
+    <main className="flex flex-col min-h-screen">
+      {/* HERO */}
       <HeroSection />
-      <ForStudentsSection />
+
+      {/* THE PROBLEM */}
+      <ProblemSection />
+
+      {/* FOR STUDENTS + FOR EXECUTIVES (toggle) */}
+      <AudienceSection />
+
+      {/* HOW IT WORKS */}
       <HowItWorksSection />
-      <TransparencySection />
-      <SavingsSection />
-      <RoadmapSection />
+
+      {/* FAQ */}
       <FAQSection />
+
+      {/* FINAL CTA */}
+      <FinalCTASection />
     </main>
   );
 }

@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Eye, EyeOff, Check, Sparkles } from "lucide-react";
+import { Logo } from "@/components/ui/Logo";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth-store";
 
@@ -18,17 +19,6 @@ const signinSchema = z.object({
 });
 
 type SigninFormData = z.infer<typeof signinSchema>;
-
-function getSafeReturnTo(): string | null {
-  if (typeof window === "undefined") return null;
-
-  const returnTo = new URLSearchParams(window.location.search).get("returnTo");
-  if (!returnTo || !returnTo.startsWith("/") || returnTo.startsWith("//")) {
-    return null;
-  }
-
-  return returnTo;
-}
 
 /* ─── Component ──────────────────────────────────────────────── */
 interface SigninCardProps {
@@ -67,14 +57,11 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
       const onboardingStatus = await useAuthStore
         .getState()
         .checkOnboardingStatus();
-      const returnTo = getSafeReturnTo();
 
       // Use router.replace to avoid history issues
       setTimeout(() => {
         if (onboardingStatus.needsOnboarding) {
           router.replace("/onboarding");
-        } else if (returnTo) {
-          router.replace(returnTo);
         } else {
           router.replace("/dashboard");
         }
@@ -97,6 +84,11 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
       role="main"
       aria-labelledby="signin-heading"
     >
+      {/* Logo */}
+      <div className="mb-6">
+        <Logo />
+      </div>
+
       <h1
         id="signin-heading"
         className="text-2xl sm:text-[1.6rem] font-bold text-[#0b1a33] tracking-tight mb-1.5"
