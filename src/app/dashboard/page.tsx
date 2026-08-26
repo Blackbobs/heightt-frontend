@@ -6,41 +6,16 @@ import { Sidebar } from "@/components/dashboard/Sidebar";
 import { BottomNav } from "@/components/dashboard/BottomNav";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { MainDashboardView } from "@/components/dashboard/MainDashboardView";
-import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
 export default function DashboardPage() {
-  const { user, isAuthenticated, token, fetchCurrentUser, isLoading: authLoading } = useAuthStore();
+  const { user, isAuthenticated, isInitialized } = useAuthStore();
   const router = useRouter();
-  const [isMounted, setIsMounted] = useState(false);
-
-  console.log("DashboardPage - isAuthenticated:", isAuthenticated);
-  console.log("DashboardPage - user from store:", user);
-  console.log("DashboardPage - token:", !!token);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    // If not authenticated, redirect to signin
-    if (!isAuthenticated && !authLoading) {
-      console.log("DashboardPage - Not authenticated, redirecting to signin");
-      router.replace("/signin");
-      return;
-    }
-
-    // If we have a token but no user, try to fetch the user
-    if (token && !user && !authLoading) {
-      console.log("Token exists but no user, fetching...");
-      fetchCurrentUser();
-    }
-  }, [isAuthenticated, token, user, router, fetchCurrentUser, authLoading]);
 
   // Show loading state while checking auth or fetching user
-  if (authLoading || (!user && token)) {
+  if (!isInitialized || !user) {
     return (
       <div className="flex h-screen bg-[#f0f2f5] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
@@ -51,7 +26,7 @@ export default function DashboardPage() {
     );
   }
 
-  // If not authenticated, don't render (should redirect)
+  // AuthGuard owns redirects for protected routes.
   if (!isAuthenticated || !user) {
     return null;
   }

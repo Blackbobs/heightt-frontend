@@ -1,137 +1,151 @@
 'use client';
 
-import { useRef } from 'react';
+import { useState } from 'react';
 import {
   Route,
-  UserPlus,
-  Coins,
-  CreditCard,
   Building2,
+  UserPlus,
+  FilePlus2,
+  CreditCard,
+  CheckCircle2,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/Badge';
+import { PhoneFrame } from '@/components/hero/PhoneFrame';
+import { ScrollReveal } from '@/components/ui/ScrollReveal';
 
 const steps = [
   {
     number: '01',
-    icon: UserPlus,
-    title: 'Create your account',
+    icon: Building2,
+    title: 'Onboard your organisation',
     description:
-      'Sign up as a student or onboard your organization in under 2 minutes.',
+      'Create your organisation on Heightt and set up the executives responsible for managing it.',
+    tag: 'Quick Setup',
   },
   {
     number: '02',
-    icon: Coins,
-    title: 'Fund or publish',
+    icon: UserPlus,
+    title: 'Add your members',
     description:
-      'Students fund their wallet. Orgs publish dues, events, and announcements.',
+      'Bring your students onto the platform and organise your membership records.',
+    tag: 'Roster Sync',
   },
   {
     number: '03',
-    icon: CreditCard,
-    title: 'Pay, save, attend',
+    icon: FilePlus2,
+    title: 'Create a due',
     description:
-      'Settle dues in installments, buy tickets, get digital receipts — instantly.',
+      'Enter the name, amount and relevant information for the payment you want to collect.',
+    tag: 'Custom Amounts',
   },
   {
     number: '04',
-    icon: Building2,
-    title: 'Settle to bank',
+    icon: CreditCard,
+    title: 'Students pay',
     description:
-      'Organizations request withdrawals to their verified bank accounts.',
+      'Members can view their dues and make payments directly through Heightt.',
+    tag: 'Online Checkout',
+  },
+  {
+    number: '05',
+    icon: CheckCircle2,
+    title: 'Heightt keeps the records',
+    description:
+      'Payments are automatically recorded, giving executives an up-to-date view of collections without manually updating spreadsheets.',
+    tag: 'Automated Audit',
   },
 ];
 
 export function HowItWorksSection() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
-    if (!sectionRef.current || window.innerWidth <= 768) return;
-    const rect = sectionRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-
-    cardsRef.current.forEach((card, index) => {
-      if (!card) return;
-      const speed = 1.5 + (index % 3) * 0.3;
-      const rotateX = y * speed * 0.3;
-      const rotateY = x * speed * -0.3;
-      card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
-    });
-  };
-
-  const handleMouseLeave = () => {
-    cardsRef.current.forEach((card) => {
-      if (!card) return;
-      card.style.transform = '';
-    });
-  };
+  const [activeStep, setActiveStep] = useState(3);
 
   return (
     <section
-      ref={sectionRef}
       id="how-it-works"
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className="py-20 md:py-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative overflow-hidden"
+      className="py-24 md:py-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative overflow-hidden"
     >
+      {/* Background Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-primary/5 rounded-full blur-[160px] pointer-events-none -z-10" />
+
       {/* Header */}
-      <div className="text-center mb-16 md:mb-20 relative z-10">
-        <Badge className="mb-5 inline-flex items-center gap-2 cursor-default hover:bg-primary hover:text-white transition-all duration-300">
-          <Route className="w-4 h-4 text-primary group-hover:text-white" />
-          How It Works
-        </Badge>
-        <h2 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground mb-4 leading-tight">
-          From sign-up to settlement <br className="hidden sm:inline" />
-          <span className="text-primary relative inline-block">
-            in four steps.
-            <span className="absolute bottom-1 left-0 right-0 h-1.5 md:h-2 bg-primary/15 rounded -z-10" />
+      <ScrollReveal direction="up" className="text-center mb-16 md:mb-20 relative z-10">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold shadow-sm mb-4">
+          <Route className="w-3.5 h-3.5" />
+          How Heightt Works
+        </div>
+        <h2 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground mb-4 leading-tight text-balance">
+          From creating a due to <br className="hidden sm:inline" />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-glow to-primary">
+            tracking every payment.
           </span>
         </h2>
         <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-          Get started in minutes. Here's how the Heightt ecosystem works for everyone.
+          A seamless 5-step workflow designed to eliminate manual reconciliation completely.
         </p>
-      </div>
+      </ScrollReveal>
 
-      {/* Steps Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 relative z-10">
-        {/* Desktop Connector Line */}
-        <div className="hidden lg:block absolute top-[56px] left-[12.5%] right-[12.5%] h-0.5 bg-gradient-to-r from-primary via-primary-glow to-border opacity-40 -z-10" />
+      {/* 2-Column Interactive Showcase with Steps on Left and Phone on Right */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
+        {/* Left: 5 Interactive Steps List */}
+        <div className="lg:col-span-7 flex flex-col gap-3.5">
+          {steps.map((step, index) => {
+            const Icon = step.icon;
+            const isActive = activeStep === index;
 
-        {steps.map((step, index) => {
-          const Icon = step.icon;
+            return (
+              <ScrollReveal key={index} delay={index * 60}>
+                <div
+                  onClick={() => setActiveStep(index)}
+                  className={`p-5 sm:p-6 rounded-3xl border transition-all duration-300 cursor-pointer flex items-start gap-4 sm:gap-5 ${
+                    isActive
+                      ? 'bg-white border-2 border-primary shadow-[0_10px_30px_rgba(26,92,255,0.12)] -translate-y-0.5'
+                      : 'bg-white/60 border-border hover:bg-white hover:border-primary/40 hover:shadow-md'
+                  }`}
+                >
+                  {/* Numbered node */}
+                  <div
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center font-display font-extrabold text-base flex-shrink-0 transition-colors ${
+                      isActive
+                        ? 'bg-primary text-white shadow-md shadow-primary/25'
+                        : 'bg-muted text-primary border border-border'
+                    }`}
+                  >
+                    {step.number}
+                  </div>
 
-          return (
-            <div
-              key={index}
-              ref={(el) => {
-                cardsRef.current[index] = el;
-              }}
-              className="step-card bg-card border border-border rounded-2xl p-6 md:p-8 text-center relative overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-primary/40 group flex flex-col items-center"
-            >
-              {/* Step Circle (Number / Icon Morph) */}
-              <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-gradient-to-br from-muted to-border flex items-center justify-center mb-6 relative transition-all duration-500 group-hover:bg-gradient-to-br group-hover:from-primary group-hover:to-[oklch(36%_.18_265)] group-hover:text-white group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-primary/25 cursor-pointer">
-                <span className="font-display font-extrabold text-2xl text-primary group-hover:opacity-0 group-hover:scale-50 transition-all duration-300">
-                  {step.number}
-                </span>
-                <Icon className="w-7 h-7 text-white absolute opacity-0 scale-50 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300" />
-              </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <h3
+                        className={`text-base sm:text-lg font-bold transition-colors ${
+                          isActive ? 'text-primary' : 'text-foreground'
+                        }`}
+                      >
+                        {step.title}
+                      </h3>
+                      <span
+                        className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                          isActive
+                            ? 'bg-primary/10 text-primary border-primary/20'
+                            : 'bg-muted text-muted-foreground border-border'
+                        }`}
+                      >
+                        {step.tag}
+                      </span>
+                    </div>
 
-              {/* Title & Description */}
-              <div className="w-full">
-                <h3 className="text-lg md:text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
-                  {step.title}
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {step.description}
-                </p>
-              </div>
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                      {step.description}
+                    </p>
+                  </div>
+                </div>
+              </ScrollReveal>
+            );
+          })}
+        </div>
 
-              {/* Top Gradient Highlight */}
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-primary-glow to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            </div>
-          );
-        })}
+        {/* Right: Phone Frame Preview Connected to the Walkthrough */}
+        <ScrollReveal delay={150} direction="left" className="lg:col-span-5 flex justify-center items-center">
+          <PhoneFrame currentStep={activeStep} onStepSelect={setActiveStep} />
+        </ScrollReveal>
       </div>
     </section>
   );

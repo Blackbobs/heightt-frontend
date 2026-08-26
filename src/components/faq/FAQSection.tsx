@@ -2,76 +2,67 @@
 
 import { useState } from 'react';
 import { HelpCircle, ChevronDown } from 'lucide-react';
-import { Badge } from '@/components/ui/Badge';
+import { ScrollReveal } from '@/components/ui/ScrollReveal';
 
 const faqs = [
   {
     number: '01',
     question: 'What is Heightt?',
     answer: [
-      'Heightt is a financial operating platform for higher institutions and student organisations. It replaces manual cash collection, spreadsheets, and paper records with a modern digital infrastructure for managing student organisation finances.',
-      'Students can join organisations, pay dues, manage a wallet, and stay on top of their financial activity. Organisation executives get admin tools to manage members, track payments, and publish announcements.',
+      'Heightt is a financial management platform built for student organisations and their members.',
+      'It helps organisations collect dues digitally, track payments and maintain organised financial records while giving students a simple way to make and track their payments.',
     ],
   },
   {
     number: '02',
-    question: 'How do I create an account?',
+    question: 'Who can use Heightt?',
     answer: [
-      'Signing up is simple and takes less than 2 minutes:',
-      '1. Click "Get Started" on the homepage.\n2. Enter your student email address and create a password.\n3. Verify your email address.\n4. Complete your profile with your institution, faculty, department, and level.\n5. You\'re ready to start using Heightt!',
+      'Heightt is designed for student organisations including departments, faculties, associations, clubs, societies and other organised student communities.',
     ],
   },
   {
     number: '03',
-    question: 'How do I pay my dues?',
+    question: 'How do students pay their dues?',
     answer: [
-      'Paying dues on Heightt is instant and secure:',
-      '1. Open your Wallet from the dashboard.\n2. Click "Pay Dues".\n3. Select the organisation and due you want to pay.\n4. Review the amount and confirm.\n5. Your wallet balance is updated instantly, and you receive a digital receipt.',
-      'You can also set up automatic savings toward your dues so you\'re always paid up on time.',
+      'When an organisation creates a due, eligible members can see the payment on their Heightt account and pay through the available payment methods.',
+      'Once the payment is successful, Heightt automatically records it.',
     ],
   },
   {
     number: '04',
-    question: 'Is my money safe on Heightt?',
+    question: 'Do executives need to manually confirm payments?',
     answer: [
-      'Absolutely. Security is our top priority.',
-      '• All transactions are encrypted and secured with industry-standard protocols.\n• Every transaction is logged in a tamper-evident audit trail.\n• Your wallet balance is always backed by real funds held in trust.\n• We use two-factor authentication for sensitive actions.\n• Payment confirmations and receipts are generated instantly for every transaction.',
+      'Payments successfully processed through Heightt are recorded automatically, reducing the need for executives to manually verify transfers and update spreadsheets.',
     ],
   },
   {
     number: '05',
-    question: 'How do I fund my wallet?',
+    question: 'Can executives see who has paid?',
     answer: [
-      'Funding your wallet is quick and easy:',
-      '1. Go to your Wallet.\n2. Click "Fund Wallet".\n3. Enter the amount you want to add.\n4. Choose your preferred payment method (bank transfer, card, or mobile money).\n5. Complete the payment — your wallet updates instantly.',
-      'You can also set up auto-funding to maintain a minimum balance.',
+      'Yes. Executives can track their organisation\'s collections and see members\' payment status from their dashboard.',
     ],
   },
   {
     number: '06',
-    question: 'What is the savings feature?',
+    question: 'Is Heightt only for collecting dues?',
     answer: [
-      'The savings feature lets you lock funds toward specific goals — like departmental dues, faculty fees, or a graduation gown.',
-      '• Create a savings goal with a target amount and deadline.\n• Contribute small amounts regularly.\n• Watch your progress bar fill week by week.\n• When the due date arrives, you\'re already paid up.',
-      'You can also create group savings (Esusu) with classmates for shared goals.',
+      'For now, dues collection and management are the core focus.',
+      'We\'re building additional tools around student finance, payments and campus organisations, which will gradually become available on Heightt.',
     ],
   },
   {
     number: '07',
-    question: 'Can I get a refund if I pay for an event?',
+    question: 'Are savings, wallets and event tickets available?',
     answer: [
-      'Yes. Heightt has built-in refund protection.',
-      'If an event is cancelled, refunds flow straight back to your wallet — no stress, no delays.',
-      'You\'ll receive a notification and a digital receipt confirming the refund. The funds are available in your wallet instantly.',
+      'Not yet.',
+      'These are part of the Heightt roadmap and will be clearly marked as Coming Soon until they become available.',
     ],
   },
   {
     number: '08',
-    question: 'How do organisations withdraw funds?',
+    question: 'Can my organisation join Heightt?',
     answer: [
-      'Organisation executives can request withdrawals directly from the admin dashboard:',
-      '1. Go to "Withdrawals" in the admin panel.\n2. Enter the amount and select the verified bank account.\n3. Review and confirm the withdrawal request.\n4. Funds are transferred to the organisation\'s bank account.\n5. A digital receipt and audit log are generated automatically.',
-      'All withdrawals are tracked and visible to members for full transparency.',
+      'Yes. Student organisations interested in using Heightt can begin the onboarding process through the platform.',
     ],
   },
 ];
@@ -86,81 +77,83 @@ export function FAQSection() {
   return (
     <section
       id="faq"
-      className="py-20 md:py-28 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto relative overflow-hidden"
+      className="py-24 md:py-32 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto relative overflow-hidden"
     >
+      {/* Background Accent */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-primary/5 rounded-full blur-[140px] pointer-events-none -z-10" />
+
       {/* Header */}
-      <div className="text-center mb-12 md:mb-16 relative z-10">
-        <Badge className="mb-4 inline-flex items-center gap-2 cursor-default hover:bg-primary hover:text-white transition-all duration-300">
-          <HelpCircle className="w-4 h-4 text-primary group-hover:text-white" />
+      <ScrollReveal direction="up" className="text-center mb-14 md:mb-18 relative z-10">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold shadow-sm mb-4">
+          <HelpCircle className="w-3.5 h-3.5" />
           FAQ
-        </Badge>
-        <h2 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground mb-4 leading-tight">
-          Got questions? <br className="hidden sm:inline" />
-          <span className="text-primary relative inline-block">
-            We've got answers.
-            <span className="absolute bottom-1 left-0 right-0 h-1.5 md:h-2 bg-primary/15 rounded -z-10" />
-          </span>
+        </div>
+        <h2 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground mb-4 leading-tight text-balance">
+          Frequently Asked Questions
         </h2>
         <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed">
-          Everything you need to know about Heightt — from sign-up to settlement.
+          Everything you need to know about Heightt and managing dues digitally.
         </p>
-      </div>
+      </ScrollReveal>
 
       {/* FAQ Accordion List */}
-      <div className="flex flex-col gap-3 relative z-10">
+      <div className="flex flex-col gap-4 relative z-10">
         {faqs.map((faq, index) => {
           const isOpen = openIndex === index;
 
           return (
-            <div
-              key={index}
-              className={`bg-card border rounded-2xl overflow-hidden transition-all duration-300 ${
-                isOpen
-                  ? 'border-primary shadow-lg shadow-primary/5'
-                  : 'border-border hover:border-primary/40 hover:shadow-md'
-              }`}
-            >
-              <button
-                onClick={() => toggleFAQ(index)}
-                className="w-full px-5 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-4 text-left transition-colors hover:bg-muted/50 cursor-pointer"
-                aria-expanded={isOpen}
+            <ScrollReveal key={index} delay={index * 50}>
+              <div
+                className={`bg-white border rounded-3xl overflow-hidden transition-all duration-300 ${
+                  isOpen
+                    ? 'border-primary shadow-[0_10px_30px_rgba(26,92,255,0.08)]'
+                    : 'border-border hover:border-primary/40 hover:shadow-md'
+                }`}
               >
-                <div className="flex items-center gap-3.5 flex-1 min-w-0">
-                  <span
-                    className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-bold flex items-center justify-center flex-shrink-0 transition-colors ${
-                      isOpen
-                        ? 'bg-primary text-white'
-                        : 'bg-muted text-primary'
+                <button
+                  onClick={() => toggleFAQ(index)}
+                  className="w-full px-6 py-5 flex items-center justify-between gap-4 text-left transition-colors cursor-pointer"
+                  aria-expanded={isOpen}
+                >
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <span
+                      className={`w-8 h-8 rounded-2xl text-xs font-extrabold flex items-center justify-center flex-shrink-0 transition-colors ${
+                        isOpen
+                          ? 'bg-primary text-white shadow-sm'
+                          : 'bg-muted text-primary'
+                      }`}
+                    >
+                      {faq.number}
+                    </span>
+                    <span
+                      className={`text-base sm:text-lg font-bold transition-colors ${
+                        isOpen ? 'text-primary' : 'text-foreground'
+                      }`}
+                    >
+                      {faq.question}
+                    </span>
+                  </div>
+                  <div
+                    className={`w-8 h-8 rounded-full border border-border flex items-center justify-center flex-shrink-0 transition-transform duration-300 ${
+                      isOpen ? 'bg-primary/10 border-primary/20 text-primary rotate-180' : 'text-muted-foreground'
                     }`}
                   >
-                    {faq.number}
-                  </span>
-                  <span
-                    className={`text-base sm:text-lg font-bold transition-colors ${
-                      isOpen ? 'text-primary' : 'text-foreground'
-                    }`}
-                  >
-                    {faq.question}
-                  </span>
-                </div>
-                <ChevronDown
-                  className={`w-5 h-5 text-muted-foreground transition-transform duration-300 flex-shrink-0 ${
-                    isOpen ? 'rotate-180 text-primary' : ''
-                  }`}
-                />
-              </button>
+                    <ChevronDown className="w-4 h-4" />
+                  </div>
+                </button>
 
-              {/* Accordion Answer Content */}
-              {isOpen && (
-                <div className="px-5 sm:px-6 pb-5 pt-3 border-t border-border/60 text-sm sm:text-base text-muted-foreground leading-relaxed flex flex-col gap-3">
-                  {faq.answer.map((paragraph, pIdx) => (
-                    <p key={pIdx} className="whitespace-pre-line">
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
-              )}
-            </div>
+                {/* Accordion Answer Content */}
+                {isOpen && (
+                  <div className="px-6 pb-6 pt-1 text-sm sm:text-base text-muted-foreground leading-relaxed flex flex-col gap-3 border-t border-border/60">
+                    {faq.answer.map((paragraph, pIdx) => (
+                      <p key={pIdx} className="whitespace-pre-line pt-2">
+                        {paragraph}
+                      </p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </ScrollReveal>
           );
         })}
       </div>

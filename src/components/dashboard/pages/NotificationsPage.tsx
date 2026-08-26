@@ -242,44 +242,26 @@ export function NotificationsPage() {
 
   return (
     <div className="space-y-5 pb-6">
-      {/* Header */}
-      <div className="bg-gradient-to-br from-[#1a5cff] to-[#0f4ad0] rounded-[20px] px-6 py-5 text-white relative overflow-hidden">
-        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2.5 mb-2">
-              <div className="w-8 h-8 rounded-[8px] bg-white/15 flex items-center justify-center">
-                <Bell className="w-4 h-4" />
-              </div>
-              <span className="text-[0.68rem] font-semibold uppercase tracking-widest text-white/70">
-                Notifications
-              </span>
-            </div>
-            <p className="text-[1.5rem] font-extrabold">
-              {notifications?.length || 0}{" "}
-              <span className="text-[1rem] font-medium text-white/60">
-                total
-              </span>
-            </p>
-            <p className="text-[0.72rem] text-white/60 mt-0.5">
-              {unreadCount || 0} unread
-            </p>
+      {/* Top Action Bar */}
+      <div className="flex items-center justify-between gap-3 pt-1">
+        {(unreadCount ?? 0) > 0 ? (
+          <button
+            onClick={handleMarkAllAsRead}
+            disabled={markAllAsReadMutation.isPending}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#eef4ff] hover:bg-[#1a5cff] text-[#1a5cff] hover:text-white border border-[#1a5cff]/25 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+          >
+            {markAllAsReadMutation.isPending ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <CheckCheck className="w-3.5 h-3.5" />
+            )}
+            <span>Mark all as read</span>
+          </button>
+        ) : (
+          <div className="text-xs font-semibold text-slate-400 bg-white/70 border border-slate-200/60 px-3 py-1.5 rounded-xl">
+            All caught up
           </div>
-          {(unreadCount ?? 0) > 0 && (
-            <button
-              onClick={handleMarkAllAsRead}
-              disabled={markAllAsReadMutation.isPending}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-white/15 hover:bg-white/25 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
-            >
-              {markAllAsReadMutation.isPending ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <CheckCheck className="w-3.5 h-3.5" />
-              )}
-              Mark all read
-            </button>
-          )}
-        </div>
+        )}
       </div>
 
       {/* Tabs */}

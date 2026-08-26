@@ -3,17 +3,18 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Wallet, Sparkles, PiggyBank, Coins, ShieldCheck, Bell } from 'lucide-react';
+import { Logo } from '../ui/Logo';
 
 const STATS = [
   { value: '12,400+', label: 'Students' },
-  { value: '200+',    label: 'Orgs' },
+  { value: '200+', label: 'Orgs' },
   { value: '₦480M+', label: 'Collected' },
 ];
 
 const GOALS = [
-  { label: 'Dept. Dues',   pct: 74, color: 'from-blue-500 to-emerald-400',  textColor: 'text-emerald-300' },
-  { label: 'Faculty Week', pct: 64, color: 'from-amber-500 to-amber-300',   textColor: 'text-amber-300'   },
-  { label: 'Project Fund', pct: 35, color: 'from-violet-500 to-purple-400', textColor: 'text-violet-300'  },
+  { label: 'Dept. Dues', pct: 74, color: 'from-blue-500 to-emerald-400', textColor: 'text-emerald-300' },
+  { label: 'Faculty Week', pct: 64, color: 'from-amber-500 to-amber-300', textColor: 'text-amber-300' },
+  { label: 'Project Fund', pct: 35, color: 'from-violet-500 to-purple-400', textColor: 'text-violet-300' },
 ];
 
 export function AuthHeroBanner() {
@@ -75,16 +76,9 @@ export function AuthHeroBanner() {
       <div className={`relative z-10 ${mounted ? 'animate-fade-slide-up' : 'opacity-0'}`}>
         <Link href="/" className="inline-flex items-center gap-3 group no-underline">
           {/* Logo mark */}
-          <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#1a5cff] to-[#60a5fa] flex items-center justify-center shadow-[0_8px_24px_rgba(26,92,255,0.5)] group-hover:scale-105 transition-transform duration-300 animate-glow-pulse">
-            <span className="font-extrabold text-xl text-white leading-none">H</span>
-          </div>
+
           <div className="flex flex-col">
-            <span className="font-display font-extrabold text-[1.45rem] tracking-tight text-white leading-none group-hover:text-blue-200 transition-colors duration-300">
-              Heightt
-            </span>
-            <span className="text-[0.65rem] text-slate-400 font-medium tracking-widest uppercase mt-0.5">
-              Campus Finance
-            </span>
+            <Logo variant="light" />
           </div>
         </Link>
 

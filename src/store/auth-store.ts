@@ -79,6 +79,7 @@ interface AuthState {
   }>;
   updateUserOnboardingStatus: (completed: boolean, step: string) => void;
   initialize: () => void;
+  restoreSession: () => Promise<boolean>;
   getToken: () => string | null;
   fetchCurrentUser: () => Promise<User | null>;
   setToken: (token: string | null) => void;
@@ -88,6 +89,14 @@ interface RegisterData {
   email: string;
   username: string;
   password: string;
+}
+
+function applyAccessToken(token: string | null): void {
+  if (token) {
+    axiosConfig.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  } else {
+    delete axiosConfig.defaults.headers.common["Authorization"];
+  }
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -110,12 +119,7 @@ export const useAuthStore = create<AuthState>()(
 
       setToken: (token) => {
         set({ token });
-        if (token) {
-          axiosConfig.defaults.headers.common["Authorization"] =
-            `Bearer ${token}`;
-        } else {
-          delete axiosConfig.defaults.headers.common["Authorization"];
-        }
+        applyAccessToken(token);
       },
 
       setUser: (user) => {
@@ -130,7 +134,7 @@ export const useAuthStore = create<AuthState>()(
           userOrganizations: [],
         });
         clearCsrfToken();
-        delete axiosConfig.defaults.headers.common["Authorization"];
+        applyAccessToken(null);
         localStorage.removeItem("auth-storage");
       },
 
@@ -148,34 +152,60 @@ export const useAuthStore = create<AuthState>()(
       },
 
       fetchCurrentUser: async () => {
-  try {
-    console.log("fetchCurrentUser - Making API call to /auth/me...");
-    const response = await axiosConfig.get("/auth/me");
-    console.log("fetchCurrentUser - Full user data received:", response.data);
+        try {
+          console.log("fetchCurrentUser - Making API call to /auth/me...");
+          const response = await axiosConfig.get("/auth/me");
+          console.log(
+            "fetchCurrentUser - Full user data received:",
+            response.data,
+          );
 
-    // Store the complete user data including studentProfile
-    set({
-      user: response.data,
-      isAuthenticated: true,
-    });
+          // Store the complete user data including studentProfile
+          set({
+            user: response.data,
+            isAuthenticated: true,
+          });
 
-    return response.data;
-  } catch (error) {
-    console.error("fetchCurrentUser - Error:", error);
-    // If unauthorized, clear the user
-    if ((error as any)?.response?.status === 401) {
-      set({
-        user: null,
-        isAuthenticated: false,
-        token: null,
-        userOrganizations: [],
-      });
-      delete axiosConfig.defaults.headers.common["Authorization"];
-      clearCsrfToken();
-    }
-    return null;
-  }
-},
+          return response.data;
+        } catch (error) {
+          console.error("fetchCurrentUser - Error:", error);
+          // If unauthorized, clear the user
+          if ((error as any)?.response?.status === 401) {
+            set({
+              user: null,
+              isAuthenticated: false,
+              token: null,
+              userOrganizations: [],
+            });
+            applyAccessToken(null);
+            clearCsrfToken();
+          }
+          return null;
+        }
+      },
+
+      restoreSession: async () => {
+        const user = await get().fetchCurrentUser();
+        if (user) {
+          return true;
+        }
+
+        try {
+          const response = await axiosConfig.post("/auth/refresh");
+          const accessToken = response.data?.accessToken;
+
+          if (accessToken) {
+            set({ token: accessToken });
+            applyAccessToken(accessToken);
+          }
+        } catch (error) {
+          console.warn("restoreSession - Refresh failed:", error);
+          return false;
+        }
+
+        const refreshedUser = await get().fetchCurrentUser();
+        return !!refreshedUser;
+      },
 
       // ============================================
       // REGISTER - NO AUTO-LOGIN
@@ -207,18 +237,32 @@ export const useAuthStore = create<AuthState>()(
       login: async (identifier: string, password: string) => {
         set({ isLoading: true });
         try {
-          console.log("Logging in...");
+          console.log("[Auth] Login started for:", identifier);
+
+          // CRITICAL: Clear any existing token and get a fresh one.
+          console.log("[Auth] 🔄 Getting fresh CSRF token for login...");
+
+          // Clear memory token to force a fresh fetch
+          clearCsrfToken();
+
+          // Get fresh token - this will call the endpoint and set the cookie
+          const csrfToken = await getCsrfToken();
+          console.log(
+            "[Auth] ✅ CSRF token obtained:",
+            csrfToken ? csrfToken.substring(0, 10) + "..." : "No token",
+          );
+
+          console.log("[Auth] 📤 Making login request...");
           const response = await axiosConfig.post("/auth/login", {
             identifier,
             password,
           });
 
-          console.log("Login response:", response.data);
+          console.log("[Auth] ✅ Login response received");
+          console.log("[Auth] Response status:", response.status);
 
           // Get user data and access token from response
           const { accessToken, ...userData } = response.data;
-
-          console.log("Access token received:", accessToken ? "Yes" : "No");
 
           set({
             user: userData,
@@ -228,16 +272,19 @@ export const useAuthStore = create<AuthState>()(
           });
 
           if (accessToken) {
-            axiosConfig.defaults.headers.common["Authorization"] =
-              `Bearer ${accessToken}`;
+            applyAccessToken(accessToken);
           }
 
           await get().fetchUserOrganizations();
 
-          console.log("Login successful, user:", userData);
+          console.log(
+            "[Auth] ✅ Login successful for:",
+            userData.email || userData.username,
+          );
           return response.data;
         } catch (error: any) {
-          console.error("Login error:", error);
+          console.error("[Auth] ❌ Login error:", error);
+          console.error("[Auth] Error response:", error.response?.data);
           set({ isLoading: false });
           throw error.response?.data || error;
         }
@@ -265,7 +312,7 @@ export const useAuthStore = create<AuthState>()(
             userOrganizations: [],
           });
 
-          delete axiosConfig.defaults.headers.common["Authorization"];
+          applyAccessToken(null);
           clearCsrfToken();
           localStorage.removeItem("auth-storage");
 
@@ -275,7 +322,13 @@ export const useAuthStore = create<AuthState>()(
 
       refreshToken: async () => {
         try {
-          await axiosConfig.post("/auth/refresh");
+          const response = await axiosConfig.post("/auth/refresh");
+          const accessToken = response.data?.accessToken;
+
+          if (accessToken) {
+            set({ token: accessToken });
+            applyAccessToken(accessToken);
+          }
         } catch (error) {
           set({
             user: null,
@@ -283,7 +336,7 @@ export const useAuthStore = create<AuthState>()(
             token: null,
             userOrganizations: [],
           });
-          delete axiosConfig.defaults.headers.common["Authorization"];
+          applyAccessToken(null);
           clearCsrfToken();
           throw error;
         }
@@ -375,8 +428,8 @@ export const useAuthStore = create<AuthState>()(
               : "/onboarding",
           };
         } catch (error: unknown) {
-          const status = (error as { response?: { status?: number } })
-            ?.response?.status;
+          const status = (error as { response?: { status?: number } })?.response
+            ?.status;
           if (status === 404) {
             console.warn(
               "Onboarding status endpoint not found, using profile data",

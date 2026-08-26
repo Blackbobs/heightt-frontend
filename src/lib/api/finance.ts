@@ -103,7 +103,33 @@ export interface PaymentResponse {
   checkoutUrl?: string;
   url?: string;
   paymentUrl?: string;
+  checkoutId?: string;
+  pendingPaymentId?: string;
+  baseAmount?: number;
+  platformFee?: number;
+  totalBeforeGatewayFee?: number;
+  data?: unknown;
   [key: string]: unknown;
+}
+
+export type PaymentStatus =
+  | "PROCESSING"
+  | "COMPLETED"
+  | "FAILED"
+  | "CANCELLED"
+  | "EXPIRED";
+
+export interface PaymentStatusResult {
+  id: string;
+  status: PaymentStatus;
+  amount: number;
+  reference: string;
+  checkoutId: string | null;
+  paymentId: string | null;
+  receiptId: string | null;
+  receiptNumber: string | null;
+  completedAt: string | null;
+  createdAt: string;
 }
 
 export interface IdempotencyKeyResponse {
@@ -249,5 +275,14 @@ export const financeApi = {
       headers: { "Idempotency-Key": idempotencyKey },
     });
     return response.data;
+  },
+
+  getPendingPaymentStatus: async (
+    pendingPaymentId: string,
+  ): Promise<PaymentStatusResult> => {
+    const response = await axiosConfig.get(
+      `/finance/payments/pending/${encodeURIComponent(pendingPaymentId)}/status`,
+    );
+    return response.data?.data || response.data;
   },
 };

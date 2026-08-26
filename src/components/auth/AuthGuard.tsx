@@ -16,6 +16,9 @@ const PUBLIC_ROUTES = [
   "/verify-email",
   "/verify-email-sent",
   "/verify-email-link", // Add this if you have a separate link verification page
+  "/payment/callback",
+  "/payment/success",
+  "/payment/cancelled",
 ];
 
 // Routes that require authentication
@@ -55,7 +58,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
       // Without this, any change to the user object reference
       // (e.g. from fetchCurrentUser or checkOnboardingStatus)
       // re-triggers this effect and re-calls the onboarding API.
-      const userKey = user?.id || "anonymous";
+      const userKey = `${user?.id || "anonymous"}:${pathname}`;
       if (checkedUserRef.current === userKey) {
         setIsChecking(false);
         setShouldRender(true);
@@ -77,7 +80,10 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
       // If not authenticated and trying to access protected route
       if (!isAuthenticated && !user && isProtectedRoute) {
-        router.replace("/signin");
+        const queryString =
+          typeof window !== "undefined" ? window.location.search.slice(1) : "";
+        const returnTo = `${pathname}${queryString ? `?${queryString}` : ""}`;
+        router.replace(`/signin?returnTo=${encodeURIComponent(returnTo)}`);
         setIsChecking(false);
         setShouldRender(false);
         return;

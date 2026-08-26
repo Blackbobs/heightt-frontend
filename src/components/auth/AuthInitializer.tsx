@@ -6,17 +6,16 @@ import { useEffect } from "react";
 import { useAuthStore } from "@/store/auth-store";
 
 export function AuthInitializer({ children }: { children: React.ReactNode }) {
-  const { initialize, fetchCurrentUser, token, user, isInitialized } = useAuthStore();
+  const { initialize, restoreSession, isInitialized } = useAuthStore();
 
   useEffect(() => {
     const initAuth = async () => {
       console.log("AuthInitializer - Initializing auth...");
-      initialize();
 
-      // If we have a token but no user, fetch the user
-      if (token && !user) {
-        console.log("AuthInitializer - Token exists, fetching user...");
-        await fetchCurrentUser();
+      try {
+        await restoreSession();
+      } finally {
+        initialize();
       }
 
       console.log("AuthInitializer - Auth initialized");
@@ -28,7 +27,7 @@ export function AuthInitializer({ children }: { children: React.ReactNode }) {
     // fetchCurrentUser or checkOnboardingStatus updates the store),
     // which can contribute to render loops.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialize, token, fetchCurrentUser]);
+  }, [initialize, restoreSession]);
 
   if (!isInitialized) {
     return (

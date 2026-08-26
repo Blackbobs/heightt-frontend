@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -17,11 +17,46 @@ import {
   MessageCircle,
   Copy,
   Check,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { financeApi, PaymentStatusResult } from "@/lib/api/finance";
+import { useAuthStore } from "@/store/auth-store";
 
 interface PaymentCancelledViewProps {
   isEmbeddedInDashboard?: boolean;
+}
+
+const PENDING_PAYMENT_STORAGE_KEY = "heightt.pendingPayment";
+
+function getStoredPendingPaymentId(): string | null {
+  if (typeof window === "undefined") return null;
+
+  const stored = sessionStorage.getItem(PENDING_PAYMENT_STORAGE_KEY);
+  if (!stored) return null;
+
+  try {
+    return JSON.parse(stored).pendingPaymentId ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function buildSuccessUrl(payment: PaymentStatusResult, searchParams: URLSearchParams) {
+  const params = new URLSearchParams(searchParams);
+  params.set("reference", payment.reference);
+
+  if (!params.has("amount")) {
+    params.set("amount", String(payment.amount / 100));
+  }
+  if (payment.receiptId) {
+    params.set("receiptId", payment.receiptId);
+  }
+  if (payment.receiptNumber) {
+    params.set("receiptNumber", payment.receiptNumber);
+  }
+
+  return `/payment/success?${params.toString()}`;
 }
 
 export function PaymentCancelledView({
@@ -29,6 +64,7 @@ export function PaymentCancelledView({
 }: PaymentCancelledViewProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const restoreSession = useAuthStore((state) => state.restoreSession);
 
   const dueId = searchParams.get("dueId");
   const dueName =
@@ -48,6 +84,66 @@ export function PaymentCancelledView({
     "Payment was cancelled or aborted before completion.";
 
   const [copied, setCopied] = useState(false);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+
+  useEffect(() => {
+    const pendingPaymentId =
+      searchParams.get("payment") ||
+      searchParams.get("pendingPaymentId") ||
+      searchParams.get("pendingPayment") ||
+      getStoredPendingPaymentId();
+
+    if (!pendingPaymentId) return;
+    const paymentId = pendingPaymentId;
+
+    let cancelled = false;
+
+    async function checkStatus() {
+      setIsCheckingStatus(true);
+      const authenticated = await restoreSession();
+
+      if (!authenticated) {
+        const returnTo = encodeURIComponent(
+          `/payment/cancelled?${new URLSearchParams({
+            ...Object.fromEntries(searchParams.entries()),
+            payment: paymentId,
+          }).toString()}`,
+        );
+        window.location.replace(`/signin?returnTo=${returnTo}`);
+        return;
+      }
+
+      try {
+        const payment =
+          await financeApi.getPendingPaymentStatus(paymentId);
+
+        if (cancelled) return;
+
+        if (payment.status === "COMPLETED") {
+          sessionStorage.removeItem(PENDING_PAYMENT_STORAGE_KEY);
+          window.location.replace(
+            buildSuccessUrl(
+              payment,
+              new URLSearchParams(searchParams.toString()),
+            ),
+          );
+          return;
+        }
+      } catch (error) {
+        console.warn("Could not verify cancelled payment status:", error);
+      } finally {
+        if (!cancelled) {
+          setIsCheckingStatus(false);
+        }
+      }
+    }
+
+    void checkStatus();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [restoreSession, searchParams]);
 
   const handleCopyReference = () => {
     if (!reference) return;
@@ -59,6 +155,22 @@ export function PaymentCancelledView({
   const retryUrl = dueId
     ? `/dashboard/payments?dueId=${dueId}`
     : "/dashboard/payments";
+
+  if (isCheckingStatus) {
+    return (
+      <div className="w-full max-w-md mx-auto py-16 px-4 text-center">
+        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-50">
+          <Loader2 className="h-10 w-10 text-amber-500 animate-spin" />
+        </div>
+        <h1 className="text-xl font-bold text-[#0b1a33]">
+          Checking payment status
+        </h1>
+        <p className="mt-2 text-sm leading-6 text-slate-500">
+          Please wait while we confirm whether this payment was completed.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-xl mx-auto py-4 px-2 sm:px-4 space-y-6 animate-fade-slide-up">

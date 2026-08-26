@@ -5,17 +5,17 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
-interface NavItem {
+export interface NavItem {
   label: string;
   href: string;
-  external?: boolean;
 }
 
-const navItems: NavItem[] = [
-  { label: 'Features', href: '#features' },
+export const navItems: NavItem[] = [
+  { label: 'For Students', href: '#for-students' },
+  { label: 'For Executives', href: '#for-executives' },
   { label: 'How It Works', href: '#how-it-works' },
-  { label: 'Transparency', href: '#transparency' },
-  { label: 'Study Tool', href: 'https://www.studyhelp.site', external: true },
+  { label: 'Why Heightt', href: '#why-heightt' },
+  { label: 'Coming Soon', href: '#coming-soon' },
   { label: 'FAQ', href: '#faq' },
 ];
 
@@ -37,7 +37,7 @@ export function NavLinks({ className = '', onClick }: NavLinksProps) {
         .map((item) => item.href.replace('#', ''))
         .filter(Boolean);
 
-      const scrollPosition = window.scrollY + 200;
+      const scrollPosition = window.scrollY + 160;
 
       for (const sectionId of sections) {
         const el = document.getElementById(sectionId);
@@ -51,7 +51,7 @@ export function NavLinks({ className = '', onClick }: NavLinksProps) {
         }
       }
 
-      if (window.scrollY < 300) {
+      if (window.scrollY < 200) {
         setActiveSection('');
       }
     };
@@ -67,10 +67,6 @@ export function NavLinks({ className = '', onClick }: NavLinksProps) {
     item: NavItem
   ) => {
     if (onClick) onClick();
-
-    if (item.external) {
-      return;
-    }
 
     if (item.href.startsWith('#')) {
       e.preventDefault();
@@ -93,21 +89,19 @@ export function NavLinks({ className = '', onClick }: NavLinksProps) {
   };
 
   return (
-    <ul className={`flex items-center gap-7 list-none ${className}`}>
+    <ul className={cn('flex items-center gap-6 xl:gap-8 list-none', className)}>
       {navItems.map((item) => {
         const isActive =
           activeSection === item.href ||
-          pathname === item.href;
+          (pathname === '/' && activeSection === item.href);
 
         return (
           <li key={item.href}>
             <Link
               href={item.href}
-              target={item.external ? '_blank' : undefined}
-              rel={item.external ? 'noopener noreferrer' : undefined}
               onClick={(e) => handleClick(e, item)}
               className={cn(
-                'text-sm font-medium text-muted-foreground transition-all duration-300 ease-in-out py-2 relative no-underline hover:text-foreground cursor-pointer',
+                'text-sm font-medium text-muted-foreground transition-all duration-300 ease-in-out py-2 relative no-underline hover:text-foreground cursor-pointer whitespace-nowrap',
                 isActive && 'text-primary font-semibold'
               )}
             >
