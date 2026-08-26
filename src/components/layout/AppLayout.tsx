@@ -7,16 +7,17 @@ import { Footer } from "@/components/footer/Footer";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isAuthPage =
+  const isAppPage =
     pathname === "/signup" ||
     pathname === "/signin" ||
     pathname === "/verify-email" ||
     pathname === "/verify-email-sent" ||
     pathname === "/onboarding" ||
     pathname.startsWith("/payment") ||
+    pathname.startsWith("/notifications") ||
     pathname.startsWith("/dashboard");
 
-  if (isAuthPage) {
+  if (isAppPage) {
     return <>{children}</>;
   }
 

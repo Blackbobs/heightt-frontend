@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   Receipt,
   Bell,
+  Megaphone,
   Settings,
   LogOut,
   CreditCard,
@@ -24,7 +25,8 @@ const NAV_ITEMS = [
   { label: 'Dues', href: '/dashboard/payments', icon: CreditCard },
   { label: 'Organizations', href: '/dashboard/organizations', icon: Users },
   { label: 'Receipts', href: '/dashboard/receipts', icon: Receipt },
-  { label: 'Announcements', href: '/dashboard/announcements', icon: Bell },
+  { label: 'Announcements', href: '/dashboard/announcements', icon: Megaphone },
+  { label: 'Notifications', href: '/notifications', icon: Bell },
 ];
 
 const BOTTOM_ITEMS = [
