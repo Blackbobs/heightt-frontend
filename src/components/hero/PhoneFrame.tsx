@@ -2,19 +2,20 @@
 
 import { useEffect, useRef, useState } from 'react';
 import {
-  CheckCircle2,
+  LayoutDashboard,
+  CreditCard,
+  Receipt,
   Bell,
+  ChevronDown,
+  Building2,
+  AlertCircle,
+  CheckCircle2,
+  Users,
   Signal,
   Wifi,
   Battery,
-  Receipt,
-  Users,
-  ShieldCheck,
-  Building,
-  UserPlus,
-  FilePlus2,
-  CreditCard,
-  QrCode,
+  ArrowUpRight,
+  Download,
   Sparkles,
 } from 'lucide-react';
 import gsap from 'gsap';
@@ -80,172 +81,189 @@ export function PhoneFrame({ currentStep = 3, onStepSelect }: PhoneFrameProps) {
   }, []);
 
   return (
-    <div ref={wrapperRef} className="perspective-1000 relative w-full flex justify-center items-center py-4">
+    <div ref={wrapperRef} className="perspective-1000 relative w-full flex justify-center items-center py-2">
       {/* Background Ambient Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] sm:w-[450px] sm:h-[450px] bg-gradient-to-tr from-primary/25 to-primary-glow/20 rounded-full blur-3xl pointer-events-none -z-10" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[320px] sm:w-[400px] sm:h-[400px] bg-gradient-to-tr from-primary/25 to-primary-glow/20 rounded-full blur-3xl pointer-events-none -z-10" />
 
-      {/* Floating Card: Live Notification */}
-      <div className="hidden sm:flex absolute top-6 -left-6 lg:-left-10 z-30 bg-white/95 backdrop-blur-xl border border-white/80 p-3.5 rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.1)] items-center gap-3 animate-float-slow">
-        <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/30 flex-shrink-0">
-          <CheckCircle2 className="w-5 h-5" />
+      {/* Floating Notification Badge */}
+      <div className="hidden sm:flex absolute -top-3 -left-4 lg:-left-8 z-30 bg-white/95 backdrop-blur-xl border border-slate-200/80 p-2.5 rounded-2xl shadow-[0_16px_36px_rgba(0,0,0,0.1)] items-center gap-2.5 animate-float-slow">
+        <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-sm shadow-emerald-500/30 shrink-0">
+          <CheckCircle2 className="w-4 h-4" />
         </div>
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-foreground">Dues Auto-Recorded</span>
-            <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full">Live</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-bold text-[#0b1a33]">Payment Verified</span>
+            <span className="text-[9px] text-emerald-700 font-bold bg-emerald-100 px-1.5 py-0.2 rounded-full">Live</span>
           </div>
-          <p className="text-xs text-muted-foreground">Toluwalase A. paid ₦12,500</p>
+          <p className="text-[10.5px] text-[#5b6d89]">Receipt #HT-84920 auto-generated</p>
         </div>
       </div>
 
-      {/* Phone Hardware Shell */}
+      {/* Phone Hardware Shell - Compact & perfectly proportioned */}
       <div
         ref={phoneRef}
-        className="w-full max-w-[290px] sm:max-w-[330px] lg:max-w-[360px] aspect-[9/18.5] bg-[#0c101c] rounded-[48px] p-3 sm:p-3.5 shadow-[0_30px_90px_rgba(26,92,255,0.22),0_0_0_1px_rgba(255,255,255,0.15),0_0_0_8px_rgba(15,23,42,0.7)] relative will-change-transform cursor-pointer"
+        className="w-full max-w-[280px] sm:max-w-[310px] aspect-[9/16.4] bg-[#0c101c] rounded-[44px] p-2.5 sm:p-3 shadow-[0_24px_70px_rgba(26,92,255,0.22),0_0_0_1px_rgba(255,255,255,0.15),0_0_0_6px_rgba(15,23,42,0.65)] relative will-change-transform cursor-default select-none"
       >
         {/* Dynamic Island / Notch */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[110px] h-5 bg-[#000000] rounded-full z-30 flex items-center justify-between px-2.5 shadow-inner">
-          <div className="w-2.5 h-2.5 bg-[#141824] rounded-full border border-[#23293d]" />
-          <div className="w-10 h-1 bg-[#141824] rounded-full" />
+        <div className="absolute top-3.5 left-1/2 -translate-x-1/2 w-[96px] h-4 bg-[#000000] rounded-full z-30 flex items-center justify-between px-2 shadow-inner">
+          <div className="w-2 h-2 bg-[#141824] rounded-full border border-[#23293d]" />
+          <div className="w-8 h-1 bg-[#141824] rounded-full" />
         </div>
 
-        {/* Screen Content */}
-        <div className="w-full h-full bg-[#f8fafc] rounded-[36px] overflow-hidden flex flex-col justify-between p-3.5 sm:p-4 text-foreground relative shadow-inner">
-          {/* Status Bar */}
-          <div className="flex justify-between items-center pt-2 pb-1 text-[10px] font-bold text-foreground flex-shrink-0">
-            <span>{time}</span>
-            <div className="flex gap-1 text-foreground">
-              <Signal className="w-3 h-3" />
-              <Wifi className="w-3 h-3" />
-              <Battery className="w-3.5 h-3" />
+        {/* Screen Container */}
+        <div className="w-full h-full bg-[#f8faff] rounded-[34px] overflow-hidden flex flex-col justify-between text-foreground relative shadow-inner">
+          
+          {/* Top Fixed Area: Status Bar + App Top Bar */}
+          <div className="px-3.5 pt-2 pb-1.5 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shrink-0 z-20">
+            {/* Status Bar */}
+            <div className="flex justify-between items-center pb-1 text-[9.5px] font-bold text-[#0b1a33]">
+              <span>{time}</span>
+              <div className="flex items-center gap-1 text-[#0b1a33]">
+                <Signal className="w-2.5 h-2.5" />
+                <Wifi className="w-2.5 h-2.5" />
+                <Battery className="w-3 h-2.5" />
+              </div>
+            </div>
+
+            {/* Dashboard Header Bar */}
+            <div className="flex items-center justify-between gap-1.5 pt-0.5">
+              <div className="min-w-0">
+                <p className="text-[12px] font-bold text-[#0b1a33] leading-tight truncate">
+                  Good morning, <span className="text-[#1a5cff]">Ayodeji</span>
+                </p>
+                <p className="text-[9px] text-[#5b6d89] truncate">What do you need to pay right now?</p>
+              </div>
+              <div className="relative w-6 h-6 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[#0b1a33] shrink-0">
+                <Bell className="w-3 h-3 text-[#5b6d89]" />
+                <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-[#1a5cff] rounded-full" />
+              </div>
+            </div>
+
+            {/* Organization Context Pill */}
+            <div className="mt-1.5 flex items-center justify-between bg-[#f0f4ff] border border-[#1a5cff]/20 px-2 py-1 rounded-lg text-[10px]">
+              <div className="flex items-center gap-1 text-[#0b1a33] font-semibold truncate">
+                <Building2 className="w-3 h-3 text-[#1a5cff] shrink-0" />
+                <span className="truncate">Computer Science (NACOS)</span>
+              </div>
+              <ChevronDown className="w-2.5 h-2.5 text-[#5b6d89] shrink-0" />
             </div>
           </div>
 
-          {/* App Header */}
-          <div className="flex items-center justify-between pt-1 pb-2 border-b border-border/80 flex-shrink-0">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-xs shadow-sm">
-                H
-              </div>
-              <div>
-                <p className="text-xs font-bold text-foreground leading-tight">NACOS Portal</p>
-                <p className="text-[10px] text-muted-foreground">Step 0{currentStep + 1} Interactive View</p>
-              </div>
-            </div>
-            <div className="w-6 h-6 rounded-full bg-white border border-border flex items-center justify-center text-muted-foreground shadow-sm">
-              <Bell className="w-3 h-3" />
-            </div>
-          </div>
-
-          {/* Dynamic Content based on currentStep (0 to 4) */}
-          {currentStep === 0 && (
-            /* Step 01: Onboard Org */
-            <div className="space-y-2 flex-1 flex flex-col justify-center">
-              <div className="bg-white border border-border rounded-2xl p-4 shadow-sm text-center">
-                <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-2 font-bold">
-                  <Building className="w-6 h-6" />
+          {/* Middle Content - Snug, tightly fitting dashboard sections */}
+          <div className="flex-1 flex flex-col justify-between px-3 py-2 space-y-1.5 overflow-hidden">
+            
+            {/* 2 Metric Cards */}
+            <div className="grid grid-cols-2 gap-1.5 shrink-0">
+              {/* Dues Paid */}
+              <div className="bg-white rounded-xl p-2 border border-slate-200/80 shadow-xs">
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="text-[8.5px] font-bold text-[#5b6d89] uppercase flex items-center gap-0.5">
+                    <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500" /> Paid
+                  </span>
+                  <span className="text-[7.5px] font-bold text-emerald-600 bg-emerald-50 px-1 py-0.2 rounded-full border border-emerald-200/60">
+                    2 Done
+                  </span>
                 </div>
-                <h5 className="font-bold text-foreground text-sm">Computer Science Students</h5>
-                <p className="text-[11px] text-muted-foreground">Executive setup complete · 4 Excos</p>
-                <span className="inline-block mt-2 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
-                  Organisation Verified
+                <div className="text-[13px] font-extrabold text-[#0b1a33] leading-tight">₦12,500</div>
+                <div className="text-[8px] text-[#1a5cff] font-semibold mt-0.5">Receipts ready →</div>
+              </div>
+
+              {/* Dues Pending */}
+              <div className="bg-white rounded-xl p-2 border border-slate-200/80 shadow-xs">
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="text-[8.5px] font-bold text-[#5b6d89] uppercase flex items-center gap-0.5">
+                    <AlertCircle className="w-2.5 h-2.5 text-amber-500" /> Pending
+                  </span>
+                  <span className="text-[7.5px] font-bold text-amber-600 bg-amber-50 px-1 py-0.2 rounded-full border border-amber-200/60">
+                    1 Due
+                  </span>
+                </div>
+                <div className="text-[13px] font-extrabold text-[#0b1a33] leading-tight">₦8,000</div>
+                <div className="text-[8px] text-amber-600 font-semibold mt-0.5">Due in 5 days</div>
+              </div>
+            </div>
+
+            {/* Dues Pending Item */}
+            <div className="bg-white rounded-xl p-2 border border-slate-200/80 shadow-xs shrink-0">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[9.5px] font-bold text-[#0b1a33] flex items-center gap-1">
+                  <span>Dues Pending</span>
+                  <span className="text-[7.5px] bg-amber-100 text-amber-800 font-bold px-1 rounded-full">1</span>
                 </span>
+                <span className="text-[8.5px] font-semibold text-[#1a5cff]">View all</span>
+              </div>
+
+              <div className="p-1.5 rounded-lg bg-[#f8faff] border border-slate-200/60 flex items-center justify-between gap-1.5">
+                <div className="min-w-0">
+                  <p className="text-[9.5px] font-bold text-[#0b1a33] truncate">Faculty Development Levy</p>
+                  <p className="text-[8px] text-[#5b6d89] truncate">Faculty of Physical Sciences</p>
+                  <p className="text-[9.5px] font-extrabold text-[#0b1a33]">₦8,000</p>
+                </div>
+                <button
+                  type="button"
+                  className="bg-[#1a5cff] hover:bg-[#124bda] text-white text-[9px] font-bold px-2.5 py-1 rounded-md shadow-xs shrink-0 flex items-center gap-0.5 cursor-pointer"
+                >
+                  Pay <ArrowUpRight className="w-2.5 h-2.5" />
+                </button>
               </div>
             </div>
-          )}
 
-          {currentStep === 1 && (
-            /* Step 02: Add Members */
-            <div className="space-y-2 flex-1 flex flex-col justify-center">
-              <div className="bg-white border border-border rounded-2xl p-3.5 shadow-sm space-y-2">
-                <div className="flex justify-between items-center text-xs font-bold">
-                  <span>Student Roster</span>
-                  <span className="text-primary text-[10px]">500 Enrolled</span>
-                </div>
-                <div className="space-y-1.5 text-[11px]">
-                  <div className="p-2 rounded-xl bg-muted/60 flex justify-between items-center">
-                    <span>Toluwalase A. (CSC/21/049)</span>
-                    <span className="font-bold text-emerald-600">Active</span>
+            {/* Recent Payment Receipts */}
+            <div className="bg-white rounded-xl p-2 border border-slate-200/80 shadow-xs shrink-0">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[9.5px] font-bold text-[#0b1a33]">Recent Payment Receipts</span>
+                <span className="text-[8.5px] font-semibold text-[#1a5cff]">All (2)</span>
+              </div>
+
+              <div className="p-1.5 rounded-lg bg-[#f0fdf4] border border-emerald-200/60 flex items-center justify-between gap-1.5">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1">
+                    <p className="text-[9.5px] font-bold text-[#0b1a33] truncate">Departmental Annual Dues</p>
+                    <span className="text-[7px] font-bold text-emerald-700 bg-emerald-100 px-1 rounded">PAID</span>
                   </div>
-                  <div className="p-2 rounded-xl bg-muted/60 flex justify-between items-center">
-                    <span>Chioma O. (CSC/21/042)</span>
-                    <span className="font-bold text-emerald-600">Active</span>
-                  </div>
+                  <p className="text-[8px] text-emerald-700 font-mono">Receipt #HT-84920 · ₦12,500</p>
+                </div>
+                <div className="w-5 h-5 rounded bg-white border border-emerald-200 flex items-center justify-center text-emerald-600 shadow-xs shrink-0">
+                  <Download className="w-2.5 h-2.5" />
                 </div>
               </div>
             </div>
-          )}
 
-          {currentStep === 2 && (
-            /* Step 03: Create a due */
-            <div className="space-y-2 flex-1 flex flex-col justify-center">
-              <div className="bg-white border border-border rounded-2xl p-4 shadow-sm space-y-2">
-                <span className="text-[10px] font-bold text-primary uppercase bg-primary/10 px-2 py-0.5 rounded-full">
-                  New Due Published
-                </span>
-                <h5 className="font-bold text-foreground text-sm">Departmental Annual Dues</h5>
-                <p className="text-xl font-extrabold text-foreground font-display">₦12,500</p>
-                <p className="text-[10px] text-muted-foreground">Session: 2025/2026 · All levels</p>
-              </div>
+            {/* Step-Interactive Dynamic Highlight Pill */}
+            <div className="py-1 px-2 rounded-lg bg-[#eef4ff] border border-[#1a5cff]/20 flex items-center justify-between text-[8.5px] text-[#1a5cff] font-semibold shrink-0">
+              <span className="flex items-center gap-1 truncate">
+                <Sparkles className="w-2.5 h-2.5 text-[#1a5cff] shrink-0" />
+                {currentStep === 0 && 'Step 1: NACOS verified & live'}
+                {currentStep === 1 && 'Step 2: 500 students synced'}
+                {currentStep === 2 && 'Step 3: Dues assigned to level'}
+                {currentStep === 3 && 'Step 4: Instant online checkout'}
+                {currentStep === 4 && 'Step 5: Automated digital records'}
+              </span>
+              <span className="font-bold shrink-0">Step {currentStep + 1}/5</span>
             </div>
-          )}
 
-          {(currentStep === 3 || currentStep === 4) && (
-            /* Step 04 & 05: Student Pay & Auto Record */
-            <div className="space-y-2.5 flex-shrink-0">
-              <div className="bg-gradient-to-br from-primary via-[#2065ff] to-[#124bda] rounded-2xl p-4 text-white shadow-xl shadow-primary/25 relative overflow-hidden">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-white/15 px-2.5 py-0.5 rounded-full backdrop-blur-sm">
-                    Annual Dues
-                  </span>
-                  <span className="flex items-center gap-1 text-[10px] bg-emerald-400/20 text-emerald-300 font-bold px-2 py-0.5 rounded-full border border-emerald-400/30">
-                    <CheckCircle2 className="w-3 h-3" /> Confirmed
-                  </span>
-                </div>
-
-                <p className="text-xs font-medium text-white/85">Computer Science Dept Dues</p>
-                <div className="flex items-baseline gap-1 my-1">
-                  <span className="text-2xl font-extrabold font-display">₦12,500</span>
-                  <span className="text-[10px] text-white/70">/ student</span>
-                </div>
-
-                <div className="mt-2.5 pt-2 border-t border-white/15 flex items-center justify-between text-[10px] text-white/90">
-                  <span className="flex items-center gap-1">
-                    <Receipt className="w-3 h-3 text-emerald-300" /> Receipt #HT-84920
-                  </span>
-                  <span className="font-mono text-white/75 font-semibold">AUTO-RECORDED</span>
-                </div>
-              </div>
-
-              {/* Real-time Tracking Feed */}
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-center text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                  <span>Executive Live Feed</span>
-                  <span className="text-primary font-semibold flex items-center gap-0.5">
-                    Live <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse" />
-                  </span>
-                </div>
-
-                <div className="bg-white border border-border/80 rounded-xl p-2 flex items-center justify-between text-[11px] shadow-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[9px]">
-                      ✓
-                    </div>
-                    <div>
-                      <p className="font-bold text-foreground text-[10px] leading-tight">Chioma O. (CSC/21/042)</p>
-                      <p className="text-[8px] text-muted-foreground">Departmental Dues</p>
-                    </div>
-                  </div>
-                  <span className="font-bold text-emerald-600 text-[10px]">+₦12,500</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Bottom Security Tag */}
-          <div className="py-1.5 px-3 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center gap-1.5 text-[10px] text-primary font-bold text-center flex-shrink-0">
-            <ShieldCheck className="w-3.5 h-3.5" /> No spreadsheets · Instant audit logs
           </div>
+
+          {/* Bottom Fixed Navigation Bar (Tightly attached with zero dead space) */}
+          <div className="bg-white/95 backdrop-blur-md border-t border-slate-200/90 py-1.5 px-3 flex justify-around items-center shrink-0 z-20">
+            <div className="flex flex-col items-center gap-0.5 text-[#1a5cff]">
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              <span className="text-[7.5px] font-bold leading-none">Home</span>
+            </div>
+            <div className="flex flex-col items-center gap-0.5 text-[#5b6d89]">
+              <CreditCard className="w-3.5 h-3.5" />
+              <span className="text-[7.5px] font-semibold leading-none">Dues</span>
+            </div>
+            <div className="flex flex-col items-center gap-0.5 text-[#5b6d89]">
+              <Users className="w-3.5 h-3.5" />
+              <span className="text-[7.5px] font-semibold leading-none">Orgs</span>
+            </div>
+            <div className="flex flex-col items-center gap-0.5 text-[#5b6d89]">
+              <Receipt className="w-3.5 h-3.5" />
+              <span className="text-[7.5px] font-semibold leading-none">Receipts</span>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
