@@ -2,8 +2,9 @@
 
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   CreditCard,
   AlertCircle,
@@ -17,8 +18,17 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useMyDues, useMakePayment } from "@/hooks/queries/usePayments";
-import { DueAssignment, PaymentResponse } from "@/lib/api/finance";
+import {
+  useMyDues,
+  useMakePayment,
+  usePaymentHistory,
+} from "@/hooks/queries/usePayments";
+import {
+  DueAssignment,
+  PaymentHistoryRecord,
+  PaymentResponse,
+} from "@/lib/api/finance";
+import { queryKeys } from "@/lib/api/keys";
 
 type Tab = "all" | "unpaid" | "paid";
 
@@ -48,12 +58,15 @@ function getCheckoutUrl(response: PaymentResponse): string | null {
 }
 
 export function PaymentsPage() {
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const highlightDueId = searchParams.get("dueId");
   const paymentStatus = searchParams.get("status");
 
   const { data: dues, isLoading, isError, error, refetch } = useMyDues();
   const makePayment = useMakePayment();
+  const { data: paymentHistory, refetch: refetchPaymentHistory } =
+    usePaymentHistory({ page: 1, limit: 20 });
 
   const [tab, setTab] = useState<Tab>("all");
   const [search, setSearch] = useState("");
@@ -61,6 +74,8 @@ export function PaymentsPage() {
   const [selectedDue, setSelectedDue] = useState<DueAssignment | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [statusBanner, setStatusBanner] = useState<string | null>(null);
+  const [pendingDueIds, setPendingDueIds] = useState<Set<string>>(new Set());
+  const paymentInitiationLock = useRef(false);
 
   useEffect(() => {
     if (paymentStatus === "success") {
@@ -109,6 +124,22 @@ export function PaymentsPage() {
   }, [dues]);
 
   const handlePay = async (due: DueAssignment) => {
+    if (
+      due.isPaid ||
+      paymentInitiationLock.current ||
+      payingId ||
+      pendingDueIds.has(due.id)
+    ) {
+      return;
+    }
+
+    if (!due.due?.organizationId) {
+      setPaymentError("Organization information is missing for this due.");
+      return;
+    }
+
+    paymentInitiationLock.current = true;
+    setPayingId(due.id);
     setPaymentError(null);
     setPayingId(due.id);
 
@@ -147,11 +178,51 @@ export function PaymentsPage() {
         );
       }
     } catch (err: unknown) {
+      const response = (err as {
+        response?: { status?: number; data?: Record<string, unknown> };
+      })?.response;
+      const responseData = response?.data;
       const message =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message || "Failed to initiate payment. Please try again.";
-      setPaymentError(message);
+        (typeof responseData?.message === "string" && responseData.message) ||
+        "Failed to initiate payment. Please try again.";
+
+      if (response?.status === 400 && message === "This due has already been paid") {
+        queryClient.setQueryData<DueAssignment[]>(
+          queryKeys.finance.myDues,
+          (current) =>
+            current?.map((item) =>
+              item.id === due.id ? { ...item, isPaid: true } : item,
+            ) ?? current,
+        );
+        setSelectedDue(null);
+        setStatusBanner("This due has already been paid. Your records have been refreshed.");
+        await Promise.all([refetch(), refetchPaymentHistory()]);
+      } else if (
+        response?.status === 409 &&
+        message === "A payment for this due is already in progress"
+      ) {
+        setPendingDueIds((current) => new Set(current).add(due.id));
+        const pendingResponse = responseData as PaymentResponse;
+        const pendingPaymentId = getPendingPaymentId(pendingResponse);
+        const checkoutUrl = getCheckoutUrl(pendingResponse);
+
+        if (pendingPaymentId) {
+          sessionStorage.setItem(
+            "heightt.pendingPayment",
+            JSON.stringify({ pendingPaymentId, startedAt: Date.now() }),
+          );
+        }
+
+        setSelectedDue(null);
+        setStatusBanner("A payment for this due is already in progress.");
+        await Promise.all([refetch(), refetchPaymentHistory()]);
+
+        if (checkoutUrl) window.location.href = checkoutUrl;
+      } else {
+        setPaymentError(message);
+      }
     } finally {
+      paymentInitiationLock.current = false;
       setPayingId(null);
     }
   };
@@ -304,6 +375,7 @@ export function PaymentsPage() {
             due.due?.dueDate &&
             new Date(due.due.dueDate) < new Date();
           const isPaying = payingId === due.id;
+          const hasPendingPayment = pendingDueIds.has(due.id);
           const isAutoAssigned = due.isAutoAssigned;
 
           return (
@@ -372,12 +444,12 @@ export function PaymentsPage() {
                       onClick={() => {
                         setSelectedDue(due);
                       }}
-                      disabled={isPaying}
+                      disabled={due.isPaid || isPaying || hasPendingPayment || makePayment.isPending}
                       className={cn(
-                        "py-2 px-4 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm",
-                        isPaying
-                          ? "bg-muted text-muted-foreground cursor-not-allowed"
-                          : "bg-primary hover:bg-primary/90 text-white shadow-primary/20",
+                        "py-1.5 px-4 rounded-lg text-xs font-semibold border-none cursor-pointer transition-colors flex items-center gap-1.5",
+                        isPaying || hasPendingPayment || makePayment.isPending
+                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          : "bg-[#1a5cff] hover:bg-[#0f4ad0] text-white",
                       )}
                     >
                       {isPaying ? (
@@ -385,6 +457,8 @@ export function PaymentsPage() {
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
                           Processing...
                         </>
+                      ) : hasPendingPayment ? (
+                        "In progress"
                       ) : (
                         <>
                           Pay Due <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
@@ -453,8 +527,13 @@ export function PaymentsPage() {
                   handlePay(selectedDue);
                   setSelectedDue(null);
                 }}
-                disabled={payingId === selectedDue.id}
-                className="flex-1 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-xs transition-colors cursor-pointer border-none disabled:opacity-60 flex items-center justify-center gap-2 shadow-md shadow-primary/25"
+                disabled={
+                  selectedDue.isPaid ||
+                  payingId !== null ||
+                  pendingDueIds.has(selectedDue.id) ||
+                  makePayment.isPending
+                }
+                className="flex-1 py-2.5 rounded-xl bg-[#1a5cff] hover:bg-[#0f4ad0] text-white font-semibold text-sm transition-colors cursor-pointer border-none disabled:opacity-60 flex items-center justify-center gap-2"
               >
                 {payingId === selectedDue.id ? (
                   <>
@@ -469,6 +548,59 @@ export function PaymentsPage() {
           </div>
         </div>
       )}
+
+      <section className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-sm font-bold text-[#1a1a2e]">Payment history</h2>
+          <span className="text-xs text-[#7a8ba3]">
+            {paymentHistory?.meta.total ?? paymentHistory?.data.length ?? 0} payments
+          </span>
+        </div>
+        <div className="bg-white border border-[#e8ecf1] rounded-[16px] divide-y divide-[#f0f2f5] overflow-hidden">
+          {paymentHistory?.data.length ? (
+            paymentHistory.data.map((payment: PaymentHistoryRecord) => {
+              const due = payment.duePayment?.assignment?.due;
+              const transaction = payment.transaction;
+              const status = transaction?.status ?? payment.status;
+              const amount = transaction?.amount ?? payment.amount;
+              const organization =
+                payment.organization?.name ?? due?.organization?.name ?? "Organization";
+
+              return (
+                <div key={payment.id} className="flex items-center gap-3 px-4 py-4">
+                  <div className="w-9 h-9 rounded-[8px] bg-[#eef3ff] flex items-center justify-center shrink-0">
+                    <CreditCard className="w-4 h-4 text-[#1a5cff]" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[0.82rem] font-semibold text-[#1a1a2e]">
+                      {due?.name ?? transaction?.description ?? "Due payment"}
+                    </p>
+                    <p className="mt-0.5 truncate text-[0.62rem] text-[#7a8ba3]">
+                      {organization} · {payment.reference ?? transaction?.reference ?? "No reference"}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-[0.8rem] font-bold text-[#1a1a2e]">
+                      {formatNaira(amount / 100)}
+                    </p>
+                    <p className={cn(
+                      "mt-1 text-[0.58rem] font-semibold",
+                      status === "COMPLETED" ? "text-emerald-700" :
+                      status === "FAILED" ? "text-red-600" : "text-amber-700",
+                    )}>
+                      {status}
+                    </p>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="px-4 py-10 text-center text-sm text-[#7a8ba3]">
+              Your payment history will appear here.
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

@@ -1,7 +1,12 @@
 // src/hooks/queries/usePayments.ts
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { financeApi, DueItem, PaymentRequest } from "@/lib/api/finance";
+import {
+  financeApi,
+  DueItem,
+  PaymentHistoryParams,
+  PaymentRequest,
+} from "@/lib/api/finance";
 import { queryKeys } from "@/lib/api/keys";
 import { useAuthStore } from "@/store/auth-store";
 import { invalidateFinanceCache, invalidateDashboardCache } from "@/lib/api/invalidation";
@@ -46,6 +51,17 @@ export function useDues(params?: {
     },
     enabled: isAuthenticated,
     staleTime: 3 * 60 * 1000,
+  });
+}
+
+export function usePaymentHistory(params?: PaymentHistoryParams) {
+  const { isAuthenticated } = useAuthStore();
+
+  return useQuery({
+    queryKey: queryKeys.finance.paymentHistory(params),
+    queryFn: () => financeApi.getPaymentHistory(params),
+    enabled: isAuthenticated,
+    staleTime: 60 * 1000,
   });
 }
 

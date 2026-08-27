@@ -4,12 +4,14 @@ import type React from "react";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Loader2 } from "lucide-react";
 import {
   financeApi,
   PaymentStatusResult,
 } from "@/lib/api/finance";
 import { useAuthStore } from "@/store/auth-store";
+import { invalidateDashboardCache, invalidateFinanceCache } from "@/lib/api/invalidation";
 
 type CallbackState =
   | { status: "confirming" }
@@ -66,11 +68,9 @@ async function waitForPayment(
   pendingPaymentId: string,
   signal: AbortSignal,
 ): Promise<PaymentStatusResult> {
-  const timeoutMs = 90_000;
   const intervalMs = 2_000;
-  const startedAt = Date.now();
 
-  while (Date.now() - startedAt < timeoutMs) {
+  while (!signal.aborted) {
     if (signal.aborted) {
       throw new DOMException("Aborted", "AbortError");
     }
@@ -98,12 +98,13 @@ async function waitForPayment(
     });
   }
 
-  throw new Error("CONFIRMATION_TIMEOUT");
+  throw new DOMException("Aborted", "AbortError");
 }
 
 export function PaymentCallbackView() {
   const searchParams = useSearchParams();
   const restoreSession = useAuthStore((state) => state.restoreSession);
+  const queryClient = useQueryClient();
   const [state, setState] = useState<CallbackState>({ status: "confirming" });
 
   const pendingPaymentId = useMemo(
@@ -140,6 +141,10 @@ export function PaymentCallbackView() {
           pendingPaymentId,
           controller.signal,
         );
+        await Promise.all([
+          invalidateFinanceCache(queryClient),
+          invalidateDashboardCache(queryClient),
+        ]);
         sessionStorage.removeItem(PENDING_PAYMENT_STORAGE_KEY);
         window.location.replace(
           buildSuccessUrl(
@@ -153,11 +158,6 @@ export function PaymentCallbackView() {
         }
 
         const code = error instanceof Error ? error.message : "UNKNOWN_ERROR";
-        if (code === "CONFIRMATION_TIMEOUT") {
-          setState({ status: "delayed", pendingPaymentId });
-          return;
-        }
-
         const messages: Record<string, string> = {
           FAILED: "The payment was not successful.",
           CANCELLED: "The payment was cancelled.",
@@ -176,7 +176,7 @@ export function PaymentCallbackView() {
     void confirmPayment();
 
     return () => controller.abort();
-  }, [pendingPaymentId, restoreSession, searchParams]);
+  }, [pendingPaymentId, queryClient, restoreSession, searchParams]);
 
   if (state.status === "delayed") {
     return (
