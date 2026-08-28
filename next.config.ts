@@ -30,6 +30,16 @@ const nextConfig: NextConfig = {
   // Optimize images
   images: {
     formats: ["image/avif", "image/webp"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        port: "",
+        pathname:
+          "/dbcgdaigj/image/upload/v1787929762/heightt-logo_adxihk.png",
+        search: "",
+      },
+    ],
   },
 };
 

@@ -94,17 +94,6 @@ export function SettingsPage() {
     return `${f}${l}`.toUpperCase() || 'U';
   };
 
-  const getStudentInfo = () => {
-    const sp = user?.studentProfile;
-    if (!sp) return 'Student';
-    const level = sp.currentAcademicLevelId || '';
-    const dept = sp.departmentId || '';
-    if (level && dept) return `${level}L · ${dept}`;
-    if (level) return `${level}L`;
-    if (dept) return dept;
-    return 'Student';
-  };
-
   const handleSave = async () => {
     setSaveMessage(null);
     try {
@@ -188,7 +177,6 @@ export function SettingsPage() {
               ? `${firstName} ${lastName}`.trim()
               : user?.username || 'User'}
           </p>
-          <p className="text-[0.68rem] text-[#7a8ba3]">{getStudentInfo()}</p>
           <p className="text-[0.65rem] text-[#1a5cff] mt-0.5 font-medium truncate">
             {user?.email}
           </p>

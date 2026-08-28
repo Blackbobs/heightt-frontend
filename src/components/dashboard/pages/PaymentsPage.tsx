@@ -37,6 +37,25 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function formatNaira(amount: number) {
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    minimumFractionDigits: 2,
+  }).format(amount);
+}
+
+function getPendingPaymentId(response: PaymentResponse): string | null {
+  if (isObject(response.data)) {
+    const id = response.data.pendingPaymentId ?? response.data.paymentId;
+    if (typeof id === "string") return id;
+  }
+
+  return typeof response.pendingPaymentId === "string"
+    ? response.pendingPaymentId
+    : null;
+}
+
 function getCheckoutUrl(response: PaymentResponse): string | null {
   if (isObject(response.data)) {
     if (typeof response.data.checkoutUrl === "string") {
