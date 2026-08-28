@@ -19,6 +19,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { HEIGHTT_LOGO_URL } from "@/lib/assets";
 import { useReceipts, useDownloadReceipt } from "@/hooks/queries/useReceipts";
 import { Receipt as ReceiptType } from "@/lib/api/finance";
 import { generateReceiptPdf } from "@/lib/pdf/generateReceiptPdf";
@@ -46,6 +47,14 @@ const TYPE_CONFIG: Record<string, { label: string; bg: string; text: string; dot
 };
 
 const TABS = ["All", "Dues", "Funding", "Tickets"];
+
+function formatNaira(amount: number) {
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    minimumFractionDigits: 2,
+  }).format(amount);
+}
 
 /* ─── Realistic Paper Receipt Modal ──────────────────────────── */
 function ReceiptModal({
@@ -95,11 +104,11 @@ function ReceiptModal({
             <div className="flex items-start justify-between mb-4 pt-1">
               <div>
                 <Image
-                  src="/logo.png"
+                  src={HEIGHTT_LOGO_URL}
                   alt="Heightt"
                   width={110}
                   height={32}
-                  className="h-7 w-auto object-contain"
+                  className="h-8 w-auto object-contain"
                   priority
                 />
                 <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">
@@ -282,7 +291,7 @@ export function ReceiptsPage() {
       if (r.paymentMethod === "WALLET" || r.description?.toLowerCase().includes("funding")) type = "funding";
       else if (r.description?.toLowerCase().includes("ticket") || r.description?.toLowerCase().includes("event")) type = "ticket";
 
-      const amount = r.totalAmount || r.amount || 0;
+      const amount = (r.totalAmount ?? r.amount ?? 0) / 100;
 
       return {
         id: r.id,
@@ -290,7 +299,7 @@ export function ReceiptsPage() {
         title: r.description || "Payment Receipt",
         org: r.organizationName || r.payerName || "Student Organisation",
         amount,
-        amountFormatted: `₦${amount.toLocaleString()}`,
+        amountFormatted: formatNaira(amount),
         date: r.paymentDate
           ? new Date(r.paymentDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
           : "N/A",
@@ -305,7 +314,10 @@ export function ReceiptsPage() {
   }, [receipts]);
 
   const totalPaid = useMemo(() =>
-    receipts?.reduce((sum: number, r: ReceiptType) => sum + (r.totalAmount || r.amount || 0), 0) || 0,
+    (receipts?.reduce(
+      (sum: number, r: ReceiptType) => sum + (r.totalAmount ?? r.amount ?? 0),
+      0
+    ) ?? 0) / 100,
     [receipts]
   );
 
@@ -413,7 +425,7 @@ export function ReceiptsPage() {
               </div>
               <span className="text-[0.65rem] font-semibold text-muted-foreground uppercase tracking-wide">Total Paid</span>
             </div>
-            <p className="text-2xl font-extrabold text-foreground">₦{totalPaid.toLocaleString()}</p>
+            <p className="text-2xl font-extrabold text-foreground">{formatNaira(totalPaid)}</p>
             <p className="text-[0.62rem] text-muted-foreground mt-0.5">All time</p>
           </div>
         </div>

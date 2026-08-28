@@ -132,6 +132,39 @@ export interface PaymentStatusResult {
   createdAt: string;
 }
 
+export interface PaymentHistoryRecord {
+  id: string;
+  status: PaymentStatus | "PENDING";
+  amount: number;
+  reference?: string;
+  paymentMethod?: string;
+  createdAt: string;
+  completedAt?: string | null;
+  transaction?: Transaction | null;
+  organization?: DueItem["organization"] | null;
+  payer?: {
+    id: string;
+    email?: string;
+    username?: string;
+    firstName?: string;
+    lastName?: string;
+  } | null;
+  duePayment?: {
+    assignment?: {
+      id?: string;
+      due?: DueItem | null;
+    } | null;
+  } | null;
+  receipt?: Receipt | null;
+}
+
+export interface PaymentHistoryParams {
+  page?: number;
+  limit?: number;
+  status?: string;
+  organizationId?: string;
+}
+
 export interface IdempotencyKeyResponse {
   idempotencyKey: string;
   expiresIn?: number;
@@ -200,6 +233,37 @@ export const financeApi = {
         meta: { page: 1, limit: 10, total: 0, totalPages: 0 },
       };
     }
+  },
+
+  getPaymentHistory: async (
+    params?: PaymentHistoryParams,
+  ): Promise<PaginatedResponse<PaymentHistoryRecord>> => {
+    const response = await axiosConfig.get("/finance/payments/history", {
+      params,
+    });
+    const payload = response.data?.data ?? response.data;
+
+    if (Array.isArray(payload)) {
+      return {
+        data: payload,
+        meta: response.data?.meta ?? {
+          page: params?.page ?? 1,
+          limit: params?.limit ?? payload.length,
+          total: payload.length,
+          totalPages: 1,
+        },
+      };
+    }
+
+    return {
+      data: payload?.data ?? [],
+      meta: payload?.meta ?? response.data?.meta ?? {
+        page: params?.page ?? 1,
+        limit: params?.limit ?? 10,
+        total: 0,
+        totalPages: 0,
+      },
+    };
   },
 
   // Get user receipts

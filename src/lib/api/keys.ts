@@ -10,6 +10,7 @@ export const queryKeys = {
     dues: ["finance", "dues"],
     myDues: ["finance", "dues", "my"],
     transactions: (params?: any) => ["finance", "transactions", params],
+    paymentHistory: (params?: any) => ["finance", "payments", "history", params],
     receipts: (params?: any) => ["finance", "receipts", params],
     receipt: (id: string) => ["finance", "receipts", id],
   },

@@ -58,18 +58,6 @@ export function Sidebar() {
     return currentUser.username || currentUser.email?.split('@')[0] || 'User';
   };
 
-  const getStudentInfo = () => {
-    if (!currentUser?.studentProfile) return 'Student';
-    const level = currentUser.studentProfile.currentAcademicLevelId || '';
-    const department = currentUser.studentProfile.departmentId || '';
-    if (level && department) {
-      return `${level}L · ${department}`;
-    }
-    if (level) return `${level}L`;
-    if (department) return department;
-    return 'Student';
-  };
-
   const handleLogout = async () => {
     try {
       await logout();
@@ -82,8 +70,6 @@ export function Sidebar() {
 
   const initials = getInitials();
   const displayName = getDisplayName();
-  const studentInfo = getStudentInfo();
-
   return (
     <aside className="hidden lg:flex flex-col w-[230px] flex-shrink-0 bg-[#F8FAFC] border-r border-border h-screen sticky top-0 font-sans">
       {/* Logo */}
@@ -149,7 +135,7 @@ export function Sidebar() {
               {displayName}
             </p>
             <p className="text-[11px] text-muted-foreground leading-tight truncate mt-0.5">
-              {studentInfo}
+              {currentUser?.email || 'Student account'}
             </p>
           </div>
         </div>
