@@ -18,7 +18,7 @@ import {
   ExternalLink,
   Loader2,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, koboToNaira } from "@/lib/utils";
 import { useDashboardData } from "@/hooks/queries/useDashboard";
 import { DueAssignment } from "@/lib/api/finance";
 import type { OrganizationMembership } from "@/lib/api/organizations";
@@ -186,7 +186,7 @@ export function MainDashboardView() {
               </span>
             </div>
             <div className="text-2xl sm:text-3xl font-extrabold text-[#0b1a33] tracking-tight mt-1 truncate">
-              ₦{totalPaidAmount.toLocaleString()}
+              ₦{koboToNaira(totalPaidAmount).toLocaleString()}
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-[#5b6d89]">
@@ -213,7 +213,7 @@ export function MainDashboardView() {
               </span>
             </div>
             <div className="text-2xl sm:text-3xl font-extrabold text-[#0b1a33] tracking-tight mt-1 truncate">
-              ₦{totalPendingAmount.toLocaleString()}
+              ₦{koboToNaira(totalPendingAmount).toLocaleString()}
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-[#5b6d89]">
@@ -322,7 +322,7 @@ export function MainDashboardView() {
 
                   <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/50">
                     <span className="text-sm font-extrabold text-[#0b1a33]">
-                      ₦{due.amount.toLocaleString()}
+                      ₦{koboToNaira(due.amount).toLocaleString()}
                     </span>
                     <Link
                       href={`/dashboard/payments?dueId=${due.id}`}
@@ -352,7 +352,7 @@ export function MainDashboardView() {
             </span>
             <div className="flex items-center justify-between sm:justify-end gap-3">
               <span className="text-base font-extrabold text-[#0b1a33]">
-                ₦{totalPendingAmount.toLocaleString()}
+                ₦{koboToNaira(totalPendingAmount).toLocaleString()}
               </span>
               <Link
                 href="/dashboard/payments"
@@ -418,7 +418,7 @@ export function MainDashboardView() {
 
                 <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/50">
                   <span className="text-sm font-extrabold text-[#0b1a33]">
-                    ₦{due.amount.toLocaleString()}
+                    ₦{koboToNaira(due.amount).toLocaleString()}
                   </span>
                   <button
                     type="button"
@@ -529,7 +529,7 @@ export function MainDashboardView() {
               <div className="flex justify-between">
                 <span className="text-slate-500">Amount Paid:</span>
                 <span className="font-extrabold text-[#0b1a33]">
-                  ₦{selectedReceipt.amount.toLocaleString()}
+                  ₦{koboToNaira(selectedReceipt.amount).toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between">

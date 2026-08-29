@@ -13,3 +13,8 @@ export function cn(...inputs: ClassValue[]) {
 export function nairaToKobo(naira: number): number {
   return Math.round(naira * 100);
 }
+
+/** Converts an amount returned by the API in Kobo to Naira (NGN). */
+export function koboToNaira(kobo: number): number {
+  return kobo / 100;
+}

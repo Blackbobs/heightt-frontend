@@ -1,7 +1,6 @@
 // src/lib/api/finance.ts
 
 import { axiosConfig } from "@/utils/axios-config";
-import { nairaToKobo } from "@/lib/utils";
 
 export interface DueItem {
   id: string;
@@ -89,6 +88,7 @@ export interface PaginatedResponse<T> {
 }
 
 export interface PaymentRequest {
+  /** Payment amount in Kobo. */
   amount: number;
   organizationId: string;
   paymentMethod: "CARD" | "BANK_TRANSFER" | "USSD" | "QR_CODE" | "WALLET";
@@ -329,13 +329,9 @@ export const financeApi = {
     data: PaymentRequest,
     idempotencyKey: string,
   ): Promise<PaymentResponse> => {
-    // Amounts are handled in Naira throughout the UI, but the backend
-    // expects Kobo — convert just before sending the request.
-    const payload: PaymentRequest = {
-      ...data,
-      amount: nairaToKobo(data.amount),
-    };
-    const response = await axiosConfig.post("/finance/payments", payload, {
+    // Due assignment amounts already come from the API in Kobo, which is
+    // also the unit expected by the payment endpoint.
+    const response = await axiosConfig.post("/finance/payments", data, {
       headers: { "Idempotency-Key": idempotencyKey },
     });
     return response.data;
