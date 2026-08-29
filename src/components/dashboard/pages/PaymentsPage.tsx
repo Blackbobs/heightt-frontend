@@ -17,7 +17,7 @@ import {
   ShieldCheck,
   ArrowRight,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, koboToNaira } from "@/lib/utils";
 import {
   useMyDues,
   useMakePayment,
@@ -164,7 +164,7 @@ export function PaymentsPage() {
 
     try {
       const dueIdParam = due.due?.id || due.dueId || due.id;
-      const amountParam = due.amount;
+      const amountParam = koboToNaira(due.amount);
       const encodedDueName = encodeURIComponent(due.due?.name || "Due Payment");
       const encodedOrg = encodeURIComponent(
         due.due?.organization?.name || "Organization",
@@ -312,7 +312,7 @@ export function PaymentsPage() {
               You have {stats.unpaidCount} unpaid due{stats.unpaidCount !== 1 ? "s" : ""}
             </p>
             <p className="text-[11px] text-amber-700 mt-0.5 font-medium">
-              ₦{stats.unpaidTotal.toLocaleString()} total outstanding for your registered organisations.
+              {formatNaira(koboToNaira(stats.unpaidTotal))} total outstanding for your registered organisations.
             </p>
           </div>
         </div>
@@ -433,7 +433,7 @@ export function PaymentsPage() {
 
               <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/60">
                 <span className="text-sm font-extrabold text-foreground font-display">
-                  ₦{due.amount.toLocaleString()}
+                  {formatNaira(koboToNaira(due.amount))}
                 </span>
 
                 {due.isPaid ? (
@@ -524,7 +524,7 @@ export function PaymentsPage() {
               <div className="flex justify-between pt-1 border-t border-border/80">
                 <span className="text-muted-foreground">Total Amount</span>
                 <span className="font-extrabold text-foreground text-sm font-display">
-                  ₦{selectedDue.amount.toLocaleString()}
+                  {formatNaira(koboToNaira(selectedDue.amount))}
                 </span>
               </div>
             </div>
