@@ -5,8 +5,13 @@ import Link from 'next/link';
 import { ArrowRight, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
+import { useAuthStore } from '@/store/auth-store';
 
 export function FinalCTASection() {
+  const { isAuthenticated, user } = useAuthStore();
+  const needsOnboarding = user ? !user.profile?.onboardingCompleted : false;
+  const dashboardHref = needsOnboarding ? '/onboarding' : '/dashboard';
+
   return (
     <section className="w-full relative overflow-hidden">
       <ScrollReveal direction="up">
@@ -39,25 +44,41 @@ export function FinalCTASection() {
 
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3 mt-1">
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    className="font-bold rounded-2xl px-8 py-3.5 shadow-[0_10px_30px_rgba(26,92,255,0.3)] hover:shadow-[0_14px_36px_rgba(26,92,255,0.4)] hover:scale-105 transition-all duration-300 cursor-pointer"
-                    asChild
-                  >
-                    <Link href="/signup">
-                      Get Started with Heightt
-                      <ArrowRight className="ml-2 w-4 h-4" />
-                    </Link>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="font-bold rounded-2xl px-8 py-3.5 cursor-pointer"
-                    asChild
-                  >
-                    <Link href="/signin">Sign In</Link>
-                  </Button>
+                  {isAuthenticated && user ? (
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      className="font-bold rounded-2xl px-8 py-3.5 shadow-[0_10px_30px_rgba(26,92,255,0.3)] hover:shadow-[0_14px_36px_rgba(26,92,255,0.4)] hover:scale-105 transition-all duration-300 cursor-pointer"
+                      asChild
+                    >
+                      <Link href={dashboardHref}>
+                        {needsOnboarding ? 'Complete Onboarding' : 'Go to Dashboard'}
+                        <ArrowRight className="ml-2 w-4 h-4" />
+                      </Link>
+                    </Button>
+                  ) : (
+                    <>
+                      <Button
+                        variant="primary"
+                        size="lg"
+                        className="font-bold rounded-2xl px-8 py-3.5 shadow-[0_10px_30px_rgba(26,92,255,0.3)] hover:shadow-[0_14px_36px_rgba(26,92,255,0.4)] hover:scale-105 transition-all duration-300 cursor-pointer"
+                        asChild
+                      >
+                        <Link href="/signup">
+                          Get Started with Heightt
+                          <ArrowRight className="ml-2 w-4 h-4" />
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="font-bold rounded-2xl px-8 py-3.5 cursor-pointer"
+                        asChild
+                      >
+                        <Link href="/signin">Sign In</Link>
+                      </Button>
+                    </>
+                  )}
                 </div>
 
                 {/* Reassurance pills */}
