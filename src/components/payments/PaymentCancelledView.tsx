@@ -130,6 +130,13 @@ export function PaymentCancelledView({
           );
           return;
         }
+
+        if (payment.status === "PROCESSING") {
+          window.location.replace(
+            `/payment/callback?payment=${encodeURIComponent(paymentId)}`,
+          );
+          return;
+        }
       } catch (error) {
         console.warn("Could not verify cancelled payment status:", error);
       } finally {

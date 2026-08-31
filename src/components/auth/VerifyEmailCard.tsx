@@ -19,7 +19,7 @@ const RESEND_COOLDOWN = 30;
 export function VerifyEmailCard() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const email = searchParams.get("email") ?? "your school email";
+  const email = searchParams.get("email") ?? "your email";
   const { verifyEmail, resendVerification, isLoading } = useAuthStore();
 
   const [digits, setDigits] = useState<string[]>(Array(OTP_LENGTH).fill(""));

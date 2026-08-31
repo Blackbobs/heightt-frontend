@@ -23,6 +23,7 @@ import { HEIGHTT_LOGO_URL } from "@/lib/assets";
 import { useReceipts, useDownloadReceipt } from "@/hooks/queries/useReceipts";
 import { Receipt as ReceiptType } from "@/lib/api/finance";
 import { generateReceiptPdf } from "@/lib/pdf/generateReceiptPdf";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 interface ReceiptItem {
   id: string;
@@ -281,6 +282,7 @@ export function ReceiptsPage() {
 
   const [tab, setTab] = useState("All");
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [selectedReceipt, setSelectedReceipt] = useState<ReceiptItem | null>(null);
 
@@ -326,13 +328,13 @@ export function ReceiptsPage() {
     return receiptItems.filter((r) => {
       const tabMatch = tab === "All" || r.type === tabMap[tab];
       const searchMatch =
-        !search ||
-        r.title.toLowerCase().includes(search.toLowerCase()) ||
-        r.ref.toLowerCase().includes(search.toLowerCase()) ||
-        r.org.toLowerCase().includes(search.toLowerCase());
+        !debouncedSearch ||
+        r.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        r.ref.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        r.org.toLowerCase().includes(debouncedSearch.toLowerCase());
       return tabMatch && searchMatch;
     });
-  }, [receiptItems, tab, search]);
+  }, [receiptItems, tab, debouncedSearch]);
 
   const handleDownload = async (receipt: ReceiptItem) => {
     setDownloadingId(receipt.id);

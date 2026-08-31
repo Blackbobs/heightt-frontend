@@ -4,7 +4,6 @@
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   CreditCard,
   AlertCircle,
@@ -18,6 +17,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { cn, koboToNaira } from "@/lib/utils";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import {
   useMyDues,
   useMakePayment,
@@ -26,16 +26,10 @@ import {
 import {
   DueAssignment,
   PaymentHistoryRecord,
-  PaymentResponse,
+  normalisePaymentConflict,
 } from "@/lib/api/finance";
-import { queryKeys } from "@/lib/api/keys";
 
 type Tab = "all" | "unpaid" | "paid";
-
-// Helper function to safely check if a value is an object
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
 
 function formatNaira(amount: number) {
   return new Intl.NumberFormat("en-NG", {
@@ -45,39 +39,7 @@ function formatNaira(amount: number) {
   }).format(amount);
 }
 
-function getPendingPaymentId(response: PaymentResponse): string | null {
-  if (isObject(response.data)) {
-    const id = response.data.pendingPaymentId ?? response.data.paymentId;
-    if (typeof id === "string") return id;
-  }
-
-  return typeof response.pendingPaymentId === "string"
-    ? response.pendingPaymentId
-    : null;
-}
-
-function getCheckoutUrl(response: PaymentResponse): string | null {
-  if (isObject(response.data)) {
-    if (typeof response.data.checkoutUrl === "string") {
-      return response.data.checkoutUrl;
-    }
-    if (typeof response.data.url === "string") {
-      return response.data.url;
-    }
-    if (typeof response.data.paymentUrl === "string") {
-      return response.data.paymentUrl;
-    }
-  }
-
-  if (typeof response.checkoutUrl === "string") return response.checkoutUrl;
-  if (typeof response.url === "string") return response.url;
-  if (typeof response.paymentUrl === "string") return response.paymentUrl;
-
-  return null;
-}
-
 export function PaymentsPage() {
-  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const highlightDueId = searchParams.get("dueId");
   const paymentStatus = searchParams.get("status");
@@ -89,11 +51,11 @@ export function PaymentsPage() {
 
   const [tab, setTab] = useState<Tab>("all");
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [payingId, setPayingId] = useState<string | null>(null);
   const [selectedDue, setSelectedDue] = useState<DueAssignment | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [statusBanner, setStatusBanner] = useState<string | null>(null);
-  const [pendingDueIds, setPendingDueIds] = useState<Set<string>>(new Set());
   const paymentInitiationLock = useRef(false);
 
   useEffect(() => {
@@ -122,14 +84,14 @@ export function PaymentsPage() {
         tab === "all" ||
         (tab === "unpaid" && !d.isPaid) ||
         (tab === "paid" && d.isPaid);
-      const q = search.toLowerCase();
+      const q = debouncedSearch.toLowerCase();
       const searchMatch =
         !q ||
         d.due?.name?.toLowerCase().includes(q) ||
         d.due?.organization?.name?.toLowerCase().includes(q);
       return tabMatch && searchMatch;
     });
-  }, [dues, tab, search]);
+  }, [dues, tab, debouncedSearch]);
 
   const stats = useMemo(() => {
     if (!dues) return { unpaidCount: 0, unpaidTotal: 0, paidTotal: 0 };
@@ -146,8 +108,7 @@ export function PaymentsPage() {
     if (
       due.isPaid ||
       paymentInitiationLock.current ||
-      payingId ||
-      pendingDueIds.has(due.id)
+      payingId
     ) {
       return;
     }
@@ -158,18 +119,11 @@ export function PaymentsPage() {
     }
 
     paymentInitiationLock.current = true;
-    setPayingId(due.id);
     setPaymentError(null);
     setPayingId(due.id);
+    const dueIdParam = due.due?.id || due.dueId || due.id;
 
     try {
-      const dueIdParam = due.due?.id || due.dueId || due.id;
-      const amountParam = koboToNaira(due.amount);
-      const encodedDueName = encodeURIComponent(due.due?.name || "Due Payment");
-      const encodedOrg = encodeURIComponent(
-        due.due?.organization?.name || "Organization",
-      );
-
       const origin =
         typeof window !== "undefined"
           ? window.location.origin
@@ -182,20 +136,22 @@ export function PaymentsPage() {
         dueId: dueIdParam,
         dueAssignmentId: due.id,
         description: `Payment for ${due.due?.name || "Student Due"}`,
-        successUrl: `${origin}/dashboard/payments/success?dueId=${dueIdParam}&dueName=${encodedDueName}&amount=${amountParam}&org=${encodedOrg}`,
-        cancelUrl: `${origin}/dashboard/payments/cancelled?dueId=${dueIdParam}&dueName=${encodedDueName}&amount=${amountParam}&org=${encodedOrg}`,
+        successUrl: `${origin}/payment/callback`,
+        cancelUrl: `${origin}/payment/cancelled`,
       };
 
       const response = await makePayment.mutateAsync(payload);
-      const checkoutUrl = getCheckoutUrl(response);
+      const { checkoutUrl, pendingPaymentId } = response.data;
 
-      if (checkoutUrl) {
-        window.location.href = checkoutUrl;
-      } else {
-        throw new Error(
-          "Payment initialized, but no checkout URL was returned. Please try again.",
-        );
-      }
+      sessionStorage.setItem(
+        "heightt.pendingPayment",
+        JSON.stringify({ pendingPaymentId, dueId: dueIdParam, dueAssignmentId: due.id, startedAt: Date.now() }),
+      );
+      sessionStorage.setItem(
+        `heightt:due-payment:${due.id}`,
+        pendingPaymentId,
+      );
+      window.location.assign(checkoutUrl);
     } catch (err: unknown) {
       const response = (err as {
         response?: { status?: number; data?: Record<string, unknown> };
@@ -206,39 +162,26 @@ export function PaymentsPage() {
         "Failed to initiate payment. Please try again.";
 
       if (response?.status === 400 && message === "This due has already been paid") {
-        queryClient.setQueryData<DueAssignment[]>(
-          queryKeys.finance.myDues,
-          (current) =>
-            current?.map((item) =>
-              item.id === due.id ? { ...item, isPaid: true } : item,
-            ) ?? current,
-        );
         setSelectedDue(null);
         setStatusBanner("This due has already been paid. Your records have been refreshed.");
         await Promise.all([refetch(), refetchPaymentHistory()]);
-      } else if (
-        response?.status === 409 &&
-        message === "A payment for this due is already in progress"
-      ) {
-        setPendingDueIds((current) => new Set(current).add(due.id));
-        const pendingResponse = responseData as PaymentResponse;
-        const pendingPaymentId = getPendingPaymentId(pendingResponse);
-        const checkoutUrl = getCheckoutUrl(pendingResponse);
-
-        if (pendingPaymentId) {
+      } else {
+        const conflict = normalisePaymentConflict(err);
+        if (conflict?.pendingPaymentId) {
           sessionStorage.setItem(
             "heightt.pendingPayment",
-            JSON.stringify({ pendingPaymentId, startedAt: Date.now() }),
+            JSON.stringify({ pendingPaymentId: conflict.pendingPaymentId, dueId: dueIdParam, dueAssignmentId: due.id, startedAt: Date.now() }),
           );
+          window.location.assign(`/payment/callback?payment=${encodeURIComponent(conflict.pendingPaymentId)}`);
+          return;
         }
-
-        setSelectedDue(null);
-        setStatusBanner("A payment for this due is already in progress.");
-        await Promise.all([refetch(), refetchPaymentHistory()]);
-
-        if (checkoutUrl) window.location.href = checkoutUrl;
-      } else {
-        setPaymentError(message);
+        if (conflict) {
+          setSelectedDue(null);
+          setStatusBanner("The previous payment attempt has been refreshed. You can try again.");
+          await refetch();
+        } else {
+          setPaymentError(message);
+        }
       }
     } finally {
       paymentInitiationLock.current = false;
@@ -394,7 +337,6 @@ export function PaymentsPage() {
             due.due?.dueDate &&
             new Date(due.due.dueDate) < new Date();
           const isPaying = payingId === due.id;
-          const hasPendingPayment = pendingDueIds.has(due.id);
           const isAutoAssigned = due.isAutoAssigned;
 
           return (
@@ -463,10 +405,10 @@ export function PaymentsPage() {
                       onClick={() => {
                         setSelectedDue(due);
                       }}
-                      disabled={due.isPaid || isPaying || hasPendingPayment || makePayment.isPending}
+                      disabled={due.isPaid || isPaying}
                       className={cn(
                         "py-1.5 px-4 rounded-lg text-xs font-semibold border-none cursor-pointer transition-colors flex items-center gap-1.5",
-                        isPaying || hasPendingPayment || makePayment.isPending
+                        isPaying
                           ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                           : "bg-[#1a5cff] hover:bg-[#0f4ad0] text-white",
                       )}
@@ -476,8 +418,6 @@ export function PaymentsPage() {
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
                           Processing...
                         </>
-                      ) : hasPendingPayment ? (
-                        "In progress"
                       ) : (
                         <>
                           Pay Due <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
@@ -548,9 +488,7 @@ export function PaymentsPage() {
                 }}
                 disabled={
                   selectedDue.isPaid ||
-                  payingId !== null ||
-                  pendingDueIds.has(selectedDue.id) ||
-                  makePayment.isPending
+                  payingId !== null
                 }
                 className="flex-1 py-2.5 rounded-xl bg-[#1a5cff] hover:bg-[#0f4ad0] text-white font-semibold text-sm transition-colors cursor-pointer border-none disabled:opacity-60 flex items-center justify-center gap-2"
               >

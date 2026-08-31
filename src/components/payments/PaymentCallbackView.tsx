@@ -16,6 +16,7 @@ import { invalidateDashboardCache, invalidateFinanceCache } from "@/lib/api/inva
 type CallbackState =
   | { status: "confirming" }
   | { status: "delayed"; pendingPaymentId: string }
+  | { status: "retry"; payment: PaymentStatusResult; message: string }
   | { status: "failed"; message: string };
 
 const PENDING_PAYMENT_STORAGE_KEY = "heightt.pendingPayment";
@@ -67,8 +68,9 @@ function buildSuccessUrl(
 async function waitForPayment(
   pendingPaymentId: string,
   signal: AbortSignal,
+  onProcessing: () => void,
 ): Promise<PaymentStatusResult> {
-  const intervalMs = 2_000;
+  const intervalMs = 5_000;
 
   while (!signal.aborted) {
     if (signal.aborted) {
@@ -81,9 +83,11 @@ async function waitForPayment(
       return payment;
     }
 
-    if (FINAL_STATUSES.includes(payment.status as (typeof FINAL_STATUSES)[number])) {
-      throw new Error(payment.status);
+    if (payment.status === "PENDING" || FINAL_STATUSES.includes(payment.status as (typeof FINAL_STATUSES)[number])) {
+      return payment;
     }
+
+    onProcessing();
 
     await new Promise<void>((resolve, reject) => {
       const timer = window.setTimeout(resolve, intervalMs);
@@ -140,7 +144,22 @@ export function PaymentCallbackView() {
         const payment = await waitForPayment(
           pendingPaymentId,
           controller.signal,
+          () => setState({ status: "delayed", pendingPaymentId }),
         );
+        if (payment.status !== "COMPLETED") {
+          const messages: Record<string, string> = {
+            PENDING: "Checkout creation was interrupted. Return to your dues to start the payment again.",
+            FAILED: "Payment failed. No successful payment was recorded.",
+            CANCELLED: "The checkout was cancelled. You can safely start a new payment attempt.",
+            EXPIRED: "The checkout expired. You can safely start a new payment attempt.",
+          };
+          setState({
+            status: "retry",
+            payment,
+            message: payment.failureReason || messages[payment.status] || "This payment needs your attention.",
+          });
+          return;
+        }
         await Promise.all([
           invalidateFinanceCache(queryClient),
           invalidateDashboardCache(queryClient),
@@ -182,9 +201,23 @@ export function PaymentCallbackView() {
     return (
       <PaymentStatusMessage
         icon={<AlertCircle className="h-10 w-10 text-amber-500" />}
-        title="Payment confirmation is taking longer than expected"
-        description="Do not make another payment. Please check your payment history shortly."
-      />
+        title="Payment awaiting confirmation"
+        description="The provider is still confirming this payment. Do not start another payment while we are checking."
+      >
+        <button type="button" onClick={() => window.location.reload()} className="rounded-2xl bg-[#1a5cff] px-5 py-3 text-sm font-semibold text-white">Check again</button>
+      </PaymentStatusMessage>
+    );
+  }
+
+  if (state.status === "retry") {
+    return (
+      <PaymentStatusMessage
+        icon={<AlertCircle className="h-10 w-10 text-amber-500" />}
+        title={state.payment.status === "PENDING" ? "Checkout interrupted" : `Payment ${state.payment.status.toLowerCase()}`}
+        description={state.message}
+      >
+        <Link href="/dashboard/payments" className="rounded-2xl bg-[#1a5cff] px-5 py-3 text-sm font-semibold text-white no-underline">Return to dues</Link>
+      </PaymentStatusMessage>
     );
   }
 
@@ -211,10 +244,12 @@ function PaymentStatusMessage({
   icon,
   title,
   description,
+  children,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
+  children?: React.ReactNode;
 }) {
   return (
     <div className="w-full max-w-md rounded-3xl bg-white border border-slate-200 p-6 text-center shadow-xl">
@@ -224,6 +259,8 @@ function PaymentStatusMessage({
       <h1 className="text-xl font-bold text-[#0b1a33]">{title}</h1>
       <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>
       <div className="mt-6 flex justify-center gap-3">
+        {children || (
+          <>
         <Link
           href="/dashboard/payments"
           className="rounded-2xl bg-[#1a5cff] px-5 py-3 text-sm font-semibold text-white no-underline"
@@ -236,6 +273,8 @@ function PaymentStatusMessage({
         >
           Receipts
         </Link>
+          </>
+        )}
       </div>
     </div>
   );

@@ -12,6 +12,8 @@ import {
   Clock,
   Plus,
   AlertCircle,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -20,9 +22,13 @@ import {
 } from "@/hooks/queries/useOrganizations";
 import { useUserOrganizations } from "@/hooks/queries/useUser";
 import { useCurrentUser } from "@/hooks/queries/useUser";
-import { useAcademicSessions } from "@/hooks/queries/useAcademicSessions";
+import {
+  useAcademicSessions,
+  type AcademicSession,
+} from "@/hooks/queries/useAcademicSessions";
 import { useAuthStore } from "@/store/auth-store";
 import { Organization } from "@/lib/api/organizations";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 const TYPE_LABELS: Record<string, string> = {
   ASSOCIATION: "Association",
@@ -47,17 +53,17 @@ export function OrganizationsPage() {
   const currentUser = user || authUser;
 
   const institutionId = currentUser?.studentProfile?.institutionId || "";
-  const departmentId = currentUser?.studentProfile?.departmentId || "";
 
   console.log("OrganizationsPage - currentUser:", currentUser);
   console.log("OrganizationsPage - institutionId:", institutionId);
-  console.log("OrganizationsPage - departmentId:", departmentId);
 
   useEffect(() => {
     refetchUser();
   }, []);
 
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 400);
+  const [page, setPage] = useState(1);
   const [tab, setTab] = useState<"browse" | "joined">("browse");
   const [joiningId, setJoiningId] = useState<string | null>(null);
   const [joinMessage, setJoinMessage] = useState<{
@@ -67,19 +73,25 @@ export function OrganizationsPage() {
 
   // Fetch academic sessions to get current session
   const { data: sessionsData } = useAcademicSessions(institutionId);
-  const currentSession =
-    sessionsData?.find((s: any) => s.isCurrent) || sessionsData?.[0];
+  const currentSession = sessionsData?.find(
+    (session: AcademicSession) =>
+      session.scope === "INSTITUTION" && session.isCurrent,
+  );
 
   const { data: joinedData, isLoading: isLoadingJoined } =
     useUserOrganizations();
   const joinedOrgs = joinedData || [];
 
-  const { data, isLoading, isError, error, refetch } = useBrowseOrganizations({
+  const { data, isLoading, isFetching, isError, error, refetch } = useBrowseOrganizations({
     institutionId,
-    departmentId,
-    search: search || undefined,
-    limit: 50,
+    search: debouncedSearch || undefined,
+    page,
+    limit: 20,
   });
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
 
   const joinMutation = useJoinOrganization();
 
@@ -91,15 +103,18 @@ export function OrganizationsPage() {
   const browseOrgs = data?.organizations || [];
 
   const filteredBrowse = useMemo(() => {
-    if (!search) return browseOrgs;
-    const q = search.toLowerCase();
+    if (!debouncedSearch) return browseOrgs;
+    const q = debouncedSearch.toLowerCase();
     return browseOrgs.filter(
       (org: Organization) =>
         org.name?.toLowerCase().includes(q) ||
         org.slug?.toLowerCase().includes(q) ||
         org.description?.toLowerCase().includes(q),
     );
-  }, [browseOrgs, search]);
+  }, [browseOrgs, debouncedSearch]);
+
+  const totalOrganizations = data?.meta.total ?? browseOrgs.length;
+  const totalPages = Math.max(1, data?.meta.totalPages ?? 1);
 
   const handleJoin = async (org: Organization) => {
     setJoiningId(org.id);
@@ -204,7 +219,7 @@ export function OrganizationsPage() {
             </span>
           </div>
           <p className="text-[1.5rem] font-extrabold text-[#1a1a2e]">
-            {browseOrgs.length}
+            {totalOrganizations}
           </p>
         </div>
         <div className="bg-white border border-[#e8ecf1] rounded-[16px] px-5 py-4">
@@ -243,6 +258,9 @@ export function OrganizationsPage() {
           onChange={(e) => setSearch(e.target.value)}
           className="w-full bg-white border border-[#e8ecf1] rounded-[12px] pl-10 pr-4 py-3 text-[0.82rem] text-[#1a1a2e] placeholder-[#b0bac8] outline-none focus:border-[#1a5cff] transition-colors"
         />
+        {isFetching && !isLoading && (
+          <Loader2 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1a5cff] animate-spin" />
+        )}
       </div>
 
       {/* Tabs */}
@@ -397,6 +415,28 @@ export function OrganizationsPage() {
           })
         )}
       </div>
+
+      {tab === "browse" && totalPages > 1 && (
+        <nav className="flex items-center justify-between gap-3" aria-label="Organization pages">
+          <button
+            type="button"
+            onClick={() => setPage((current) => Math.max(1, current - 1))}
+            disabled={page <= 1 || isFetching}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-[#e8ecf1] bg-white px-3 py-2 text-xs font-semibold text-[#6b7a8f] disabled:opacity-40"
+          >
+            <ChevronLeft className="w-4 h-4" /> Previous
+          </button>
+          <span className="text-xs font-medium text-[#7a8ba3]">Page {page} of {totalPages}</span>
+          <button
+            type="button"
+            onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+            disabled={page >= totalPages || isFetching}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-[#e8ecf1] bg-white px-3 py-2 text-xs font-semibold text-[#6b7a8f] disabled:opacity-40"
+          >
+            Next <ChevronRight className="w-4 h-4" />
+          </button>
+        </nav>
+      )}
     </div>
   );
 }

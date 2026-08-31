@@ -4,6 +4,7 @@ import { AuthGuard } from "@/components/auth/AuthGuard";
 import { AuthInitializer } from "@/components/auth/AuthInitializer";
 import "./globals.css";
 import { QueryProvider } from "@/providers/QueryProvider";
+import { AcademicNotificationListener } from "@/components/notifications/AcademicNotificationListener";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL, SOCIAL_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -65,6 +66,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen flex flex-col">
         <QueryProvider>
+          <AcademicNotificationListener />
           <AppLayout>
             <AuthInitializer>
             <AuthGuard>

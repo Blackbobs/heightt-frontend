@@ -68,9 +68,10 @@ export function ProfilePage() {
     return `${first}${last}`.toUpperCase() || 'U';
   }, [user]);
   const academicLevelValue = student?.currentAcademicLevelId;
-  const academicLevel = academicLevelValue && /^\d{3}$/.test(academicLevelValue)
-    ? `${academicLevelValue} Level`
-    : undefined;
+  const academicLevel = student?.currentAcademicLevel?.name ||
+    (academicLevelValue && /^\d{3}$/.test(academicLevelValue)
+      ? `${academicLevelValue} Level`
+      : undefined);
   const verificationStatus = user?.profile?.verificationStatus || student?.verificationStatus;
   const isVerified = user?.emailVerified || verificationStatus === 'VERIFIED';
 

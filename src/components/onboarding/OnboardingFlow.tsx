@@ -37,6 +37,7 @@ import {
   Globe,
   Sparkles,
   AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -56,6 +57,7 @@ interface AcademicSession {
   endDate: string;
   status: string;
   isCurrent: boolean;
+  scope: "INSTITUTION" | "FACULTY" | "DEPARTMENT" | "LEVEL";
 }
 
 type Gender = "MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY";
@@ -82,6 +84,24 @@ interface CompleteOnboardingPayload {
   sessionId?: string;
 }
 
+function retryTransientRequest(failureCount: number, error: unknown) {
+  const status = (error as { response?: { status?: number } })?.response?.status;
+  return failureCount < 3 && (!status || status >= 500 || status === 408 || status === 429);
+}
+
+const retryDelay = (attempt: number) => Math.min(1_000 * 2 ** attempt, 8_000);
+
+function RequestRetry({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-800">
+      <span>{message}</span>
+      <button type="button" onClick={onRetry} className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-amber-100 px-2.5 py-1.5 font-semibold hover:bg-amber-200">
+        <RefreshCw className="h-3.5 w-3.5" /> Retry
+      </button>
+    </div>
+  );
+}
+
 // Query hooks
 function useInstitutions(search?: string) {
   return useQuery({
@@ -92,6 +112,8 @@ function useInstitutions(search?: string) {
     }),
     queryFn: () =>
       institutionsApi.getInstitutions({ search, status: "ACTIVE", limit: 100 }),
+    retry: retryTransientRequest,
+    retryDelay,
     staleTime: 10 * 60 * 1000,
   });
 }
@@ -101,6 +123,8 @@ function useFaculties(institutionId: string) {
     queryKey: queryKeys.institutions.faculties(institutionId),
     queryFn: () => institutionsApi.getFacultiesByInstitution(institutionId),
     enabled: !!institutionId,
+    retry: retryTransientRequest,
+    retryDelay,
     staleTime: 10 * 60 * 1000,
   });
 }
@@ -110,6 +134,8 @@ function useDepartments(facultyId: string) {
     queryKey: queryKeys.institutions.departments(facultyId),
     queryFn: () => institutionsApi.getDepartmentsByFaculty(facultyId),
     enabled: !!facultyId,
+    retry: retryTransientRequest,
+    retryDelay,
     staleTime: 10 * 60 * 1000,
   });
 }
@@ -119,21 +145,19 @@ function useAcademicSessions(institutionId: string) {
     queryKey: ["academic-sessions", institutionId],
     queryFn: async () => {
       if (!institutionId) return [];
-      try {
-        const response = await axiosConfig.get(
-          `/institutions/${institutionId}/academic-sessions`
-        );
-        const sessions = response.data || [];
-        // Filter to only active or upcoming sessions
-        return sessions.filter(
-          (s: AcademicSession) => s.status === "ACTIVE" || s.status === "UPCOMING"
-        );
-      } catch (error) {
-        console.error("Failed to fetch academic sessions:", error);
-        return [];
-      }
+      const response = await axiosConfig.get(
+        `/institutions/${institutionId}/academic-sessions`
+      );
+      const sessions = response.data || [];
+      return sessions.filter(
+        (session: AcademicSession) =>
+          session.scope === "INSTITUTION" &&
+          (session.status === "ACTIVE" || session.status === "UPCOMING"),
+      );
     },
     enabled: !!institutionId,
+    retry: retryTransientRequest,
+    retryDelay,
     staleTime: 5 * 60 * 1000,
   });
 }
@@ -187,14 +211,14 @@ export function OnboardingFlow() {
   // ============================================
   // QUERIES
   // ============================================
-  const { data: institutionsData, isLoading: isLoadingInstitutions } =
+  const { data: institutionsData, isLoading: isLoadingInstitutions, isError: institutionsError, refetch: retryInstitutions } =
     useInstitutions();
-  const { data: facultiesData, isLoading: isLoadingFaculties } = useFaculties(
+  const { data: facultiesData, isLoading: isLoadingFaculties, isError: facultiesError, refetch: retryFaculties } = useFaculties(
     selectedInstitutionId,
   );
-  const { data: departmentsData, isLoading: isLoadingDepartments } =
+  const { data: departmentsData, isLoading: isLoadingDepartments, isError: departmentsError, refetch: retryDepartments } =
     useDepartments(selectedFacultyId);
-  const { data: sessionsData, isLoading: isLoadingSessions } = useAcademicSessions(
+  const { data: sessionsData, isLoading: isLoadingSessions, isError: sessionsError, refetch: retrySessions } = useAcademicSessions(
     selectedInstitutionId,
   );
 
@@ -689,6 +713,9 @@ export function OnboardingFlow() {
               searchPlaceholder="Search institutions..."
               noOptionsMessage="No institutions found. Please try a different search."
             />
+            {institutionsError && (
+              <RequestRetry message="We couldn’t load institutions. Check your connection and try again." onRetry={() => void retryInstitutions()} />
+            )}
 
             {selectedInstitution && (
               <div className="p-3 rounded-xl bg-[#eef4ff] border border-[#1a5cff]/20 text-sm text-[#1a5cff]">
@@ -747,6 +774,9 @@ export function OnboardingFlow() {
               isLoading={isLoadingFaculties}
               disabled={!selectedInstitutionId}
             />
+            {facultiesError && (
+              <RequestRetry message="We couldn’t load faculties for this institution." onRetry={() => void retryFaculties()} />
+            )}
 
             {selectedFaculty && (
               <div className="p-3 rounded-xl bg-[#eef4ff] border border-[#1a5cff]/20 text-sm text-[#1a5cff]">
@@ -773,6 +803,9 @@ export function OnboardingFlow() {
               isLoading={isLoadingDepartments}
               disabled={!selectedFacultyId}
             />
+            {departmentsError && (
+              <RequestRetry message="We couldn’t load departments for this faculty." onRetry={() => void retryDepartments()} />
+            )}
 
             {selectedDepartment && (
               <div className="p-3 rounded-xl bg-[#eef4ff] border border-[#1a5cff]/20 text-sm text-[#1a5cff]">
@@ -845,9 +878,13 @@ export function OnboardingFlow() {
               {sessionError && (
                 <p className="text-xs text-red-500 pl-1">{sessionError}</p>
               )}
+              {sessionsError && (
+                <RequestRetry message="We couldn’t load academic sessions." onRetry={() => void retrySessions()} />
+              )}
               {sessionsData?.length === 0 &&
                 selectedInstitutionId &&
-                !isLoadingSessions && (
+                !isLoadingSessions &&
+                !sessionsError && (
                   <p className="text-xs text-amber-500 pl-1">
                     No active sessions found for this institution. Please
                     contact your administrator.

@@ -35,6 +35,23 @@ export interface AnnouncementRead {
   readAt: string;
 }
 
+export interface StudentPromotionNotification {
+  event: "STUDENT_PROMOTED" | "STUDENT_GRADUATED";
+  studentId: string;
+  institutionId: string;
+  institutionName: string;
+  previousLevelId: string;
+  previousLevel: string;
+  currentLevelId: string | null;
+  currentLevel: string | null;
+  previousSessionId: string;
+  previousSession: string;
+  currentSessionId: string;
+  currentSession: string;
+  promotionId: string | null;
+  promotedAt: string;
+}
+
 export interface Notification {
   id: string;
   userId: string;
@@ -45,7 +62,7 @@ export interface Notification {
   read: boolean;
   readAt?: string;
   deliveredAt?: string;
-  data?: any;
+  data?: StudentPromotionNotification | Record<string, unknown>;
   metadata?: any;
   createdAt: string;
 }

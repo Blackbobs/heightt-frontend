@@ -57,6 +57,8 @@ export function useNotifications(params?: {
     },
     enabled: isAuthenticated,
     staleTime: 1 * 60 * 1000, // 1 minute
+    refetchInterval: 60 * 1000,
+    refetchIntervalInBackground: false,
   });
 }
 

@@ -10,6 +10,7 @@ export interface AcademicSession {
   startDate: string;
   endDate: string;
   status: "UPCOMING" | "ACTIVE" | "COMPLETED" | "ARCHIVED";
+  scope: "INSTITUTION" | "FACULTY" | "DEPARTMENT" | "LEVEL";
   isCurrent: boolean;
   institutionId: string;
   stats?: {
@@ -46,8 +47,10 @@ export function useAcademicSessions(institutionId: string) {
 export function useCurrentAcademicSession(institutionId: string) {
   const { data: sessions, ...rest } = useAcademicSessions(institutionId);
 
-  const currentSession =
-    sessions?.find((s: AcademicSession) => s.isCurrent) || sessions?.[0];
+  const currentSession = sessions?.find(
+    (session: AcademicSession) =>
+      session.scope === "INSTITUTION" && session.isCurrent,
+  );
 
   return { ...rest, data: currentSession };
 }

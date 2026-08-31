@@ -16,7 +16,7 @@ import { useAuthStore } from "@/store/auth-store";
 const signupSchema = z.object({
   email: z
     .string()
-    .min(1, "School email is required")
+    .min(1, "Email is required")
     .email("Enter a valid email address"),
   username: z
     .string()
@@ -121,19 +121,19 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
 
       <form id="signupForm" onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="flex flex-col gap-4">
-          {/* School Email */}
+          {/* Email */}
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="signupEmail"
               className="text-[0.75rem] font-bold text-[#1f2a44] tracking-wide uppercase opacity-80"
             >
-              School Email
+              Email
             </label>
             <input
               {...register("email")}
               type="email"
               id="signupEmail"
-              placeholder="e.g. name@student.university.edu"
+              placeholder="e.g. name@example.com"
               autoComplete="email"
               className={cn(
                 "bg-white sm:bg-[#f8faff] border-[1.5px] border-[#cbd5e1] rounded-[14px] px-3.5 py-3 text-[0.95rem] font-medium text-[#0b1a33] transition-all duration-150 w-full placeholder:text-[#9aabbf] focus:outline-none focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10 shadow-xs",

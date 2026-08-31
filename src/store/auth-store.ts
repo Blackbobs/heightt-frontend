@@ -33,6 +33,7 @@ export interface StudentProfile {
   facultyId: string;
   departmentId: string;
   currentAcademicLevelId?: string;
+  currentAcademicLevel?: { id: string; name: string } | null;
   matricNumber?: string;
   academicStatus: string;
   onboardingCompleted: boolean;
