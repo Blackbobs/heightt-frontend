@@ -5,19 +5,15 @@ import { axiosConfig } from "@/utils/axios-config";
 export interface UserProfile {
   firstName: string;
   lastName: string;
-  middleName?: string;
-  phone?: string;
-  avatar?: string;
-  gender?: string;
-  dateOfBirth?: string;
-  country?: string;
-  state?: string;
-  city?: string;
-  address?: string;
-  bio?: string;
-  onboardingStep: string;
+  middleName?: string | null;
+  avatar?: string | null;
+  gender?: "MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY" | null;
+  country?: string | null;
+  onboardingStep: "PERSONAL_INFO" | "INSTITUTION" | "COMPLETED";
   onboardingCompleted: boolean;
+  onboardingCompletedAt?: string | null;
   verificationStatus: string;
+  verifiedAt?: string | null;
 }
 
 export interface StudentProfile {
@@ -69,13 +65,9 @@ export interface UpdateProfilePayload {
   email?: string;
   firstName?: string;
   lastName?: string;
-  phone?: string;
   avatar?: string;
-  gender?: string;
-  dateOfBirth?: string;
+  gender?: "MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY";
   country?: string;
-  state?: string;
-  bio?: string;
 }
 
 export const usersApi = {

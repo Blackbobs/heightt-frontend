@@ -10,6 +10,8 @@ const PUBLIC_ROUTES = [
   "/",
   "/signin",
   "/signup",
+  "/forgot-password",
+  "/reset-password",
   "/about",
   "/pricing",
   "/contact",

@@ -10,7 +10,6 @@ import {
   MoreHorizontal,
   Receipt,
   Bell,
-  Settings,
   X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -25,7 +24,6 @@ const PRIMARY_NAV = [
 const MORE_NAV = [
   { label: 'Notifications', href: '/notifications', icon: Bell, desc: 'Activity & alerts' },
   { label: 'Receipts', href: '/dashboard/receipts', icon: Receipt, desc: 'Download payment receipts' },
-  { label: 'Settings', href: '/dashboard/settings', icon: Settings, desc: 'Account & profile' },
 ];
 
 function isActive(pathname: string, href: string, exact?: boolean) {

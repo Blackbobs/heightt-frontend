@@ -1,32 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
-import {
-  User, GraduationCap, Mail, Phone, MapPin, Edit3, Camera,
-  BookOpen, Award, CreditCard, CheckCircle2,
-} from 'lucide-react';
+import React, { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { AlertCircle, CheckCircle2, GraduationCap, Loader2, Mail, RefreshCw, School, User as UserIcon } from 'lucide-react';
+import { institutionsApi, type Department, type Faculty, type Institution } from '@/lib/api/institutions';
+import { queryKeys } from '@/lib/api/keys';
+import { useCurrentUser } from '@/hooks/queries/useUser';
 
-const BADGES = [
-  { label: 'Early Adopter',    color: 'bg-amber-100 text-amber-700' },
-  { label: 'Dues Champion',    color: 'bg-[#eef3ff] text-[#1a5cff]' },
-  { label: 'Event Goer',       color: 'bg-violet-100 text-violet-700' },
-  { label: 'Savings Starter',  color: 'bg-emerald-100 text-emerald-700' },
-];
-
-const ACTIVITY = [
-  { label: 'Payments Made',  value: '12', icon: CreditCard,    color: 'text-[#c05a5a]', bg: 'bg-[#fde8e8]' },
-  { label: 'Events Attended',value: '5',  icon: Award,         color: 'text-violet-600', bg: 'bg-violet-50' },
-  { label: 'Goals Completed', value: '2', icon: CheckCircle2,  color: 'text-[#0f7b4a]', bg: 'bg-[#e6f7f0]' },
-  { label: 'Courses Ongoing', value: '6', icon: BookOpen,      color: 'text-amber-600',  bg: 'bg-amber-50'  },
-];
-
-interface InfoRowProps {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-}
-
-function InfoRow({ icon: Icon, label, value }: InfoRowProps) {
+function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value?: string | null }) {
   return (
     <div className="flex items-center gap-3 px-4 py-3.5 hover:bg-[#fafbff] transition-colors">
       <div className="w-8 h-8 rounded-[8px] bg-[#f0f2f5] flex items-center justify-center flex-shrink-0">
@@ -34,119 +15,114 @@ function InfoRow({ icon: Icon, label, value }: InfoRowProps) {
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-[0.62rem] text-[#7a8ba3] font-medium uppercase tracking-wide">{label}</p>
-        <p className="text-[0.82rem] font-semibold text-[#1a1a2e] mt-0.5 truncate">{value}</p>
+        <p className="text-[0.82rem] font-semibold text-[#1a1a2e] mt-0.5 truncate">{value || 'Not provided'}</p>
       </div>
     </div>
   );
 }
 
+function normaliseList<T>(value: unknown): T[] {
+  if (Array.isArray(value)) return value as T[];
+  if (value && typeof value === 'object' && Array.isArray((value as { data?: unknown }).data)) {
+    return (value as { data: T[] }).data;
+  }
+  return [];
+}
+
 export function ProfilePage() {
-  const [editMode, setEditMode] = useState(false);
-  const [phone, setPhone] = useState('08012345678');
-  const [address, setAddress] = useState('Block B, Hall 3, University Campus');
+  const { data: user, isLoading, isError, refetch, isFetching } = useCurrentUser();
+
+  const student = user?.studentProfile;
+  const institutionId = student?.institutionId || '';
+  const facultyId = student?.facultyId || '';
+
+  const { data: institution } = useQuery<Institution>({
+    queryKey: queryKeys.institutions.one(institutionId),
+    queryFn: () => institutionsApi.getInstitution(institutionId),
+    enabled: Boolean(institutionId),
+    staleTime: 10 * 60 * 1000,
+  });
+  const { data: facultiesResponse } = useQuery({
+    queryKey: queryKeys.institutions.faculties(institutionId),
+    queryFn: () => institutionsApi.getFacultiesByInstitution(institutionId),
+    enabled: Boolean(institutionId && facultyId),
+    staleTime: 10 * 60 * 1000,
+  });
+  const { data: departmentsResponse } = useQuery({
+    queryKey: queryKeys.institutions.departments(facultyId),
+    queryFn: () => institutionsApi.getDepartmentsByFaculty(facultyId),
+    enabled: Boolean(facultyId && student?.departmentId),
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const faculty = normaliseList<Faculty>(facultiesResponse).find((item) => item.id === facultyId);
+  const department = normaliseList<Department>(departmentsResponse).find((item) => item.id === student?.departmentId);
+
+  const fullName = useMemo(() => {
+    if (!user) return '';
+    return [user.profile?.firstName, user.profile?.middleName, user.profile?.lastName].filter(Boolean).join(' ') || user.username;
+  }, [user]);
+  const initials = useMemo(() => {
+    const first = user?.profile?.firstName?.[0] || user?.username?.[0] || '';
+    const last = user?.profile?.lastName?.[0] || '';
+    return `${first}${last}`.toUpperCase() || 'U';
+  }, [user]);
+  const academicLevelValue = student?.currentAcademicLevelId;
+  const academicLevel = academicLevelValue && /^\d{3}$/.test(academicLevelValue)
+    ? `${academicLevelValue} Level`
+    : undefined;
+  const verificationStatus = user?.profile?.verificationStatus || student?.verificationStatus;
+  const isVerified = user?.emailVerified || verificationStatus === 'VERIFIED';
+
+  if (isLoading) {
+    return <div className="min-h-[360px] flex items-center justify-center" aria-label="Loading profile"><Loader2 className="w-8 h-8 text-[#1a5cff] animate-spin" /></div>;
+  }
+  if (isError || !user) {
+    return (
+      <div className="min-h-[360px] flex flex-col items-center justify-center text-center px-6">
+        <AlertCircle className="w-10 h-10 text-red-500 mb-3" />
+        <h2 className="text-base font-bold text-[#1a1a2e]">We couldn’t load your profile</h2>
+        <p className="text-sm text-[#7a8ba3] mt-1">Check your connection and try again.</p>
+        <button type="button" onClick={() => refetch()} className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#1a5cff] px-4 py-2.5 text-sm font-semibold text-white">
+          <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} /> Try again
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5 pb-6">
-      {/* Profile Hero */}
       <div className="bg-gradient-to-br from-[#1a5cff] to-[#0f4ad0] rounded-[22px] px-6 py-8 text-white relative overflow-hidden text-center">
         <div className="absolute -top-12 -right-12 w-52 h-52 rounded-full bg-white/5 pointer-events-none" />
         <div className="absolute -bottom-10 -left-10 w-36 h-36 rounded-full bg-white/5 pointer-events-none" />
-
-        {/* Avatar */}
-        <div className="relative inline-block mb-4">
-          <div className="w-[72px] h-[72px] rounded-full bg-white/20 flex items-center justify-center text-[1.6rem] font-extrabold mx-auto">
-            AO
-          </div>
-          <button
-            className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-white flex items-center justify-center border-none cursor-pointer shadow-md hover:scale-105 transition-transform"
-            aria-label="Change profile photo"
-          >
-            <Camera className="w-3.5 h-3.5 text-[#1a5cff]" />
-          </button>
-        </div>
-
-        <h1 className="text-[1.25rem] font-extrabold tracking-tight">Adaeze Okonkwo</h1>
-        <p className="text-[0.72rem] text-white/70 mt-1">400 Level · Computer Science</p>
-        <p className="text-[0.68rem] text-white/50 mt-0.5">Matric No: CSC/20/0047</p>
-
-        {/* Membership tag */}
+        <div className="w-[72px] h-[72px] rounded-full bg-white/20 flex items-center justify-center text-[1.6rem] font-extrabold mx-auto mb-4">{initials}</div>
+        <h1 className="text-[1.25rem] font-extrabold tracking-tight">{fullName}</h1>
+        <p className="text-[0.72rem] text-white/70 mt-1">{[academicLevel, department?.name].filter(Boolean).join(' · ') || user.username}</p>
+        {student?.matricNumber && <p className="text-[0.68rem] text-white/50 mt-0.5">Matric No: {student.matricNumber}</p>}
         <div className="inline-flex items-center gap-1.5 mt-4 bg-white/15 px-4 py-1.5 rounded-full">
-          <CheckCircle2 className="w-3 h-3 text-emerald-300" />
-          <span className="text-[0.68rem] font-semibold text-white">Verified Student · Since 2020</span>
+          {isVerified ? <CheckCircle2 className="w-3 h-3 text-emerald-300" /> : <AlertCircle className="w-3 h-3 text-amber-300" />}
+          <span className="text-[0.68rem] font-semibold text-white">{isVerified ? 'Verified account' : 'Verification pending'} · Since {new Date(user.createdAt).getFullYear()}</span>
         </div>
       </div>
 
-      {/* Activity stats */}
-      <div className="grid grid-cols-2 gap-3">
-        {ACTIVITY.map(({ label, value, icon: Icon, color, bg }) => (
-          <div key={label} className="bg-white border border-[#e8ecf1] rounded-[16px] px-4 py-4 flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 ${bg}`}>
-              <Icon className={`w-4 h-4 ${color}`} />
-            </div>
-            <div>
-              <p className="text-[1.1rem] font-extrabold text-[#1a1a2e] leading-none">{value}</p>
-              <p className="text-[0.6rem] text-[#7a8ba3] mt-0.5 font-medium">{label}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Personal Info */}
       <div>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-[0.9rem] font-semibold text-[#1a1a2e]">Personal Information</h3>
-          <button
-            onClick={() => setEditMode(!editMode)}
-            className="flex items-center gap-1.5 text-[0.7rem] font-semibold text-[#1a5cff] bg-[#eef3ff] px-3 py-1.5 rounded-full border-none cursor-pointer hover:bg-[#dce8ff] transition-colors"
-          >
-            <Edit3 className="w-3 h-3" />
-            {editMode ? 'Save' : 'Edit'}
-          </button>
+        <div className="mb-3">
+          <h2 className="text-[0.9rem] font-semibold text-[#1a1a2e]">Personal Information</h2>
         </div>
         <div className="bg-white border border-[#e8ecf1] rounded-[16px] divide-y divide-[#f0f2f5] overflow-hidden">
-          <InfoRow icon={User}          label="Full Name"           value="Adaeze Okonkwo" />
-          <InfoRow icon={Mail}          label="Email Address"        value="adaeze.okonkwo@campus.edu" />
-          <InfoRow icon={GraduationCap} label="Department"           value="Computer Science" />
-          <InfoRow icon={GraduationCap} label="Level / Faculty"      value="400L · Faculty of Science" />
-          {editMode ? (
-            <div className="px-4 py-3.5 space-y-3">
-              <div>
-                <label className="text-[0.62rem] text-[#7a8ba3] font-medium uppercase tracking-wide block mb-1">Phone</label>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full border border-[#1a5cff]/40 rounded-[10px] px-3 py-2 text-[0.82rem] text-[#1a1a2e] outline-none focus:border-[#1a5cff]"
-                />
-              </div>
-              <div>
-                <label className="text-[0.62rem] text-[#7a8ba3] font-medium uppercase tracking-wide block mb-1">Address</label>
-                <input
-                  type="text"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  className="w-full border border-[#1a5cff]/40 rounded-[10px] px-3 py-2 text-[0.82rem] text-[#1a1a2e] outline-none focus:border-[#1a5cff]"
-                />
-              </div>
-            </div>
-          ) : (
-            <>
-              <InfoRow icon={Phone}  label="Phone Number" value={phone} />
-              <InfoRow icon={MapPin} label="Address"      value={address} />
-            </>
-          )}
+          <InfoRow icon={UserIcon} label="Full Name" value={fullName} />
+          <InfoRow icon={Mail} label="Email Address" value={user.email} />
         </div>
       </div>
 
-      {/* Badges */}
       <div>
-        <h3 className="text-[0.9rem] font-semibold text-[#1a1a2e] mb-3">My Badges</h3>
-        <div className="flex flex-wrap gap-2">
-          {BADGES.map((b) => (
-            <span key={b.label} className={`text-[0.72rem] font-semibold px-4 py-2 rounded-full ${b.color}`}>
-              {b.label}
-            </span>
-          ))}
+        <h2 className="text-[0.9rem] font-semibold text-[#1a1a2e] mb-3">Academic Information</h2>
+        <div className="bg-white border border-[#e8ecf1] rounded-[16px] divide-y divide-[#f0f2f5] overflow-hidden">
+          <InfoRow icon={School} label="Institution" value={institution?.name} />
+          <InfoRow icon={GraduationCap} label="Faculty" value={faculty?.name} />
+          <InfoRow icon={GraduationCap} label="Department" value={department?.name} />
+          <InfoRow icon={GraduationCap} label="Academic Level" value={academicLevel} />
+          <InfoRow icon={UserIcon} label="Matric Number" value={student?.matricNumber} />
         </div>
       </div>
     </div>

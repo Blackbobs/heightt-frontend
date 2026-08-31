@@ -12,22 +12,20 @@ import {
   getCsrfToken,
 } from "@/utils/axios-config";
 
+type OnboardingStep = "PERSONAL_INFO" | "INSTITUTION" | "COMPLETED";
+
 export interface UserProfile {
   firstName: string;
   lastName: string;
-  middleName?: string;
-  phone?: string;
-  avatar?: string;
-  gender?: string;
-  dateOfBirth?: string;
-  country?: string;
-  state?: string;
-  city?: string;
-  address?: string;
-  bio?: string;
-  onboardingStep: string;
+  middleName?: string | null;
+  avatar?: string | null;
+  gender?: "MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY" | null;
+  country?: string | null;
+  onboardingStep: OnboardingStep;
   onboardingCompleted: boolean;
+  onboardingCompletedAt?: string | null;
   verificationStatus: string;
+  verifiedAt?: string | null;
 }
 
 export interface StudentProfile {
@@ -77,7 +75,7 @@ interface AuthState {
     onboardingStep: string;
     redirectTo: string;
   }>;
-  updateUserOnboardingStatus: (completed: boolean, step: string) => void;
+  updateUserOnboardingStatus: (completed: boolean, step: OnboardingStep) => void;
   initialize: () => void;
   restoreSession: () => Promise<boolean>;
   getToken: () => string | null;
@@ -447,7 +445,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      updateUserOnboardingStatus: (completed: boolean, step: string) => {
+      updateUserOnboardingStatus: (completed: boolean, step: OnboardingStep) => {
         const { user } = get();
         if (!user) return;
 
@@ -465,6 +463,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "auth-storage",
+      version: 2,
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
