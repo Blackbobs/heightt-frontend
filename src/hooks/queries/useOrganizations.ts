@@ -1,6 +1,6 @@
 // src/hooks/queries/useOrganizations.ts
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { organizationsApi } from "@/lib/api/organizations";
 import { queryKeys } from "@/lib/api/keys";
 import { useAuthStore } from "@/store/auth-store";
@@ -21,7 +21,7 @@ export function useBrowseOrganizations(params?: {
     queryFn: async () => {
       const result = await organizationsApi.getOrganizations({
         status: "ACTIVE",
-        limit: 50,
+        limit: 20,
         ...params,
       });
       return {
@@ -30,6 +30,7 @@ export function useBrowseOrganizations(params?: {
       };
     },
     enabled: isAuthenticated && !!params?.institutionId,
+    placeholderData: keepPreviousData,
     staleTime: 3 * 60 * 1000,
   });
 }

@@ -99,20 +99,55 @@ export interface PaymentRequest {
   cancelUrl: string;
 }
 
-export interface PaymentResponse {
-  checkoutUrl?: string;
-  url?: string;
-  paymentUrl?: string;
-  checkoutId?: string;
+export interface InitiatePaymentResponse {
+  success: true;
+  message: string;
+  data: {
+    checkoutId: string;
+    checkoutUrl: string;
+    pendingPaymentId: string;
+    baseAmount: number;
+    platformFee: number;
+    totalBeforeGatewayFee: number;
+  };
+}
+
+export interface PaymentConflict {
+  statusCode: 409;
+  code: "PAYMENT_ALREADY_IN_PROGRESS" | "PAYMENT_STATUS_UNAVAILABLE";
+  message: string;
   pendingPaymentId?: string;
-  baseAmount?: number;
-  platformFee?: number;
-  totalBeforeGatewayFee?: number;
-  data?: unknown;
-  [key: string]: unknown;
+  checkoutId?: string;
+  statusUrl?: string;
+}
+
+export function normalisePaymentConflict(error: unknown): PaymentConflict | null {
+  const response = (error as { response?: { status?: number; data?: unknown } })?.response;
+  if (response?.status !== 409 || !response.data || typeof response.data !== "object") return null;
+
+  const outer = response.data as Record<string, unknown>;
+  const nested = outer.message && typeof outer.message === "object"
+    ? outer.message as Record<string, unknown>
+    : {};
+  const data = outer.data && typeof outer.data === "object"
+    ? outer.data as Record<string, unknown>
+    : {};
+  const payload = { ...outer, ...data, ...nested };
+  const code = payload.code;
+  if (code !== "PAYMENT_ALREADY_IN_PROGRESS" && code !== "PAYMENT_STATUS_UNAVAILABLE") return null;
+
+  return {
+    statusCode: 409,
+    code,
+    message: typeof payload.message === "string" ? payload.message : "A payment attempt is already in progress.",
+    pendingPaymentId: typeof payload.pendingPaymentId === "string" ? payload.pendingPaymentId : undefined,
+    checkoutId: typeof payload.checkoutId === "string" ? payload.checkoutId : undefined,
+    statusUrl: typeof payload.statusUrl === "string" ? payload.statusUrl : undefined,
+  };
 }
 
 export type PaymentStatus =
+  | "PENDING"
   | "PROCESSING"
   | "COMPLETED"
   | "FAILED"
@@ -128,6 +163,13 @@ export interface PaymentStatusResult {
   paymentId: string | null;
   receiptId: string | null;
   receiptNumber: string | null;
+  retryable: boolean;
+  nextAction:
+    | "SHOW_SUCCESS"
+    | "RETRY_PAYMENT"
+    | "RETRY_CHECKOUT_CREATION"
+    | "WAIT_FOR_CONFIRMATION";
+  failureReason: string | null;
   completedAt: string | null;
   createdAt: string;
 }
@@ -328,7 +370,7 @@ export const financeApi = {
   makePayment: async (
     data: PaymentRequest,
     idempotencyKey: string,
-  ): Promise<PaymentResponse> => {
+  ): Promise<InitiatePaymentResponse> => {
     // Due assignment amounts already come from the API in Kobo, which is
     // also the unit expected by the payment endpoint.
     const response = await axiosConfig.post("/finance/payments", data, {
@@ -342,6 +384,7 @@ export const financeApi = {
   ): Promise<PaymentStatusResult> => {
     const response = await axiosConfig.get(
       `/finance/payments/pending/${encodeURIComponent(pendingPaymentId)}/status`,
+      { headers: { "Cache-Control": "no-store" } },
     );
     return response.data?.data || response.data;
   },

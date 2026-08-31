@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { financeApi } from "@/lib/api/finance";
 import { queryKeys } from "@/lib/api/keys";
 import { useAuthStore } from "@/store/auth-store";
@@ -23,6 +23,7 @@ export function useTransactions(params?: {
       };
     },
     enabled: isAuthenticated,
+    placeholderData: keepPreviousData,
     staleTime: 2 * 60 * 1000,
   });
 }

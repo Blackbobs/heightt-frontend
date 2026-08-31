@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { CalendarDays, MapPin, Tag, Ticket, Search, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 
 interface Event {
   id: string;
@@ -53,15 +54,16 @@ const CATEGORIES = ['All', 'Tech', 'Social', 'Sports', 'Career', 'Academic'];
 export function EventsPage() {
   const [category, setCategory] = useState('All');
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [registered, setRegistered] = useState<Set<string>>(
     new Set(EVENTS.filter(e => e.registered).map(e => e.id))
   );
 
   const filtered = EVENTS.filter((e) => {
     const catMatch = category === 'All' || e.category === category;
-    const searchMatch = !search ||
-      e.title.toLowerCase().includes(search.toLowerCase()) ||
-      e.organizer.toLowerCase().includes(search.toLowerCase());
+    const searchMatch = !debouncedSearch ||
+      e.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      e.organizer.toLowerCase().includes(debouncedSearch.toLowerCase());
     return catMatch && searchMatch;
   });
 

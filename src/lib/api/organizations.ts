@@ -40,16 +40,8 @@ export const organizationsApi = {
     page?: number;
     academicSessionId?: string; // NEW
   }) => {
-    try {
-      const response = await axiosConfig.get("/organizations", { params });
-      return response.data;
-    } catch (error) {
-      console.error("Failed to fetch organizations:", error);
-      return {
-        data: [],
-        meta: { page: 1, limit: 10, total: 0, totalPages: 0 },
-      };
-    }
+    const response = await axiosConfig.get("/organizations", { params });
+    return response.data;
   },
 
   getOrganization: async (id: string) => {

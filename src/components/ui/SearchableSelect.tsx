@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, ChevronDown, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 
 export interface SelectOption {
   id: string;
@@ -45,23 +46,24 @@ export function SearchableSelect({
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredOptions, setFilteredOptions] = useState<SelectOption[]>(options);
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const selectedOption = options.find((opt) => opt.id === value);
 
   useEffect(() => {
-    if (searchQuery.trim() && onSearch) {
-      onSearch(searchQuery);
-    } else if (searchQuery.trim()) {
+    if (debouncedSearchQuery.trim() && onSearch) {
+      onSearch(debouncedSearchQuery);
+    } else if (debouncedSearchQuery.trim()) {
       const filtered = options.filter((opt) =>
-        opt.label.toLowerCase().includes(searchQuery.toLowerCase()),
+        opt.label.toLowerCase().includes(debouncedSearchQuery.toLowerCase()),
       );
       setFilteredOptions(filtered);
     } else {
       setFilteredOptions(options);
     }
-  }, [searchQuery, options, onSearch]);
+  }, [debouncedSearchQuery, options, onSearch]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

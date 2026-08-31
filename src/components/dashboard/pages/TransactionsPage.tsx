@@ -12,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useTransactions } from "@/hooks/queries/useTransactions";
 import { Transaction } from "@/lib/api/finance";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 const TYPE_TABS = ["All", "CREDIT", "DEBIT", "TRANSFER", "FEE", "REFUND"];
 const STATUS_TABS = ["All", "COMPLETED", "PENDING", "PROCESSING", "FAILED"];
@@ -69,6 +70,7 @@ export function TransactionsPage() {
   const [typeFilter, setTypeFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [page, setPage] = useState(1);
 
   const { data, isLoading, isError, error, refetch, isFetching } =
@@ -83,14 +85,14 @@ export function TransactionsPage() {
   const meta = data?.meta;
 
   const filtered = useMemo(() => {
-    if (!search) return transactions;
-    const q = search.toLowerCase();
+    if (!debouncedSearch) return transactions;
+    const q = debouncedSearch.toLowerCase();
     return transactions.filter(
       (tx: Transaction) =>
         tx.reference?.toLowerCase().includes(q) ||
         tx.description?.toLowerCase().includes(q),
     );
-  }, [transactions, search]);
+  }, [transactions, debouncedSearch]);
 
   const stats = useMemo(() => {
     const completed = transactions.filter((t) => t.status === "COMPLETED");
