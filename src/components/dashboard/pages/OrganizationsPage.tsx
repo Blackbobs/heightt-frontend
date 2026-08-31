@@ -22,7 +22,10 @@ import {
 } from "@/hooks/queries/useOrganizations";
 import { useUserOrganizations } from "@/hooks/queries/useUser";
 import { useCurrentUser } from "@/hooks/queries/useUser";
-import { useAcademicSessions } from "@/hooks/queries/useAcademicSessions";
+import {
+  useAcademicSessions,
+  type AcademicSession,
+} from "@/hooks/queries/useAcademicSessions";
 import { useAuthStore } from "@/store/auth-store";
 import { Organization } from "@/lib/api/organizations";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -70,8 +73,10 @@ export function OrganizationsPage() {
 
   // Fetch academic sessions to get current session
   const { data: sessionsData } = useAcademicSessions(institutionId);
-  const currentSession =
-    sessionsData?.find((s: any) => s.isCurrent) || sessionsData?.[0];
+  const currentSession = sessionsData?.find(
+    (session: AcademicSession) =>
+      session.scope === "INSTITUTION" && session.isCurrent,
+  );
 
   const { data: joinedData, isLoading: isLoadingJoined } =
     useUserOrganizations();

@@ -57,6 +57,7 @@ interface AcademicSession {
   endDate: string;
   status: string;
   isCurrent: boolean;
+  scope: "INSTITUTION" | "FACULTY" | "DEPARTMENT" | "LEVEL";
 }
 
 type Gender = "MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY";
@@ -149,7 +150,9 @@ function useAcademicSessions(institutionId: string) {
       );
       const sessions = response.data || [];
       return sessions.filter(
-        (s: AcademicSession) => s.status === "ACTIVE" || s.status === "UPCOMING"
+        (session: AcademicSession) =>
+          session.scope === "INSTITUTION" &&
+          (session.status === "ACTIVE" || session.status === "UPCOMING"),
       );
     },
     enabled: !!institutionId,
