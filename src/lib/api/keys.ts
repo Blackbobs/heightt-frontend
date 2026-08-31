@@ -8,10 +8,10 @@ export const queryKeys = {
   },
   finance: {
     dues: ["finance", "dues"],
-    myDues: ["finance", "dues", "my"],
+    myDues: ["student-dues"],
     transactions: (params?: any) => ["finance", "transactions", params],
-    paymentHistory: (params?: any) => ["finance", "payments", "history", params],
-    receipts: (params?: any) => ["finance", "receipts", params],
+    paymentHistory: (params?: any) => ["payments", params],
+    receipts: (params?: any) => ["receipts", params],
     receipt: (id: string) => ["finance", "receipts", id],
   },
   institutions: {
@@ -38,6 +38,6 @@ export const queryKeys = {
     status: (userId: string) => ["onboarding", "status", userId],
   },
   dashboard: {
-    all: ["dashboard", "all"],
+    all: ["student-dashboard"],
   },
 };

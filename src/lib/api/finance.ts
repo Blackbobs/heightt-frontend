@@ -22,17 +22,50 @@ export interface DueItem {
   updatedAt: string;
 }
 
-export interface DueAssignment {
+export type DueSessionCategory = "CURRENT" | "PREVIOUS" | "ALL_SESSIONS";
+
+export interface StudentDueItem {
   id: string;
   dueId: string;
   studentId: string;
   amount: number;
   isPaid: boolean;
-  paidAt?: string;
-  createdAt: string;
-  updatedAt: string;
-  due: DueItem;
-  isAutoAssigned: boolean; // Add this property
+  paidAt: string | null;
+  isAutoAssigned: boolean;
+  sessionCategory: DueSessionCategory;
+  isOutstanding: boolean;
+  isArrear: boolean;
+  canPay: boolean;
+  due: Omit<DueItem, "description" | "sessionId" | "organization"> & {
+    description?: string | null;
+    sessionId?: string | null;
+    session?: {
+      id: string;
+      name: string;
+      status: "UPCOMING" | "ACTIVE" | "COMPLETED" | "ARCHIVED";
+      isCurrent: boolean;
+    } | null;
+    organization: {
+      id: string;
+      name: string;
+      slug?: string;
+    };
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/** Kept as an alias for dashboard consumers of the previous API shape. */
+export type DueAssignment = StudentDueItem;
+
+export function groupStudentDues(items: StudentDueItem[]) {
+  return {
+    arrears: items.filter((item) => item.isArrear),
+    current: items.filter((item) => item.sessionCategory === "CURRENT"),
+    allSessions: items.filter(
+      (item) => item.sessionCategory === "ALL_SESSIONS",
+    ),
+  };
 }
 
 export interface Transaction {
@@ -215,7 +248,7 @@ export interface IdempotencyKeyResponse {
 
 export const financeApi = {
   // Get dues for the authenticated user - updated to use the correct endpoint
-  getMyDues: async (): Promise<DueAssignment[]> => {
+  getMyDues: async (): Promise<StudentDueItem[]> => {
     try {
       // Use the correct endpoint that fetches all dues across all organizations
       const response = await axiosConfig.get("/finance/dues/student");

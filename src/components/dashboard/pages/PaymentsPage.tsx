@@ -26,6 +26,7 @@ import {
 import {
   DueAssignment,
   PaymentHistoryRecord,
+  groupStudentDues,
   normalisePaymentConflict,
 } from "@/lib/api/finance";
 import { queryKeys } from "@/lib/api/keys";
@@ -74,7 +75,7 @@ export function PaymentsPage() {
       const due = dues.find(
         (d) => d.id === highlightDueId || d.dueId === highlightDueId,
       );
-      if (due && !due.isPaid) setSelectedDue(due);
+      if (due && !due.isPaid && due.canPay) setSelectedDue(due);
     }
   }, [highlightDueId, dues]);
 
@@ -94,6 +95,8 @@ export function PaymentsPage() {
     });
   }, [dues, tab, debouncedSearch]);
 
+  const groupedDues = useMemo(() => groupStudentDues(filtered), [filtered]);
+
   const stats = useMemo(() => {
     if (!dues) return { unpaidCount: 0, unpaidTotal: 0, paidTotal: 0 };
     const unpaid = dues.filter((d) => !d.isPaid);
@@ -108,6 +111,7 @@ export function PaymentsPage() {
   const handlePay = async (due: DueAssignment) => {
     if (
       due.isPaid ||
+      !due.canPay ||
       paymentInitiationLock.current ||
       payingId
     ) {
@@ -129,12 +133,14 @@ export function PaymentsPage() {
           ? window.location.origin
           : "https://www.heightt.app";
 
+      const paymentInput = due.isAutoAssigned
+        ? { dueId: due.dueId }
+        : { dueAssignmentId: due.id };
       const payload = {
         amount: due.amount,
-        organizationId: due.due?.organizationId || due.due?.organization?.id || "",
+        organizationId: due.due.organization.id,
         paymentMethod: "CARD" as const,
-        dueId: dueIdParam,
-        dueAssignmentId: due.id,
+        ...paymentInput,
         description: `Payment for ${due.due?.name || "Student Due"}`,
         successUrl: `${origin}/payment/callback`,
         cancelUrl: `${origin}/payment/cancelled`,
@@ -302,9 +308,9 @@ export function PaymentsPage() {
         ))}
       </div>
 
-      {/* Dues List Card */}
-      <div className="bg-white border border-border rounded-2xl divide-y divide-border overflow-hidden shadow-sm">
-        {filtered.length === 0 && (
+      {/* Dues grouped by backend-provided session category */}
+      {filtered.length === 0 ? (
+        <div className="bg-white border border-border rounded-2xl shadow-sm">
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center mb-3">
               <CreditCard className="w-5 h-5 text-muted-foreground" />
@@ -318,108 +324,85 @@ export function PaymentsPage() {
                 : "Join an organisation to see assigned dues."}
             </p>
           </div>
-        )}
+        </div>
+      ) : (
+        <div className="space-y-5">
+          {([
+            { key: "arrears", title: "Arrears", items: groupedDues.arrears },
+            { key: "current", title: "Current session", items: groupedDues.current },
+            { key: "all-sessions", title: "All sessions", items: groupedDues.allSessions },
+          ] as const).map((section) => section.items.length > 0 && (
+            <section key={section.key} className="space-y-2">
+              <h2 className="text-sm font-bold text-foreground">{section.title}</h2>
+              <div className="bg-white border border-border rounded-2xl divide-y divide-border overflow-hidden shadow-sm">
+                {section.items.map((due) => {
+                  const isPaying = payingId === due.id;
+                  const sessionLabel = due.sessionCategory === "PREVIOUS"
+                    ? `Outstanding from ${due.due.session?.name || "previous session"}`
+                    : due.sessionCategory === "CURRENT"
+                      ? due.due.session?.name || "Current session"
+                      : "All sessions";
 
-        {filtered.map((due) => {
-          const isOverdue =
-            !due.isPaid &&
-            due.due?.dueDate &&
-            new Date(due.due.dueDate) < new Date();
-          const isPaying = payingId === due.id;
-          const isAutoAssigned = due.isAutoAssigned;
-
-          return (
-            <div
-              key={due.id}
-              className={cn(
-                "flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 hover:bg-muted/40 transition-colors",
-                highlightDueId === due.id && "bg-primary/5 border-l-4 border-l-primary",
-              )}
-            >
-              <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
-                  <CreditCard className="w-5 h-5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-foreground truncate">
-                    {due.due?.name || "Due Payment"}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1.5 flex-wrap">
-                    <Building2 className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span>{due.due?.organization?.name || "Unknown"}</span>
-                    {isAutoAssigned && (
-                      <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.2 rounded-full font-bold">
-                        Available
-                      </span>
-                    )}
-                    <span>·</span>
-                    <span>
-                      {due.due?.dueDate
-                        ? `Due ${new Date(due.due.dueDate).toLocaleDateString()}`
-                        : "No deadline"}
-                    </span>
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/60">
-                <span className="text-sm font-extrabold text-foreground font-display">
-                  {formatNaira(koboToNaira(due.amount))}
-                </span>
-
-                {due.isPaid ? (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    Paid
-                  </span>
-                ) : (
-                  <>
-                    <span
+                  return (
+                    <div
+                      key={due.id}
                       className={cn(
-                        "inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full border",
-                        isOverdue
-                          ? "bg-red-50 text-destructive border-red-200"
-                          : "bg-amber-50 text-amber-700 border-amber-200",
+                        "flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 hover:bg-muted/40 transition-colors",
+                        (highlightDueId === due.id || highlightDueId === due.dueId) && "bg-primary/5 border-l-4 border-l-primary",
                       )}
                     >
-                      {isOverdue ? (
-                        <AlertCircle className="w-3 h-3" />
-                      ) : (
-                        <Clock className="w-3 h-3" />
-                      )}
-                      {isOverdue ? "Overdue" : "Pending"}
-                    </span>
+                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
+                          <CreditCard className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-bold text-foreground truncate">{due.due.name}</p>
+                          <div className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1.5 flex-wrap">
+                            <Building2 className="w-3.5 h-3.5 flex-shrink-0" />
+                            <span>{due.due.organization.name}</span>
+                            <span>·</span>
+                            <span className={cn(due.isArrear && "font-bold text-destructive")}>{sessionLabel}</span>
+                            {due.isArrear && (
+                              <span className="text-[10px] font-bold text-destructive">Outstanding</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
 
-                    <button
-                      onClick={() => {
-                        setSelectedDue(due);
-                      }}
-                      disabled={due.isPaid || isPaying}
-                      className={cn(
-                        "py-1.5 px-4 rounded-lg text-xs font-semibold border-none cursor-pointer transition-colors flex items-center gap-1.5",
-                        isPaying
-                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                          : "bg-[#1a5cff] hover:bg-[#0f4ad0] text-white",
-                      )}
-                    >
-                      {isPaying ? (
-                        <>
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          Pay Due <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
-                        </>
-                      )}
-                    </button>
-                  </>
-                )}
+                      <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/60">
+                        <span className="text-sm font-extrabold text-foreground font-display">
+                          {formatNaira(koboToNaira(due.amount))}
+                        </span>
+                        {due.isPaid ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Paid
+                          </span>
+                        ) : due.canPay ? (
+                          <button
+                            onClick={() => setSelectedDue(due)}
+                            disabled={isPaying}
+                            className={cn(
+                              "py-1.5 px-4 rounded-lg text-xs font-semibold border-none transition-colors flex items-center gap-1.5",
+                              isPaying ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-[#1a5cff] hover:bg-[#0f4ad0] text-white cursor-pointer",
+                            )}
+                          >
+                            {isPaying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ArrowRight className="w-3.5 h-3.5" />}
+                            {isPaying ? "Processing..." : "Pay Due"}
+                          </button>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-muted-foreground">
+                            <Clock className="w-3.5 h-3.5" /> Payment closed
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
-          );
-        })}
-      </div>
+            </section>
+          ))}
+        </div>
+      )}
 
       {/* Pay Confirmation Modal */}
       {selectedDue && (
@@ -477,6 +460,7 @@ export function PaymentsPage() {
                 }}
                 disabled={
                   selectedDue.isPaid ||
+                  !selectedDue.canPay ||
                   payingId !== null
                 }
                 className="flex-1 py-2.5 rounded-xl bg-[#1a5cff] hover:bg-[#0f4ad0] text-white font-semibold text-sm transition-colors cursor-pointer border-none disabled:opacity-60 flex items-center justify-center gap-2"
