@@ -36,7 +36,7 @@ const nextConfig: NextConfig = {
         hostname: "res.cloudinary.com",
         port: "",
         pathname:
-          "/dbcgdaigj/image/upload/v1787929762/heightt-logo_adxihk.png",
+          "/dbcgdaigj/image/upload/v1788163976/Page_2-removebg-preview_oy5czj.png",
         search: "",
       },
     ],

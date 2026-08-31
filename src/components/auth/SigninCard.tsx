@@ -185,12 +185,12 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
               Remember me
             </label>
 
-            <a
-              href="#"
+            <Link
+              href="/forgot-password"
               className="text-[0.88rem] text-[#1a5cff] font-semibold hover:underline transition-all"
             >
               Forgot password?
-            </a>
+            </Link>
           </div>
 
           {/* Submit button */}

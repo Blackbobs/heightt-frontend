@@ -33,9 +33,6 @@ import {
   Info,
   Loader2,
   User,
-  Phone,
-  Calendar,
-  MapPin,
   Users,
   Globe,
   Sparkles,
@@ -59,6 +56,30 @@ interface AcademicSession {
   endDate: string;
   status: string;
   isCurrent: boolean;
+}
+
+type Gender = "MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY";
+
+interface OnboardingPersonalInfo {
+  firstName: string;
+  lastName: string;
+  middleName?: string;
+  gender: Gender;
+  country?: string;
+  avatar?: string;
+}
+
+interface CompleteOnboardingPayload {
+  firstName?: string;
+  lastName?: string;
+  studentId?: string;
+  gender?: Gender;
+  country?: string;
+  institution?: string;
+  faculty?: string;
+  department?: string;
+  academicLevelId?: string;
+  sessionId?: string;
 }
 
 // Query hooks
@@ -131,13 +152,11 @@ export function OnboardingFlow() {
   // ============================================
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [middleName, setMiddleName] = useState("");
+  const [avatar, setAvatar] = useState("");
   const [studentId, setStudentId] = useState("");
   const [gender, setGender] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState("");
-  const [country, setCountry] = useState("Nigeria");
-  const [state, setState] = useState("");
-  const [bio, setBio] = useState("");
+  const [country, setCountry] = useState("");
 
   // ============================================
   // STEP 2 & 3: INSTITUTION
@@ -159,8 +178,6 @@ export function OnboardingFlow() {
   // ============================================
   const [firstNameError, setFirstNameError] = useState("");
   const [lastNameError, setLastNameError] = useState("");
-  const [phoneError, setPhoneError] = useState("");
-  const [dobError, setDobError] = useState("");
   const [genderError, setGenderError] = useState("");
   const [instError, setInstError] = useState("");
   const [deptError, setDeptError] = useState("");
@@ -187,7 +204,16 @@ export function OnboardingFlow() {
   // MUTATIONS
   // ============================================
   const completeOnboardingMutation = useMutation({
-    mutationFn: (data: any) => axiosConfig.post("/onboarding/complete", data),
+    mutationFn: async ({
+      personalInfo,
+      completion,
+    }: {
+      personalInfo: OnboardingPersonalInfo;
+      completion: CompleteOnboardingPayload;
+    }) => {
+      await axiosConfig.patch("/onboarding/personal-info", personalInfo);
+      return axiosConfig.post("/onboarding/complete", completion);
+    },
     onSuccess: () => {
       updateUserOnboardingStatus(true, "COMPLETED");
       queryClient.invalidateQueries({ queryKey: queryKeys.user.current });
@@ -239,27 +265,6 @@ export function OnboardingFlow() {
       valid = false;
     } else {
       setLastNameError("");
-    }
-
-    if (!phone.trim() || phone.trim().length < 10) {
-      setPhoneError("Please enter a valid phone number");
-      valid = false;
-    } else {
-      setPhoneError("");
-    }
-
-    if (!dateOfBirth) {
-      setDobError("Date of birth is required");
-      valid = false;
-    } else {
-      const dob = new Date(dateOfBirth);
-      const age = new Date().getFullYear() - dob.getFullYear();
-      if (age < 16) {
-        setDobError("You must be at least 16 years old");
-        valid = false;
-      } else {
-        setDobError("");
-      }
     }
 
     if (!gender) {
@@ -325,22 +330,28 @@ export function OnboardingFlow() {
       (dept: Department) => dept.id === selectedDepartmentId,
     );
 
-    completeOnboardingMutation.mutate({
+    const personalInfo: OnboardingPersonalInfo = {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
-      phone: phone.trim(),
-      studentId: studentId.trim(),
-      gender,
-      dateOfBirth,
-      country,
-      state: state.trim(),
-      bio: bio.trim(),
+      ...(middleName.trim() ? { middleName: middleName.trim() } : {}),
+      gender: gender as Gender,
+      ...(country.trim() ? { country: country.trim() } : {}),
+      ...(avatar.trim() ? { avatar: avatar.trim() } : {}),
+    };
+    const completion: CompleteOnboardingPayload = {
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      ...(studentId.trim() ? { studentId: studentId.trim() } : {}),
+      gender: gender as Gender,
+      ...(country.trim() ? { country: country.trim() } : {}),
       institution: selectedInstitutionObj?.name || "",
       faculty: selectedFacultyObj?.name || "",
       department: selectedDepartmentObj?.name || "",
       academicLevelId: selectedAcademicLevelId,
       sessionId: selectedSessionId,
-    });
+    };
+
+    completeOnboardingMutation.mutate({ personalInfo, completion });
   };
 
   // ============================================
@@ -530,56 +541,35 @@ export function OnboardingFlow() {
               )}
             </div>
 
-            {/* Phone Number */}
+            {/* Middle Name */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold uppercase text-[#1f2a44] opacity-70 tracking-wider">
-                Phone Number <span className="text-red-500">*</span>
+                Middle Name (Optional)
               </label>
               <div className="relative">
-                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => {
-                    setPhone(e.target.value);
-                    setPhoneError("");
-                  }}
-                  placeholder="e.g. 080 1234 5678"
-                  className={cn(
-                    "w-full pl-10 pr-4 py-3 rounded-xl border-[1.5px] border-slate-200 text-sm font-medium text-[#0b1a33] bg-[#f8faff] outline-none transition-all focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10",
-                    phoneError && "border-red-500 bg-red-50/30",
-                  )}
+                  type="text"
+                  value={middleName}
+                  onChange={(e) => setMiddleName(e.target.value)}
+                  placeholder="e.g. Chidi"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border-[1.5px] border-slate-200 text-sm font-medium text-[#0b1a33] bg-[#f8faff] outline-none transition-all focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10"
                 />
               </div>
-              {phoneError && (
-                <p className="text-xs text-red-500 pl-1">{phoneError}</p>
-              )}
             </div>
 
-            {/* Date of Birth */}
+            {/* Avatar */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold uppercase text-[#1f2a44] opacity-70 tracking-wider">
-                Date of Birth <span className="text-red-500">*</span>
+                Profile Photo URL (Optional)
               </label>
-              <div className="relative">
-                <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
-                  type="date"
-                  value={dateOfBirth}
-                  onChange={(e) => {
-                    setDateOfBirth(e.target.value);
-                    setDobError("");
-                  }}
-                  className={cn(
-                    "w-full pl-10 pr-4 py-3 rounded-xl border-[1.5px] border-slate-200 text-sm font-medium text-[#0b1a33] bg-[#f8faff] outline-none transition-all focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10",
-                    dobError && "border-red-500 bg-red-50/30",
-                  )}
-                  required
-                />
-              </div>
-              {dobError && (
-                <p className="text-xs text-red-500 pl-1">{dobError}</p>
-              )}
+              <input
+                type="url"
+                value={avatar}
+                onChange={(e) => setAvatar(e.target.value)}
+                placeholder="https://example.com/photo.jpg"
+                className="w-full px-4 py-3 rounded-xl border-[1.5px] border-slate-200 text-sm font-medium text-[#0b1a33] bg-[#f8faff] outline-none transition-all focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10"
+              />
             </div>
 
             {/* Gender */}
@@ -622,29 +612,13 @@ export function OnboardingFlow() {
                   onChange={(e) => setCountry(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 rounded-xl border-[1.5px] border-slate-200 text-sm font-medium text-[#0b1a33] bg-[#f8faff] outline-none transition-all focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10"
                 >
+                  <option value="">Select country (optional)</option>
                   <option value="Nigeria">Nigeria</option>
                   <option value="Ghana">Ghana</option>
                   <option value="Kenya">Kenya</option>
                   <option value="South Africa">South Africa</option>
                   <option value="Other">Other</option>
                 </select>
-              </div>
-            </div>
-
-            {/* State */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase text-[#1f2a44] opacity-70 tracking-wider">
-                State (Optional)
-              </label>
-              <div className="relative">
-                <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  value={state}
-                  onChange={(e) => setState(e.target.value)}
-                  placeholder="e.g. Lagos"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border-[1.5px] border-slate-200 text-sm font-medium text-[#0b1a33] bg-[#f8faff] outline-none transition-all focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10"
-                />
               </div>
             </div>
 

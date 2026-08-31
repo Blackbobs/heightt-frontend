@@ -71,10 +71,8 @@ export function SettingsPage() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [username, setUsername] = useState('');
-  const [phone, setPhone] = useState('');
-  const [bio, setBio] = useState('');
   const [country, setCountry] = useState('');
-  const [state, setState] = useState('');
+  const [gender, setGender] = useState('');
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
@@ -82,10 +80,8 @@ export function SettingsPage() {
     setFirstName(user.profile?.firstName || '');
     setLastName(user.profile?.lastName || '');
     setUsername(user.username || '');
-    setPhone(user.profile?.phone || '');
-    setBio(user.profile?.bio || '');
     setCountry(user.profile?.country || '');
-    setState(user.profile?.state || '');
+    setGender(user.profile?.gender || '');
   }, [user]);
 
   const getInitials = () => {
@@ -101,10 +97,10 @@ export function SettingsPage() {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         username: username.trim(),
-        phone: phone.trim() || undefined,
-        bio: bio.trim() || undefined,
         country: country.trim() || undefined,
-        state: state.trim() || undefined,
+        gender: gender
+          ? gender as 'MALE' | 'FEMALE' | 'OTHER' | 'PREFER_NOT_TO_SAY'
+          : undefined,
       });
       setSaveMessage({ type: 'success', text: 'Profile updated successfully.' });
     } catch (err: unknown) {
@@ -207,20 +203,18 @@ export function SettingsPage() {
         <Field label="Last Name" value={lastName} onChange={setLastName} placeholder="Last name" />
         <Field label="Username" value={username} onChange={setUsername} placeholder="Username" />
         <Field label="Email" value={user?.email || ''} onChange={() => {}} disabled />
-        <Field label="Phone" value={phone} onChange={setPhone} placeholder="+234..." type="tel" />
         <Field label="Country" value={country} onChange={setCountry} placeholder="Country" />
-        <Field label="State" value={state} onChange={setState} placeholder="State" />
         <div className="px-4 py-3.5">
           <label className="text-[0.62rem] text-[#7a8ba3] font-semibold uppercase tracking-wide">
-            Bio
+            Gender
           </label>
-          <textarea
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            placeholder="Tell us a bit about yourself"
-            rows={3}
-            className="mt-1.5 w-full bg-transparent border-none outline-none text-[0.82rem] font-medium text-[#1a1a2e] placeholder-[#b0bac8] resize-none p-0"
-          />
+          <select value={gender} onChange={(e) => setGender(e.target.value)} className="mt-1.5 w-full bg-transparent border-none outline-none text-[0.82rem] font-semibold text-[#1a1a2e] p-0">
+            <option value="">Not specified</option>
+            <option value="MALE">Male</option>
+            <option value="FEMALE">Female</option>
+            <option value="OTHER">Other</option>
+            <option value="PREFER_NOT_TO_SAY">Prefer not to say</option>
+          </select>
         </div>
         <div className="px-4 py-4">
           <button

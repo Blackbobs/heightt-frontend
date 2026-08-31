@@ -1,0 +1,30 @@
+# Heightt
+
+> Heightt is a financial management platform for student organisations and their members across Africa.
+
+Heightt helps student organisations collect dues digitally, track payments, manage members, and maintain organised financial records. Students can view eligible dues, pay through available payment methods, and retain a record of successful payments.
+
+## Main website
+
+- [Heightt](https://www.heightt.app/): Product overview, audiences, workflow, roadmap, and frequently asked questions.
+
+## Core capabilities
+
+- Digital collection and automatic recording of student dues.
+- Payment-status and collection tracking for student executives.
+- Member and financial-record management for student organisations.
+- A payment history for students.
+
+## Intended users
+
+- Student departments, faculties, associations, clubs, and societies.
+- Student executives responsible for dues and financial records.
+- Students paying organisation dues.
+
+## Current product scope
+
+Dues collection and management are the current core focus. Savings, wallets, and event tickets are roadmap features and should not be described as currently available.
+
+## Contact
+
+- Email: heightt.finance@gmail.com

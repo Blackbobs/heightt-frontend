@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
+import { SUPPORT_EMAIL } from '@/lib/seo';
 
 export function Footer() {
   return (
@@ -128,7 +129,7 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a href="mailto:support@heightt.com" className="hover:text-white transition-colors flex items-center gap-1.5 group">
+                <a href={`mailto:${SUPPORT_EMAIL}`} className="hover:text-white transition-colors flex items-center gap-1.5 group">
                   Contact
                   <ArrowRight className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-primary" />
                 </a>
@@ -153,7 +154,7 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a href="mailto:support@heightt.com" className="hover:text-white transition-colors flex items-center gap-1.5 group">
+                <a href={`mailto:${SUPPORT_EMAIL}`} className="hover:text-white transition-colors flex items-center gap-1.5 group">
                   Contact Support
                   <ArrowRight className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-primary" />
                 </a>

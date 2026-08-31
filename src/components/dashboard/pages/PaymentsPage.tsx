@@ -173,7 +173,7 @@ export function PaymentsPage() {
       const origin =
         typeof window !== "undefined"
           ? window.location.origin
-          : "https://heightt.com";
+          : "https://www.heightt.app";
 
       const payload = {
         amount: due.amount,

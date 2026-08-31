@@ -206,7 +206,7 @@ export async function generateReceiptPdf(receipt: ReceiptPdfData): Promise<void>
   // Footer Bottom Note
   doc.setFontSize(7.5);
   doc.setTextColor(148, 163, 184);
-  doc.text("Heightt Technologies Inc. · https://heightt.com", margin, 285);
+  doc.text("Heightt Technologies Inc. · https://www.heightt.app", margin, 285);
   doc.text(`Generated on ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`, pageWidth - margin, 285, { align: "right" });
 
   // Save the PDF

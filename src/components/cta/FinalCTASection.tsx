@@ -75,10 +75,10 @@ export function FinalCTASection() {
               </div>
             </div>
 
-            {/* Right: Page 18.png image */}
+            {/* Right: 196920 (1).png image */}
             <div className="lg:col-span-5 relative min-h-[320px] lg:min-h-0">
               <Image
-                src="/Page 18.png"
+                src="/196920 (1).png"
                 alt="Heightt Platform Preview"
                 fill
                 sizes="(max-width: 1024px) 100vw, 42vw"
