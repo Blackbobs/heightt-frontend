@@ -10,6 +10,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const isAppPage =
     pathname === "/signup" ||
     pathname === "/signin" ||
+    pathname === "/forgot-password" ||
+    pathname === "/reset-password" ||
     pathname === "/verify-email" ||
     pathname === "/verify-email-sent" ||
     pathname === "/onboarding" ||
