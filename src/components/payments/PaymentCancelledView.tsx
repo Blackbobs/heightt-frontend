@@ -22,6 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 import { financeApi, PaymentStatusResult } from "@/lib/api/finance";
 import { useAuthStore } from "@/store/auth-store";
+import { SUPPORT_EMAIL } from "@/lib/seo";
 
 interface PaymentCancelledViewProps {
   isEmbeddedInDashboard?: boolean;
@@ -308,7 +309,7 @@ export function PaymentCancelledView({
           </Link>
 
           <Link
-            href="mailto:support@heightt.edu"
+            href={`mailto:${SUPPORT_EMAIL}`}
             className="py-3 px-4 rounded-2xl bg-white border border-slate-200/90 text-slate-700 hover:bg-slate-50 font-semibold text-xs sm:text-sm transition-colors text-center no-underline flex items-center justify-center gap-1.5"
           >
             <MessageCircle className="w-4 h-4 text-amber-600" />

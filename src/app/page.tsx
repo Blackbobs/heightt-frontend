@@ -5,7 +5,7 @@ import { HowItWorksSection } from '@/components/how-it-works/HowItWorksSection';
 import { FinalCTASection } from '@/components/cta/FinalCTASection';
 import { FAQSection } from '@/components/faq/FAQSection';
 import { faqs } from '@/lib/faq';
-import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL, SOCIAL_IMAGE } from '@/lib/seo';
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL, SOCIAL_IMAGE, SUPPORT_EMAIL } from '@/lib/seo';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -36,7 +36,7 @@ export default function Home() {
         name: SITE_NAME,
         url: SITE_URL,
         logo: `${SITE_URL}/logo.png`,
-        email: 'support@heightt.com',
+        email: SUPPORT_EMAIL,
         description: SITE_DESCRIPTION,
       },
       {
