@@ -9,12 +9,13 @@ import {
   LogOut,
   HelpCircle,
   Loader2,
-  CheckCircle2,
-  AlertCircle,
+  Share2,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+
 import { useAuthStore } from '@/store/auth-store';
 import { useCurrentUser, useUpdateProfile } from '@/hooks/queries/useUser';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { toast } from 'sonner';
 
 // Commented out — not needed for current release
 // const NOTIFICATION_SETTINGS = [
@@ -73,7 +74,6 @@ export function SettingsPage() {
   const [username, setUsername] = useState('');
   const [country, setCountry] = useState('');
   const [gender, setGender] = useState('');
-  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -91,7 +91,6 @@ export function SettingsPage() {
   };
 
   const handleSave = async () => {
-    setSaveMessage(null);
     try {
       await updateProfile.mutateAsync({
         firstName: firstName.trim(),
@@ -102,12 +101,9 @@ export function SettingsPage() {
           ? gender as 'MALE' | 'FEMALE' | 'OTHER' | 'PREFER_NOT_TO_SAY'
           : undefined,
       });
-      setSaveMessage({ type: 'success', text: 'Profile updated successfully.' });
-    } catch (err: unknown) {
-      const message =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        'Failed to update profile. Please try again.';
-      setSaveMessage({ type: 'error', text: message });
+      toast.success('Profile updated successfully.');
+    } catch {
+      toast.error('Failed to update profile. Please try again.');
     }
   };
 
@@ -142,15 +138,63 @@ export function SettingsPage() {
     </div>
   );
 
-  const NavRow = ({ label, desc }: { label: string; desc?: string }) => (
+  const NavRow = ({ label, desc, onClick }: { label: string; desc?: string; onClick?: () => void }) => (
     <div className="w-full flex items-center justify-between px-4 py-3.5">
       <div>
         <p className="text-[0.82rem] font-semibold text-[#1a1a2e]">{label}</p>
         {desc && <p className="text-[0.62rem] text-[#7a8ba3] mt-0.5">{desc}</p>}
       </div>
-      <ChevronRight className="w-4 h-4 text-[#c8d0db]" />
+      {onClick ? (
+        <button
+          onClick={onClick}
+          className="text-[0.62rem] font-semibold text-[#1a5cff] bg-[#eef3ff] px-2.5 py-1 rounded-lg border-none cursor-pointer"
+        >
+          Install
+        </button>
+      ) : (
+        <ChevronRight className="w-4 h-4 text-[#c8d0db]" />
+      )}
     </div>
   );
+
+  function InstallAppRow() {
+    const { canInstall, isIOS, isStandalone, triggerInstall } = usePWAInstall();
+
+    // Already installed — don't show anything
+    if (isStandalone) return null;
+
+    // iOS: show persistent instructions banner
+    if (isIOS) {
+      return (
+        <div className="px-4 py-4">
+          <div className="rounded-xl bg-[#eef3ff] border border-[#c5d4ff] px-4 py-3.5 flex gap-3">
+            <div className="w-8 h-8 rounded-[8px] bg-white flex items-center justify-center flex-shrink-0 shadow-sm">
+              <Share2 className="w-4 h-4 text-[#1a5cff]" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[0.82rem] font-bold text-[#1a1a2e]">Add to Home Screen</p>
+              <p className="text-[0.68rem] text-[#5b6d89] mt-0.5 leading-relaxed">
+                Tap <span className="font-semibold text-[#1a5cff]">Share</span> in Safari → scroll down → tap{' '}
+                <span className="font-semibold text-[#1a5cff]">Add to Home Screen</span> → tap{' '}
+                <span className="font-semibold text-[#1a5cff]">Add</span>.
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Android / Chrome: show install button
+    if (!canInstall) return null;
+
+    return (
+      <NavRow
+        label="Add to Home Screen"
+        desc="Install Heightt for quick access"
+        onClick={triggerInstall}
+      />
+    );
+  }
 
   if (isLoading) {
     return (
@@ -179,23 +223,6 @@ export function SettingsPage() {
         </div>
       </div>
 
-      {saveMessage && (
-        <div
-          className={cn(
-            'rounded-xl px-4 py-3 text-sm font-medium flex items-start gap-2 border',
-            saveMessage.type === 'success'
-              ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-              : 'bg-red-50 border-red-200 text-red-700',
-          )}
-        >
-          {saveMessage.type === 'success' ? (
-            <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
-          ) : (
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-          )}
-          {saveMessage.text}
-        </div>
-      )}
 
       {/* Account — wired to PATCH /users/profile */}
       <Section title="Account" icon={User}>
@@ -260,6 +287,7 @@ export function SettingsPage() {
 
       <Section title="App Preferences" icon={Smartphone}>
         <NavRow label="App Version" desc="v1.2.0" />
+        <InstallAppRow />
       </Section>
 
       <Section title="Help & Support" icon={HelpCircle}>

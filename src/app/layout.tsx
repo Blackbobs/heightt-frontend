@@ -2,10 +2,13 @@ import type { Metadata } from "next";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { AuthInitializer } from "@/components/auth/AuthInitializer";
+import { PWAInstallPrompt } from "@/components/pwa/PWAInstallPrompt";
+import { RegisterSW } from "@/components/pwa/RegisterSW";
 import "./globals.css";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { AcademicNotificationListener } from "@/components/notifications/AcademicNotificationListener";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL, SOCIAL_IMAGE } from "@/lib/seo";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -27,6 +30,10 @@ export const metadata: Metadata = {
     "digital dues collection",
     "student financial records",
   ],
+  icons: {
+    icon: "/favicon.png",
+    apple: "/apple-touch-icon.png",
+  },
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
@@ -57,6 +64,14 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport = {
+  themeColor: "#2563EB",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -75,6 +90,9 @@ export default function RootLayout({
             </AuthInitializer>
           </AppLayout>
         </QueryProvider>
+        <RegisterSW />
+        <PWAInstallPrompt />
+        <Toaster position="top-center" richColors closeButton />
       </body>
     </html>
   );

@@ -64,8 +64,8 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
           router.replace("/dashboard");
         }
       }, 800);
-    } catch (err: any) {
-      setError(err.message || "Invalid credentials. Please try again.");
+    } catch {
+      setError('Invalid credentials. Please try again.');
       setIsSubmitted(false);
     }
   };

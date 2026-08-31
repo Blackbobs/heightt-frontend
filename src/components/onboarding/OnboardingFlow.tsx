@@ -251,11 +251,7 @@ export function OnboardingFlow() {
     onError: (error: any) => {
       console.error("Failed to complete onboarding:", error);
       setIsSubmitting(false);
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Failed to complete onboarding. Please try again.";
-      setSubmitError(errorMessage);
+      setSubmitError('Failed to complete onboarding. Please try again.');
     },
   });
 

@@ -28,6 +28,8 @@ import {
   PaymentHistoryRecord,
   normalisePaymentConflict,
 } from "@/lib/api/finance";
+import { queryKeys } from "@/lib/api/keys";
+import { toast } from "sonner";
 
 type Tab = "all" | "unpaid" | "paid";
 
@@ -54,7 +56,6 @@ export function PaymentsPage() {
   const debouncedSearch = useDebouncedValue(search, 300);
   const [payingId, setPayingId] = useState<string | null>(null);
   const [selectedDue, setSelectedDue] = useState<DueAssignment | null>(null);
-  const [paymentError, setPaymentError] = useState<string | null>(null);
   const [statusBanner, setStatusBanner] = useState<string | null>(null);
   const paymentInitiationLock = useRef(false);
 
@@ -114,12 +115,11 @@ export function PaymentsPage() {
     }
 
     if (!due.due?.organizationId) {
-      setPaymentError("Organization information is missing for this due.");
+      toast.error('Organization information is missing for this due.');
       return;
     }
 
     paymentInitiationLock.current = true;
-    setPaymentError(null);
     setPayingId(due.id);
     const dueIdParam = due.due?.id || due.dueId || due.id;
 
@@ -180,7 +180,7 @@ export function PaymentsPage() {
           setStatusBanner("The previous payment attempt has been refreshed. You can try again.");
           await refetch();
         } else {
-          setPaymentError(message);
+          toast.error("Payment failed. Please try again.");
         }
       }
     } finally {
@@ -206,7 +206,7 @@ export function PaymentsPage() {
     return (
       <div className="bg-destructive/10 border border-destructive/20 rounded-2xl p-6 text-destructive">
         <p className="font-bold">Error loading dues</p>
-        <p className="text-xs mt-1">{error?.message || "Something went wrong"}</p>
+        <p className="text-xs mt-1">Something went wrong. Please try again.</p>
         <button
           onClick={() => refetch()}
           className="mt-3 px-4 py-2 bg-destructive text-white rounded-xl text-xs font-bold hover:opacity-90 cursor-pointer"
@@ -232,17 +232,6 @@ export function PaymentsPage() {
         </div>
       )}
 
-      {paymentError && (
-        <div className="bg-destructive/10 border border-destructive/20 rounded-2xl px-4 py-3 text-destructive text-xs font-semibold flex items-start justify-between gap-3 shadow-xs">
-          <span>{paymentError}</span>
-          <button
-            onClick={() => setPaymentError(null)}
-            className="text-destructive hover:opacity-80 border-none bg-transparent cursor-pointer p-0"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
 
       {/* Unpaid Alert Banner */}
       {stats.unpaidCount > 0 && (

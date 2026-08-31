@@ -50,8 +50,8 @@ export function VerifyEmailCard() {
       await verifyEmail(token);
       setIsVerified(true);
       setTimeout(() => router.push("/onboarding"), 1800);
-    } catch (err: any) {
-      setError(err.message || "Verification failed. Please try again.");
+    } catch {
+      setError('Verification failed. Please try again.');
     } finally {
       setIsVerifying(false);
     }
@@ -131,8 +131,8 @@ export function VerifyEmailCard() {
       await verifyEmail(fakeToken);
       setIsVerified(true);
       setTimeout(() => router.push("/onboarding"), 1800);
-    } catch (err: any) {
-      setError(err.message || "Invalid verification code. Please try again.");
+    } catch {
+      setError('Invalid verification code. Please try again.');
     } finally {
       setIsVerifying(false);
     }
@@ -161,8 +161,8 @@ export function VerifyEmailCard() {
 
     try {
       await resendVerification(email);
-    } catch (err: any) {
-      setError(err.message || "Failed to resend verification email.");
+    } catch {
+      setError('Failed to resend verification email. Please try again.');
     }
   };
 
