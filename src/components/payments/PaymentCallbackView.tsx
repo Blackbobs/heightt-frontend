@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Clock3, ShieldCheck } from "lucide-react";
 import { HeighttLoader } from "@/components/ui/HeighttLoader";
 import {
   financeApi,
@@ -64,6 +64,22 @@ function buildSuccessUrl(
   }
 
   return `/payment/success?${params.toString()}`;
+}
+
+function buildCancelledUrl(
+  payment: PaymentStatusResult,
+  searchParams: URLSearchParams,
+) {
+  const params = new URLSearchParams(searchParams);
+  params.set("payment", payment.id);
+  params.set("reference", payment.reference);
+  params.set("amount", String(payment.amount / 100));
+
+  if (payment.failureReason) {
+    params.set("reason", payment.failureReason);
+  }
+
+  return `/payment/cancelled?${params.toString()}`;
 }
 
 async function waitForPayment(
@@ -147,6 +163,15 @@ export function PaymentCallbackView() {
           controller.signal,
           () => setState({ status: "delayed", pendingPaymentId }),
         );
+        if (payment.status === "CANCELLED") {
+          window.location.replace(
+            buildCancelledUrl(
+              payment,
+              new URLSearchParams(searchParams.toString()),
+            ),
+          );
+          return;
+        }
         if (payment.status !== "COMPLETED") {
           const messages: Record<string, string> = {
             PENDING: "Checkout creation was interrupted. Return to your dues to start the payment again.",
@@ -199,15 +224,7 @@ export function PaymentCallbackView() {
   }, [pendingPaymentId, queryClient, restoreSession, searchParams]);
 
   if (state.status === "delayed") {
-    return (
-      <PaymentStatusMessage
-        icon={<AlertCircle className="h-10 w-10 text-amber-500" />}
-        title="Payment awaiting confirmation"
-        description="The provider is still confirming this payment. Do not start another payment while we are checking."
-      >
-        <button type="button" onClick={() => window.location.reload()} className="rounded-2xl bg-[#1a5cff] px-5 py-3 text-sm font-semibold text-white">Check again</button>
-      </PaymentStatusMessage>
-    );
+    return <PaymentAwaitingConfirmation />;
   }
 
   if (state.status === "retry") {
@@ -238,6 +255,76 @@ export function PaymentCallbackView() {
       title="Confirming payment"
       description="Please wait while we confirm your payment status."
     />
+  );
+}
+
+function PaymentAwaitingConfirmation() {
+  return (
+    <div className="w-full max-w-xl mx-auto py-4 px-2 sm:px-4 space-y-6 animate-fade-slide-up">
+      <div className="relative overflow-hidden rounded-3xl border border-blue-400/20 bg-gradient-to-b from-[#122c66] via-[#0b1f49] to-[#07152f] p-6 text-center text-white shadow-2xl sm:p-8">
+        <div className="pointer-events-none absolute -left-24 -top-24 h-48 w-48 rounded-full bg-blue-400/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -right-24 h-48 w-48 rounded-full bg-amber-400/15 blur-3xl" />
+
+        <div className="mb-6 inline-flex items-center gap-1.5 rounded-full border border-blue-300/25 bg-blue-400/15 px-3 py-1 text-xs font-semibold text-blue-200 backdrop-blur-md">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-300" />
+          Confirmation in progress
+        </div>
+
+        <div className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center sm:h-24 sm:w-24">
+          <div className="absolute inset-0 animate-pulse rounded-full bg-blue-400/15" />
+          <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-tr from-[#1a5cff] to-[#56a0ff] shadow-lg shadow-blue-950/60 sm:h-20 sm:w-20">
+            <Clock3 className="h-9 w-9 text-white sm:h-11 sm:w-11" strokeWidth={2.2} />
+          </div>
+        </div>
+
+        <h1 className="mb-2 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+          Payment awaiting confirmation
+        </h1>
+        <p className="mx-auto max-w-md text-sm leading-6 text-blue-100/75">
+          Your payment provider is still confirming this transaction. This can
+          take a few moments.
+        </p>
+
+        <div className="mx-auto mt-6 flex max-w-md items-start gap-2.5 rounded-2xl border border-blue-300/15 bg-blue-950/40 p-3.5 text-left text-xs leading-5 text-blue-100/85">
+          <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-300" />
+          <span>
+            Please don&apos;t start another payment. We&apos;ll update this page as
+            soon as confirmation is received.
+          </span>
+        </div>
+      </div>
+
+      <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xl sm:p-6">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-blue-50">
+            <AlertCircle className="h-5 w-5 text-[#1a5cff]" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold text-[#0b1a33]">What happens next?</h2>
+            <p className="mt-1 text-xs leading-5 text-slate-500">
+              You can check again now or return to your payments. Your record
+              will update automatically once the provider responds.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="flex-1 rounded-2xl bg-[#1a5cff] px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-500/20 transition-colors hover:bg-[#0f4ad0]"
+          >
+            Check again
+          </button>
+          <Link
+            href="/dashboard/payments"
+            className="flex-1 rounded-2xl border border-slate-200 bg-white px-5 py-3.5 text-center text-sm font-semibold text-slate-700 no-underline transition-colors hover:bg-slate-50"
+          >
+            View payments
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 }
 

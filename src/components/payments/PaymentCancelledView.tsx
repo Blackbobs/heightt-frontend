@@ -1,24 +1,20 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   XCircle,
   AlertTriangle,
   RotateCcw,
-  ArrowLeft,
   HelpCircle,
   ShieldAlert,
-  Building2,
   CreditCard,
-  ChevronRight,
   Home,
   MessageCircle,
   Copy,
   Check,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { financeApi, PaymentStatusResult } from "@/lib/api/finance";
 import { useAuthStore } from "@/store/auth-store";
 import { SUPPORT_EMAIL } from "@/lib/seo";
@@ -64,7 +60,6 @@ export function PaymentCancelledView({
   isEmbeddedInDashboard = false,
 }: PaymentCancelledViewProps) {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const restoreSession = useAuthStore((state) => state.restoreSession);
 
   const dueId = searchParams.get("dueId");
@@ -131,12 +126,9 @@ export function PaymentCancelledView({
           return;
         }
 
-        if (payment.status === "PROCESSING") {
-          window.location.replace(
-            `/payment/callback?payment=${encodeURIComponent(paymentId)}`,
-          );
-          return;
-        }
+        // Reaching the provider's cancel URL is an explicit cancellation signal.
+        // The API can briefly remain PROCESSING while that cancellation propagates,
+        // so keep showing the cancelled experience unless completion is confirmed.
       } catch (error) {
         console.warn("Could not verify cancelled payment status:", error);
       } finally {

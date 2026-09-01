@@ -1,9 +1,8 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Building2 } from "lucide-react";
 import { PaymentCallbackView } from "@/components/payments/PaymentCallbackView";
 import { HeighttLoader } from "@/components/ui/HeighttLoader";
+import { Logo } from "@/components/ui/Logo";
 
 export const metadata: Metadata = {
   title: "Confirming Payment — Heightt",
@@ -25,13 +24,7 @@ export default function PaymentCallbackPage() {
   return (
     <div className="min-h-screen bg-[#f8f9fc] flex flex-col justify-between">
       <header className="w-full max-w-5xl mx-auto px-6 py-6 flex items-center justify-between">
-        <Link
-          href="/"
-          className="flex items-center gap-2.5 font-bold text-2xl text-[#1a1a2e] no-underline"
-        >
-          <Building2 className="w-7 h-7 text-[#1a5cff]" strokeWidth={1.8} />
-          <span>Heightt</span>
-        </Link>
+        <Logo className="[&_img]:h-12 sm:[&_img]:h-14" />
       </header>
 
       <main className="flex-1 flex items-center justify-center px-4 py-6">
