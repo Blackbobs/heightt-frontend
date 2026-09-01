@@ -395,7 +395,10 @@ export const financeApi = {
   ): Promise<PaymentStatusResult> => {
     const response = await axiosConfig.get(
       `/finance/payments/pending/${encodeURIComponent(pendingPaymentId)}/status`,
-      { headers: { "Cache-Control": "no-store" } },
+      {
+        withCredentials: true,
+        headers: { "Cache-Control": "no-store" },
+      },
     );
     return response.data?.data || response.data;
   },
