@@ -11,49 +11,32 @@ export function useDashboardData() {
   const { isAuthenticated, user } = useAuthStore();
 
   return useQuery({
-    queryKey: queryKeys.dashboard.all,
+    // Scope cached financial data to the signed-in user. This prevents a
+    // previous session's empty or stale dashboard from being reused.
+    queryKey: [...queryKeys.dashboard.all, user?.id],
     queryFn: async () => {
-      try {
-        // Fetch all data in parallel
-        const [userData, dues, transactions, receipts, organizations] =
-          await Promise.all([
-            // If we already have user data, use it, otherwise fetch
-            user ? Promise.resolve(user) : usersApi.getCurrentUser(),
-            financeApi.getMyDues().catch((error) => {
-              console.error("Failed to fetch dues:", error);
-              return [];
-            }),
-            financeApi
-              .getTransactions({ page: 1, limit: 10 })
-              .catch((error) => {
-                console.error("Failed to fetch transactions:", error);
-                return { data: [] };
-              }),
-            financeApi.getReceipts({ page: 1, limit: 10 }).catch((error) => {
-              console.error("Failed to fetch receipts:", error);
-              return { data: [] };
-            }),
-            organizationsApi.getUserOrganizations().catch((error) => {
-              console.error("Failed to fetch organizations:", error);
-              return [];
-            }),
-          ]);
+      // Do not turn request/auth failures into successful zero balances.
+      // Throwing lets React Query retry and show the dashboard error state.
+      const [userData, dues, transactions, receipts, organizations] =
+        await Promise.all([
+          user ? Promise.resolve(user) : usersApi.getCurrentUser(),
+          financeApi.getMyDues(),
+          financeApi.getTransactions({ page: 1, limit: 10 }),
+          financeApi.getReceipts({ page: 1, limit: 10 }),
+          organizationsApi.getUserOrganizations(),
+        ]);
 
-        return {
-          user: userData,
-          dues: dues || [],
-          transactions: transactions?.data || [],
-          receipts: receipts?.data || [],
-          organizations: organizations || [],
-        };
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-        throw error;
-      }
+      return {
+        user: userData,
+        dues: dues || [],
+        transactions: transactions?.data || [],
+        receipts: receipts?.data || [],
+        organizations: organizations || [],
+      };
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!user?.id,
     staleTime: 2 * 60 * 1000, // 2 minutes
-    refetchOnMount: true,
+    refetchOnMount: "always",
     refetchOnWindowFocus: true,
   });
 }

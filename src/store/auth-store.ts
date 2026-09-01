@@ -184,6 +184,10 @@ export const useAuthStore = create<AuthState>()(
       },
 
       restoreSession: async () => {
+        // Zustand may have rehydrated a persisted token before Axios has seen it.
+        // Install it before the first authenticated request to avoid a false 401.
+        applyAccessToken(get().token);
+
         const user = await get().fetchCurrentUser();
         if (user) {
           return true;
@@ -263,16 +267,15 @@ export const useAuthStore = create<AuthState>()(
           // Get user data and access token from response
           const { accessToken, ...userData } = response.data;
 
+          // Axios must be ready before isAuthenticated enables protected queries.
+          applyAccessToken(accessToken || null);
+
           set({
             user: userData,
             isAuthenticated: true,
             isLoading: false,
             token: accessToken || null,
           });
-
-          if (accessToken) {
-            applyAccessToken(accessToken);
-          }
 
           await get().fetchUserOrganizations();
 

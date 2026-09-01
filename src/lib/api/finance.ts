@@ -249,14 +249,8 @@ export interface IdempotencyKeyResponse {
 export const financeApi = {
   // Get dues for the authenticated user - updated to use the correct endpoint
   getMyDues: async (): Promise<StudentDueItem[]> => {
-    try {
-      // Use the correct endpoint that fetches all dues across all organizations
-      const response = await axiosConfig.get("/finance/dues/student");
-      return response.data || [];
-    } catch (error) {
-      console.error("Failed to fetch dues:", error);
-      return [];
-    }
+    const response = await axiosConfig.get("/finance/dues/student");
+    return response.data || [];
   },
 
   // Get all dues with filters
@@ -291,23 +285,15 @@ export const financeApi = {
     startDate?: string;
     endDate?: string;
   }): Promise<PaginatedResponse<Transaction>> => {
-    try {
-      const response = await axiosConfig.get("/finance/transactions", {
-        params,
-      });
-      return (
-        response.data || {
-          data: [],
-          meta: { page: 1, limit: 10, total: 0, totalPages: 0 },
-        }
-      );
-    } catch (error) {
-      console.error("Failed to fetch transactions:", error);
-      return {
+    const response = await axiosConfig.get("/finance/transactions", {
+      params,
+    });
+    return (
+      response.data || {
         data: [],
         meta: { page: 1, limit: 10, total: 0, totalPages: 0 },
-      };
-    }
+      }
+    );
   },
 
   getPaymentHistory: async (
@@ -349,23 +335,15 @@ export const financeApi = {
     endDate?: string;
     organizationId?: string;
   }): Promise<PaginatedResponse<Receipt>> => {
-    try {
-      const response = await axiosConfig.get("/finance/receipts", {
-        params,
-      });
-      return (
-        response.data || {
-          data: [],
-          meta: { page: 1, limit: 10, total: 0, totalPages: 0 },
-        }
-      );
-    } catch (error) {
-      console.error("Failed to fetch receipts:", error);
-      return {
+    const response = await axiosConfig.get("/finance/receipts", {
+      params,
+    });
+    return (
+      response.data || {
         data: [],
         meta: { page: 1, limit: 10, total: 0, totalPages: 0 },
-      };
-    }
+      }
+    );
   },
 
   // Get a specific receipt

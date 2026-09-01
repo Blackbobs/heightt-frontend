@@ -86,14 +86,9 @@ export const organizationsApi = {
   },
 
   getUserOrganizations: async () => {
-    try {
-      console.log("Fetching user organizations...");
-      const response = await axiosConfig.get("/users/me/organizations");
-      console.log("User organizations response:", response.data);
-      return response.data || [];
-    } catch (error) {
-      console.error("Failed to fetch user organizations:", error);
-      return [];
-    }
+    console.log("Fetching user organizations...");
+    const response = await axiosConfig.get("/users/me/organizations");
+    console.log("User organizations response:", response.data);
+    return response.data || [];
   },
 };

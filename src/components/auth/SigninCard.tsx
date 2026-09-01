@@ -10,6 +10,8 @@ import { Eye, EyeOff, Check, Sparkles } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth-store";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/api/keys";
 
 /* ─── Zod Schema ─────────────────────────────────────────────── */
 const signinSchema = z.object({
@@ -28,6 +30,7 @@ interface SigninCardProps {
 
 export function SigninCard({ borderless = false, className }: SigninCardProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { login, isLoading } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,8 +52,18 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
   const onSubmit = async (data: SigninFormData) => {
     setError(null);
     try {
-      const result = await login(data.identifier, data.password);
+      await login(data.identifier, data.password);
       setIsSubmitted(true);
+
+      // Never carry protected data (including cached empty responses) from a
+      // previous or expired session into the newly authenticated dashboard.
+      await queryClient.cancelQueries();
+      queryClient.removeQueries({ queryKey: queryKeys.dashboard.all });
+      queryClient.removeQueries({ queryKey: ["student-dues"] });
+      queryClient.removeQueries({ queryKey: ["receipts"] });
+      queryClient.removeQueries({ queryKey: ["finance"] });
+      queryClient.removeQueries({ queryKey: ["payments"] });
+      queryClient.removeQueries({ queryKey: ["user"] });
 
       // Check onboarding status before redirecting
       const onboardingStatus = await useAuthStore
