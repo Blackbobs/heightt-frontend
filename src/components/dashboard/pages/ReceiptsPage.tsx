@@ -24,6 +24,7 @@ import { useReceipts, useDownloadReceipt } from "@/hooks/queries/useReceipts";
 import { Receipt as ReceiptType } from "@/lib/api/finance";
 import { generateReceiptPdf } from "@/lib/pdf/generateReceiptPdf";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { HeighttLoader } from "@/components/ui/HeighttLoader";
 
 interface ReceiptItem {
   id: string;
@@ -376,7 +377,7 @@ export function ReceiptsPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          <HeighttLoader label="Loading receipts" />
           <span className="text-sm text-muted-foreground font-medium">Loading receipts...</span>
         </div>
       </div>
@@ -387,7 +388,7 @@ export function ReceiptsPage() {
     return (
       <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-red-600">
         <p className="font-semibold">Error loading receipts</p>
-        <p className="text-sm">{error?.message || "Something went wrong"}</p>
+        <p className="text-sm">Something went wrong. Please try again.</p>
         <button onClick={() => refetch()} className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 cursor-pointer">
           Retry
         </button>

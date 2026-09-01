@@ -11,20 +11,12 @@ import { queryKeys } from "@/lib/api/keys";
 import { useAuthStore } from "@/store/auth-store";
 
 export function useMyDues() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
 
   return useQuery({
-    queryKey: queryKeys.finance.myDues,
-    queryFn: async () => {
-      try {
-        const result = await financeApi.getMyDues();
-        return result || [];
-      } catch (error) {
-        console.error("Error fetching my dues:", error);
-        return [];
-      }
-    },
-    enabled: isAuthenticated,
+    queryKey: [...queryKeys.finance.myDues, user?.id],
+    queryFn: async () => (await financeApi.getMyDues()) || [],
+    enabled: isAuthenticated && !!user?.id,
     staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
   });

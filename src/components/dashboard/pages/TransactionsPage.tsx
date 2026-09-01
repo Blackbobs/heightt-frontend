@@ -5,7 +5,6 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   Search,
-  Loader2,
   RefreshCw,
   Filter,
 } from "lucide-react";
@@ -13,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { useTransactions } from "@/hooks/queries/useTransactions";
 import { Transaction } from "@/lib/api/finance";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { HeighttLoader } from "@/components/ui/HeighttLoader";
 
 const TYPE_TABS = ["All", "CREDIT", "DEBIT", "TRANSFER", "FEE", "REFUND"];
 const STATUS_TABS = ["All", "COMPLETED", "PENDING", "PROCESSING", "FAILED"];
@@ -109,7 +109,7 @@ export function TransactionsPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 text-[#1a5cff] animate-spin" />
+          <HeighttLoader label="Loading transactions" />
           <span className="text-sm text-[#5b6d89] font-medium">
             Loading transactions...
           </span>
@@ -122,7 +122,7 @@ export function TransactionsPage() {
     return (
       <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-red-600">
         <p className="font-semibold">Error loading transactions</p>
-        <p className="text-sm">{error?.message || "Something went wrong"}</p>
+        <p className="text-sm">Something went wrong. Please try again.</p>
         <button
           onClick={() => refetch()}
           className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700"

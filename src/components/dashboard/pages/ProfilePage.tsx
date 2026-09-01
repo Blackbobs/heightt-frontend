@@ -2,10 +2,11 @@
 
 import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { AlertCircle, CheckCircle2, GraduationCap, Loader2, Mail, RefreshCw, School, User as UserIcon } from 'lucide-react';
+import { AlertCircle, CheckCircle2, GraduationCap, Mail, RefreshCw, School, User as UserIcon } from 'lucide-react';
 import { institutionsApi, type Department, type Faculty, type Institution } from '@/lib/api/institutions';
 import { queryKeys } from '@/lib/api/keys';
 import { useCurrentUser } from '@/hooks/queries/useUser';
+import { HeighttLoader } from '@/components/ui/HeighttLoader';
 
 function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value?: string | null }) {
   return (
@@ -76,7 +77,7 @@ export function ProfilePage() {
   const isVerified = user?.emailVerified || verificationStatus === 'VERIFIED';
 
   if (isLoading) {
-    return <div className="min-h-[360px] flex items-center justify-center" aria-label="Loading profile"><Loader2 className="w-8 h-8 text-[#1a5cff] animate-spin" /></div>;
+    return <div className="min-h-[360px] flex items-center justify-center"><HeighttLoader label="Loading profile" /></div>;
   }
   if (isError || !user) {
     return (

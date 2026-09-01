@@ -86,13 +86,8 @@ export const usersApi = {
 
   // Get user organizations
   getUserOrganizations: async (): Promise<OrganizationMembership[]> => {
-    try {
-      const response = await axiosConfig.get("/users/me/organizations");
-      return response.data || [];
-    } catch (error) {
-      console.error("Error in getUserOrganizations:", error);
-      return [];
-    }
+    const response = await axiosConfig.get("/users/me/organizations");
+    return response.data || [];
   },
 
   updateProfile: async (data: UpdateProfilePayload): Promise<User> => {

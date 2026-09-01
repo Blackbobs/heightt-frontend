@@ -5,7 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle } from "lucide-react";
+import { HeighttLoader } from "@/components/ui/HeighttLoader";
 import {
   financeApi,
   PaymentStatusResult,
@@ -233,7 +234,7 @@ export function PaymentCallbackView() {
 
   return (
     <PaymentStatusMessage
-      icon={<Loader2 className="h-10 w-10 text-[#1a5cff] animate-spin" />}
+      icon={<HeighttLoader label="Confirming payment" />}
       title="Confirming payment"
       description="Please wait while we confirm your payment status."
     />

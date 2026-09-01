@@ -15,6 +15,7 @@ import {
   RefreshCw
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { HeighttLoader } from "@/components/ui/HeighttLoader";
 
 function VerifyEmailContent() {
   const [status, setStatus] = useState<"loading" | "success" | "error">(
@@ -99,7 +100,7 @@ function VerifyEmailContent() {
           )}
         >
           {status === "loading" && (
-            <Loader2 className="w-10 h-10 text-[#1a5cff] animate-spin" />
+            <HeighttLoader label="Verifying your email" />
           )}
           {status === "success" && (
             <CheckCircle2 className="w-10 h-10 text-emerald-500 animate-bounce" />
@@ -277,7 +278,7 @@ export default function VerifyEmailPage() {
         <Suspense 
           fallback={
             <div className="flex flex-col items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 text-[#1a5cff] animate-spin mb-4" />
+              <HeighttLoader className="mb-4" label="Loading email verification" />
               <p className="text-[#5b6d89]">Loading...</p>
             </div>
           }

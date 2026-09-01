@@ -11,13 +11,13 @@ export function invalidateUserCache(queryClient: QueryClient, userId?: string) {
 
 export async function invalidateFinanceCache(queryClient: QueryClient) {
   await Promise.all([
-    queryClient.invalidateQueries({ queryKey: queryKeys.finance.myDues }),
+    queryClient.invalidateQueries({ queryKey: ["student-dues"] }),
     queryClient.invalidateQueries({ queryKey: queryKeys.finance.transactions() }),
-    queryClient.invalidateQueries({ queryKey: queryKeys.finance.paymentHistory() }),
-    queryClient.invalidateQueries({ queryKey: queryKeys.finance.receipts() }),
+    queryClient.invalidateQueries({ queryKey: ["payments"] }),
+    queryClient.invalidateQueries({ queryKey: ["receipts"] }),
   ]);
 }
 
 export async function invalidateDashboardCache(queryClient: QueryClient) {
-  await queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
+  await queryClient.invalidateQueries({ queryKey: ["student-dashboard"] });
 }

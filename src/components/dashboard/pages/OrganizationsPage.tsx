@@ -29,6 +29,8 @@ import {
 import { useAuthStore } from "@/store/auth-store";
 import { Organization } from "@/lib/api/organizations";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { toast } from "sonner";
+import { HeighttLoader } from "@/components/ui/HeighttLoader";
 
 const TYPE_LABELS: Record<string, string> = {
   ASSOCIATION: "Association",
@@ -66,10 +68,6 @@ export function OrganizationsPage() {
   const [page, setPage] = useState(1);
   const [tab, setTab] = useState<"browse" | "joined">("browse");
   const [joiningId, setJoiningId] = useState<string | null>(null);
-  const [joinMessage, setJoinMessage] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
 
   // Fetch academic sessions to get current session
   const { data: sessionsData } = useAcademicSessions(institutionId);
@@ -118,23 +116,16 @@ export function OrganizationsPage() {
 
   const handleJoin = async (org: Organization) => {
     setJoiningId(org.id);
-    setJoinMessage(null);
     try {
       await joinMutation.mutateAsync({
         organizationId: org.id,
         sessionId: currentSession?.id,
       });
-      setJoinMessage({
-        type: "success",
-        text: `Successfully joined ${org.name}`,
-      });
+      toast.success(`Successfully joined ${org.name}`);
       // Refetch joined organizations
       refetch();
-    } catch (err: unknown) {
-      const message =
-        (err as { message?: string })?.message ||
-        "Failed to join organization. You may already be a member.";
-      setJoinMessage({ type: "error", text: message });
+    } catch {
+      toast.error('Failed to join organization. Please try again.');
     } finally {
       setJoiningId(null);
     }
@@ -147,7 +138,7 @@ export function OrganizationsPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 text-[#1a5cff] animate-spin" />
+          <HeighttLoader label="Loading your profile" />
           <span className="text-sm text-[#5b6d89] font-medium">
             Loading your profile...
           </span>
@@ -183,7 +174,7 @@ export function OrganizationsPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 text-[#1a5cff] animate-spin" />
+          <HeighttLoader label="Loading organizations" />
           <span className="text-sm text-[#5b6d89] font-medium">
             Loading organizations...
           </span>
@@ -196,7 +187,7 @@ export function OrganizationsPage() {
     return (
       <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-red-600">
         <p className="font-semibold">Error loading organizations</p>
-        <p className="text-sm">{error?.message || "Something went wrong"}</p>
+        <p className="text-sm">Something went wrong. Please try again.</p>
         <button
           onClick={() => refetch()}
           className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700"
@@ -235,18 +226,6 @@ export function OrganizationsPage() {
         </div>
       </div>
 
-      {joinMessage && (
-        <div
-          className={cn(
-            "rounded-xl px-4 py-3 text-sm font-medium border",
-            joinMessage.type === "success"
-              ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-              : "bg-red-50 border-red-200 text-red-700",
-          )}
-        >
-          {joinMessage.text}
-        </div>
-      )}
 
       {/* Search */}
       <div className="relative">

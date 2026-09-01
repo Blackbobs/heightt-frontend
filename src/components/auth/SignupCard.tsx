@@ -75,8 +75,8 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
           `/verify-email-sent?email=${encodeURIComponent(data.email)}`,
         );
       }, 1200);
-    } catch (err: any) {
-      setError(err.message || "Registration failed. Please try again.");
+    } catch {
+      setError('Registration failed. Please try again.');
     }
   };
 

@@ -8,7 +8,6 @@ import {
   Megaphone,
   ChevronRight,
   Clock,
-  Loader2,
   AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -17,6 +16,7 @@ import {
   useMarkAnnouncementAsRead,
 } from "@/hooks/queries/useCommunication";
 import { Announcement } from "@/lib/api/communication";
+import { HeighttLoader } from "@/components/ui/HeighttLoader";
 
 const CAT_CONFIG: Record<
   string,
@@ -242,7 +242,7 @@ export function AnnouncementsPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 text-[#1a5cff] animate-spin" />
+          <HeighttLoader label="Loading announcements" />
           <span className="text-sm text-[#5b6d89] font-medium">
             Loading announcements...
           </span>
@@ -255,7 +255,7 @@ export function AnnouncementsPage() {
     return (
       <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-red-600">
         <p className="font-semibold">Error loading announcements</p>
-        <p className="text-sm">{error?.message || "Something went wrong"}</p>
+        <p className="text-sm">Something went wrong. Please try again.</p>
         <button
           onClick={() => refetch()}
           className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700"

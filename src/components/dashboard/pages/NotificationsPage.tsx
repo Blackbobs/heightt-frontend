@@ -21,6 +21,7 @@ import {
   useMarkAllNotificationsAsRead,
 } from "@/hooks/queries/useCommunication";
 import { Notification } from "@/lib/api/communication";
+import { HeighttLoader } from "@/components/ui/HeighttLoader";
 
 const NOTIFICATION_ICONS: Record<string, React.ReactNode> = {
   SYSTEM: <Shield className="w-4 h-4 text-[#1a5cff]" />,
@@ -216,7 +217,7 @@ export function NotificationsPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 text-[#1a5cff] animate-spin" />
+          <HeighttLoader label="Loading notifications" />
           <span className="text-sm text-[#5b6d89] font-medium">
             Loading notifications...
           </span>
@@ -229,7 +230,7 @@ export function NotificationsPage() {
     return (
       <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-red-600">
         <p className="font-semibold">Error loading notifications</p>
-        <p className="text-sm">{error?.message || "Something went wrong"}</p>
+        <p className="text-sm">Something went wrong. Please try again.</p>
         <button
           onClick={() => refetch()}
           className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700"

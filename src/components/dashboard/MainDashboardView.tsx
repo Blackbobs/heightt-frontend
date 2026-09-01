@@ -16,12 +16,12 @@ import {
   Clock,
   FileText,
   ExternalLink,
-  Loader2,
 } from "lucide-react";
 import { cn, koboToNaira } from "@/lib/utils";
 import { useDashboardData } from "@/hooks/queries/useDashboard";
 import { DueAssignment } from "@/lib/api/finance";
 import type { OrganizationMembership } from "@/lib/api/organizations";
+import { HeighttLoader } from "@/components/ui/HeighttLoader";
 
 export function MainDashboardView() {
   const { data, isLoading, isError, error, refetch, isFetching } =
@@ -107,7 +107,7 @@ export function MainDashboardView() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 text-[#1a5cff] animate-spin" />
+          <HeighttLoader label="Loading dashboard" />
           <span className="text-sm text-[#5b6d89] font-medium">
             Loading dashboard...
           </span>

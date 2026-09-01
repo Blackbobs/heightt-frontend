@@ -68,7 +68,6 @@ interface OnboardingPersonalInfo {
   middleName?: string;
   gender: Gender;
   country?: string;
-  avatar?: string;
 }
 
 interface CompleteOnboardingPayload {
@@ -177,7 +176,6 @@ export function OnboardingFlow() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [middleName, setMiddleName] = useState("");
-  const [avatar, setAvatar] = useState("");
   const [studentId, setStudentId] = useState("");
   const [gender, setGender] = useState("");
   const [country, setCountry] = useState("");
@@ -251,11 +249,7 @@ export function OnboardingFlow() {
     onError: (error: any) => {
       console.error("Failed to complete onboarding:", error);
       setIsSubmitting(false);
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Failed to complete onboarding. Please try again.";
-      setSubmitError(errorMessage);
+      setSubmitError('Failed to complete onboarding. Please try again.');
     },
   });
 
@@ -360,7 +354,6 @@ export function OnboardingFlow() {
       ...(middleName.trim() ? { middleName: middleName.trim() } : {}),
       gender: gender as Gender,
       ...(country.trim() ? { country: country.trim() } : {}),
-      ...(avatar.trim() ? { avatar: avatar.trim() } : {}),
     };
     const completion: CompleteOnboardingPayload = {
       firstName: firstName.trim(),
@@ -580,20 +573,6 @@ export function OnboardingFlow() {
                   className="w-full pl-10 pr-4 py-3 rounded-xl border-[1.5px] border-slate-200 text-sm font-medium text-[#0b1a33] bg-[#f8faff] outline-none transition-all focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10"
                 />
               </div>
-            </div>
-
-            {/* Avatar */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase text-[#1f2a44] opacity-70 tracking-wider">
-                Profile Photo URL (Optional)
-              </label>
-              <input
-                type="url"
-                value={avatar}
-                onChange={(e) => setAvatar(e.target.value)}
-                placeholder="https://example.com/photo.jpg"
-                className="w-full px-4 py-3 rounded-xl border-[1.5px] border-slate-200 text-sm font-medium text-[#0b1a33] bg-[#f8faff] outline-none transition-all focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10"
-              />
             </div>
 
             {/* Gender */}

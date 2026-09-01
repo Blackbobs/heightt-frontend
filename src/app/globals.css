@@ -203,6 +203,111 @@
   animation-play-state: paused;
 }
 
+/* Heightt's branded page and content loader */
+.heightt-loader {
+  width: 88px;
+  height: 88px;
+  overflow: visible;
+}
+
+.loader-track {
+  fill: none;
+  stroke: #2a66e8;
+  stroke-width: 5;
+  opacity: 0.08;
+}
+
+.loader-ring {
+  fill: none;
+  stroke: #2a66e8;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 380 970;
+  transform-origin: 250px 250px;
+  animation: heightt-loader-ring 2s linear infinite;
+}
+
+.heightt-reveal-mask {
+  mask-type: alpha;
+}
+
+.heightt-draw-mask {
+  fill: none;
+  stroke: white;
+  stroke-width: 72;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.heightt-draw-mask-left {
+  animation: heightt-draw-left 2s ease-in-out infinite;
+}
+
+.heightt-draw-mask-middle {
+  animation: heightt-draw-middle 2s ease-in-out infinite;
+}
+
+.heightt-draw-mask-right {
+  animation: heightt-draw-right 2s ease-in-out infinite;
+}
+
+.heightt-actual-mark {
+  animation: heightt-mark-fade 2s ease-in-out infinite;
+}
+
+@keyframes heightt-draw-left {
+  0%, 5% { stroke-dashoffset: 1; }
+  42%, 82% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -1; }
+}
+
+@keyframes heightt-draw-middle {
+  0%, 16% { stroke-dashoffset: 1; }
+  55%, 82% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -1; }
+}
+
+@keyframes heightt-draw-right {
+  0%, 29% { stroke-dashoffset: 1; }
+  68%, 82% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -1; }
+}
+
+@keyframes heightt-mark-fade {
+  0%, 94%, 100% { opacity: 0; }
+  8%, 82% { opacity: 1; }
+}
+
+@keyframes heightt-loader-ring {
+  0% {
+    transform: rotate(-90deg);
+    stroke-dasharray: 60 1290;
+    opacity: 0.35;
+  }
+  35% { stroke-dasharray: 300 1050; opacity: 0.8; }
+  70% { stroke-dasharray: 520 830; opacity: 1; }
+  100% {
+    transform: rotate(270deg);
+    stroke-dasharray: 60 1290;
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader-ring,
+  .heightt-draw-mask,
+  .heightt-actual-mark {
+    animation: none;
+    opacity: 1;
+  }
+
+  .heightt-draw-mask {
+    stroke-dashoffset: 0;
+  }
+}
+
 /* Framer badge style */
 .framer-badge {
   display: inline-flex;

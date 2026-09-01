@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
-import { Loader2 } from "lucide-react";
+import { HeighttLoader } from "@/components/ui/HeighttLoader";
 
 // Routes that don't require authentication
 const PUBLIC_ROUTES = [
@@ -153,7 +153,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-[#f8faff]">
           <div className="flex flex-col items-center gap-3">
-            <Loader2 className="w-8 h-8 text-[#1a5cff] animate-spin" />
+            <HeighttLoader label="Checking your account" />
             <span className="text-sm text-[#5b6d89] font-medium">
               Loading...
             </span>

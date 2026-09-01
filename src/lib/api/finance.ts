@@ -22,17 +22,50 @@ export interface DueItem {
   updatedAt: string;
 }
 
-export interface DueAssignment {
+export type DueSessionCategory = "CURRENT" | "PREVIOUS" | "ALL_SESSIONS";
+
+export interface StudentDueItem {
   id: string;
   dueId: string;
   studentId: string;
   amount: number;
   isPaid: boolean;
-  paidAt?: string;
-  createdAt: string;
-  updatedAt: string;
-  due: DueItem;
-  isAutoAssigned: boolean; // Add this property
+  paidAt: string | null;
+  isAutoAssigned: boolean;
+  sessionCategory: DueSessionCategory;
+  isOutstanding: boolean;
+  isArrear: boolean;
+  canPay: boolean;
+  due: Omit<DueItem, "description" | "sessionId" | "organization"> & {
+    description?: string | null;
+    sessionId?: string | null;
+    session?: {
+      id: string;
+      name: string;
+      status: "UPCOMING" | "ACTIVE" | "COMPLETED" | "ARCHIVED";
+      isCurrent: boolean;
+    } | null;
+    organization: {
+      id: string;
+      name: string;
+      slug?: string;
+    };
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/** Kept as an alias for dashboard consumers of the previous API shape. */
+export type DueAssignment = StudentDueItem;
+
+export function groupStudentDues(items: StudentDueItem[]) {
+  return {
+    arrears: items.filter((item) => item.isArrear),
+    current: items.filter((item) => item.sessionCategory === "CURRENT"),
+    allSessions: items.filter(
+      (item) => item.sessionCategory === "ALL_SESSIONS",
+    ),
+  };
 }
 
 export interface Transaction {
@@ -215,15 +248,9 @@ export interface IdempotencyKeyResponse {
 
 export const financeApi = {
   // Get dues for the authenticated user - updated to use the correct endpoint
-  getMyDues: async (): Promise<DueAssignment[]> => {
-    try {
-      // Use the correct endpoint that fetches all dues across all organizations
-      const response = await axiosConfig.get("/finance/dues/student");
-      return response.data || [];
-    } catch (error) {
-      console.error("Failed to fetch dues:", error);
-      return [];
-    }
+  getMyDues: async (): Promise<StudentDueItem[]> => {
+    const response = await axiosConfig.get("/finance/dues/student");
+    return response.data || [];
   },
 
   // Get all dues with filters
@@ -258,23 +285,15 @@ export const financeApi = {
     startDate?: string;
     endDate?: string;
   }): Promise<PaginatedResponse<Transaction>> => {
-    try {
-      const response = await axiosConfig.get("/finance/transactions", {
-        params,
-      });
-      return (
-        response.data || {
-          data: [],
-          meta: { page: 1, limit: 10, total: 0, totalPages: 0 },
-        }
-      );
-    } catch (error) {
-      console.error("Failed to fetch transactions:", error);
-      return {
+    const response = await axiosConfig.get("/finance/transactions", {
+      params,
+    });
+    return (
+      response.data || {
         data: [],
         meta: { page: 1, limit: 10, total: 0, totalPages: 0 },
-      };
-    }
+      }
+    );
   },
 
   getPaymentHistory: async (
@@ -316,23 +335,15 @@ export const financeApi = {
     endDate?: string;
     organizationId?: string;
   }): Promise<PaginatedResponse<Receipt>> => {
-    try {
-      const response = await axiosConfig.get("/finance/receipts", {
-        params,
-      });
-      return (
-        response.data || {
-          data: [],
-          meta: { page: 1, limit: 10, total: 0, totalPages: 0 },
-        }
-      );
-    } catch (error) {
-      console.error("Failed to fetch receipts:", error);
-      return {
+    const response = await axiosConfig.get("/finance/receipts", {
+      params,
+    });
+    return (
+      response.data || {
         data: [],
         meta: { page: 1, limit: 10, total: 0, totalPages: 0 },
-      };
-    }
+      }
+    );
   },
 
   // Get a specific receipt
@@ -384,7 +395,10 @@ export const financeApi = {
   ): Promise<PaymentStatusResult> => {
     const response = await axiosConfig.get(
       `/finance/payments/pending/${encodeURIComponent(pendingPaymentId)}/status`,
-      { headers: { "Cache-Control": "no-store" } },
+      {
+        withCredentials: true,
+        headers: { "Cache-Control": "no-store" },
+      },
     );
     return response.data?.data || response.data;
   },

@@ -10,20 +10,15 @@ export function useReceipts(params?: {
   endDate?: string;
   organizationId?: string;
 }) {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   
   return useQuery({
-    queryKey: queryKeys.finance.receipts(params),
+    queryKey: [...queryKeys.finance.receipts(params), user?.id],
     queryFn: async () => {
-      try {
-        const result = await financeApi.getReceipts(params);
-        return result?.data || [];
-      } catch (error) {
-        console.error('Error fetching receipts:', error);
-        return [];
-      }
+      const result = await financeApi.getReceipts(params);
+      return result?.data || [];
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!user?.id,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
