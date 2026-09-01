@@ -16,6 +16,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { useCurrentUser, useUpdateProfile } from '@/hooks/queries/useUser';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { toast } from 'sonner';
+import { HeighttLoader } from '@/components/ui/HeighttLoader';
 
 // Commented out — not needed for current release
 // const NOTIFICATION_SETTINGS = [
@@ -199,7 +200,7 @@ export function SettingsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[300px]">
-        <Loader2 className="w-8 h-8 text-[#1a5cff] animate-spin" />
+        <HeighttLoader label="Loading settings" />
       </div>
     );
   }

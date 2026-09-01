@@ -24,6 +24,7 @@ import { useReceipts, useDownloadReceipt } from "@/hooks/queries/useReceipts";
 import { Receipt as ReceiptType } from "@/lib/api/finance";
 import { generateReceiptPdf } from "@/lib/pdf/generateReceiptPdf";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { HeighttLoader } from "@/components/ui/HeighttLoader";
 
 interface ReceiptItem {
   id: string;
@@ -376,7 +377,7 @@ export function ReceiptsPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          <HeighttLoader label="Loading receipts" />
           <span className="text-sm text-muted-foreground font-medium">Loading receipts...</span>
         </div>
       </div>

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth-store";
+import { HeighttLoader } from "@/components/ui/HeighttLoader";
 
 const OTP_LENGTH = 6;
 const RESEND_COOLDOWN = 30;
@@ -316,7 +317,7 @@ export function VerifyEmailCard() {
       {/* Verifying with token */}
       {isVerifying && verificationToken && (
         <div className="flex flex-col items-center justify-center py-8">
-          <div className="w-12 h-12 border-4 border-[#1a5cff] border-t-transparent rounded-full animate-spin mb-4" />
+          <HeighttLoader className="mb-4" label="Verifying your email" />
           <p className="text-[#5b6d89]">Verifying your email...</p>
         </div>
       )}

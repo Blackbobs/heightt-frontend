@@ -6,9 +6,9 @@ import { Sidebar } from "@/components/dashboard/Sidebar";
 import { BottomNav } from "@/components/dashboard/BottomNav";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { MainDashboardView } from "@/components/dashboard/MainDashboardView";
+import { HeighttLoader } from "@/components/ui/HeighttLoader";
 import { useAuthStore } from "@/store/auth-store";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
 
 export default function DashboardPage() {
   const { user, isAuthenticated, isInitialized } = useAuthStore();
@@ -19,7 +19,7 @@ export default function DashboardPage() {
     return (
       <div className="flex h-screen bg-[#f0f2f5] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 text-[#1a5cff] animate-spin" />
+          <HeighttLoader label="Loading dashboard" />
           <span className="text-sm text-[#5b6d89] font-medium">Loading...</span>
         </div>
       </div>

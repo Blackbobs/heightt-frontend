@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Building2 } from "lucide-react";
 import { PaymentSuccessView } from "@/components/payments/PaymentSuccessView";
-import { Loader2 } from "lucide-react";
+import { HeighttLoader } from "@/components/ui/HeighttLoader";
 
 export const metadata: Metadata = {
   title: "Payment Successful — Heightt",
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 function SuccessFallback() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
-      <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+      <HeighttLoader label="Loading payment confirmation" />
       <span className="text-sm font-medium text-slate-500">
         Loading payment confirmation...
       </span>

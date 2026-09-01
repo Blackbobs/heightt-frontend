@@ -21,6 +21,7 @@ import {
   useMarkAllNotificationsAsRead,
 } from "@/hooks/queries/useCommunication";
 import { Notification } from "@/lib/api/communication";
+import { HeighttLoader } from "@/components/ui/HeighttLoader";
 
 const NOTIFICATION_ICONS: Record<string, React.ReactNode> = {
   SYSTEM: <Shield className="w-4 h-4 text-[#1a5cff]" />,
@@ -216,7 +217,7 @@ export function NotificationsPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 text-[#1a5cff] animate-spin" />
+          <HeighttLoader label="Loading notifications" />
           <span className="text-sm text-[#5b6d89] font-medium">
             Loading notifications...
           </span>

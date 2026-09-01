@@ -17,12 +17,12 @@ import {
   MessageCircle,
   Copy,
   Check,
-  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { financeApi, PaymentStatusResult } from "@/lib/api/finance";
 import { useAuthStore } from "@/store/auth-store";
 import { SUPPORT_EMAIL } from "@/lib/seo";
+import { HeighttLoader } from "@/components/ui/HeighttLoader";
 
 interface PaymentCancelledViewProps {
   isEmbeddedInDashboard?: boolean;
@@ -167,9 +167,7 @@ export function PaymentCancelledView({
   if (isCheckingStatus) {
     return (
       <div className="w-full max-w-md mx-auto py-16 px-4 text-center">
-        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-50">
-          <Loader2 className="h-10 w-10 text-amber-500 animate-spin" />
-        </div>
+        <HeighttLoader className="mx-auto mb-5" label="Checking payment status" />
         <h1 className="text-xl font-bold text-[#0b1a33]">
           Checking payment status
         </h1>

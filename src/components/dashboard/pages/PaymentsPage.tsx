@@ -30,6 +30,7 @@ import {
   normalisePaymentConflict,
 } from "@/lib/api/finance";
 import { queryKeys } from "@/lib/api/keys";
+import { HeighttLoader } from "@/components/ui/HeighttLoader";
 import { toast } from "sonner";
 
 type Tab = "all" | "unpaid" | "paid";
@@ -199,7 +200,7 @@ export function PaymentsPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          <HeighttLoader label="Loading your dues" />
           <span className="text-sm text-muted-foreground font-medium">
             Loading your dues...
           </span>

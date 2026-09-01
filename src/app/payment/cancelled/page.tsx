@@ -1,8 +1,9 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Building2, Loader2 } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { PaymentCancelledView } from "@/components/payments/PaymentCancelledView";
+import { HeighttLoader } from "@/components/ui/HeighttLoader";
 
 export const metadata: Metadata = {
   title: "Payment Cancelled — Heightt",
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 function CancelledFallback() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
-      <Loader2 className="w-8 h-8 text-amber-600 animate-spin" />
+      <HeighttLoader label="Loading payment status" />
       <span className="text-sm font-medium text-slate-500">
         Loading status...
       </span>

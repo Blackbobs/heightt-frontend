@@ -4,6 +4,7 @@
 
 import { useEffect } from "react";
 import { useAuthStore } from "@/store/auth-store";
+import { HeighttLoader } from "@/components/ui/HeighttLoader";
 
 export function AuthInitializer({ children }: { children: React.ReactNode }) {
   const { initialize, restoreSession, isInitialized } = useAuthStore();
@@ -33,7 +34,7 @@ export function AuthInitializer({ children }: { children: React.ReactNode }) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-4 border-[#1a5cff] border-t-transparent rounded-full animate-spin" />
+          <HeighttLoader label="Loading Heightt" />
           <span className="text-sm text-[#5b6d89] font-medium">Loading...</span>
         </div>
       </div>
