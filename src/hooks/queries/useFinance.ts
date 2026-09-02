@@ -36,7 +36,7 @@ export interface DueAssignment {
 
 export interface Transaction {
   id: string;
-  walletId: string;
+  walletId?: string;
   type: "CREDIT" | "DEBIT" | "TRANSFER" | "FEE" | "REFUND" | "REVERSAL";
   amount: number;
   fee: number;
@@ -63,7 +63,7 @@ export interface Receipt {
   payerName: string;
   payerEmail: string;
   payerPhone?: string;
-  paymentMethod: "CARD" | "BANK_TRANSFER" | "USSD" | "QR_CODE" | "WALLET";
+  paymentMethod: "CARD" | "BANK_TRANSFER" | "USSD" | "QR_CODE";
   paymentDate: string;
   description?: string;
   organizationName?: string;

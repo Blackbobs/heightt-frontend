@@ -16,14 +16,6 @@ import { ScrollReveal } from '@/components/ui/ScrollReveal';
 
 const upcomingFeatures = [
   {
-    icon: Wallet,
-    title: 'Wallets & Savings',
-    description: 'Fund your Heightt wallet and save gradually towards upcoming campus expenses.',
-    status: 'Coming Soon',
-    badgeClass: 'bg-primary/10 text-primary border-primary/20',
-    dotClass: 'bg-primary animate-pulse',
-  },
-  {
     icon: Ticket,
     title: 'Event Tickets',
     description: 'Create campus events, sell tickets and verify attendees digitally.',
@@ -46,14 +38,6 @@ const upcomingFeatures = [
     status: 'Coming Soon',
     badgeClass: 'bg-primary/10 text-primary border-primary/20',
     dotClass: 'bg-primary animate-pulse',
-  },
-  {
-    icon: Users2,
-    title: 'Group Savings',
-    description: 'Save towards shared goals with friends, classmates and student communities.',
-    status: 'Planned',
-    badgeClass: 'bg-amber-500/10 text-amber-700 border-amber-500/20',
-    dotClass: 'bg-amber-500',
   },
   {
     icon: Store,

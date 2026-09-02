@@ -167,8 +167,7 @@ export const useAuthStore = create<AuthState>()(
 
           return response.data;
         } catch (error) {
-          console.error("fetchCurrentUser - Error:", error);
-          // If unauthorized, clear the user
+          // If unauthorized, clear the user silently
           if ((error as any)?.response?.status === 401) {
             set({
               user: null,

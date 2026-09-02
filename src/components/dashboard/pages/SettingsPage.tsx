@@ -21,7 +21,6 @@ import { HeighttLoader } from '@/components/ui/HeighttLoader';
 // Commented out — not needed for current release
 // const NOTIFICATION_SETTINGS = [
 //   { label: 'Payment Alerts', desc: 'Get notified for every payment', key: 'payment_alerts' },
-//   { label: 'Savings Reminders', desc: 'Weekly reminders for your goals', key: 'savings_reminders' },
 //   { label: 'Event Announcements', desc: 'Upcoming events near your campus', key: 'event_announcements' },
 //   { label: 'Departmental Updates', desc: 'News from your department & faculty', key: 'dept_updates' },
 // ];

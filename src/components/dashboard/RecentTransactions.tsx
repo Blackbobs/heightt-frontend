@@ -12,11 +12,9 @@ interface Transaction {
 }
 
 const TRANSACTIONS: Transaction[] = [
-  { desc: 'Wallet Funding',     meta: 'Card • **42 • Nov 12',     amount: '+₦50,000', type: 'credit' },
   { desc: 'SUG Levy Payment',   meta: 'Student Union • Oct 28',   amount: '−₦5,000',  type: 'debit'  },
   { desc: 'Faculty Week Ticket',meta: 'Faculty of Science • Oct 22',amount: '−₦2,500',type: 'debit'  },
   { desc: 'ICT Conference Fee', meta: 'NACOSS • Oct 20',           amount: '−₦8,000', type: 'debit'  },
-  { desc: 'Wallet Funding',     meta: 'Bank Transfer • Oct 15',    amount: '+₦30,000', type: 'credit' },
 ];
 
 export function RecentTransactions() {

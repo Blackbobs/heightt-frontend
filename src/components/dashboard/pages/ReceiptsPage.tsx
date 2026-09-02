@@ -35,7 +35,7 @@ interface ReceiptItem {
   amountFormatted: string;
   date: string;
   rawDate: string;
-  type: "payment" | "funding" | "ticket";
+  type: "payment" | "ticket";
   payerName?: string;
   payerEmail?: string;
   paymentMethod?: string;
@@ -44,11 +44,10 @@ interface ReceiptItem {
 
 const TYPE_CONFIG: Record<string, { label: string; bg: string; text: string; dot: string }> = {
   payment: { label: "Payment", bg: "bg-blue-50", text: "text-blue-700", dot: "bg-blue-500" },
-  funding:  { label: "Funding", bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
   ticket:   { label: "Ticket",  bg: "bg-violet-50",  text: "text-violet-700",  dot: "bg-violet-500"  },
 };
 
-const TABS = ["All", "Dues", "Funding", "Tickets"];
+const TABS = ["All", "Dues", "Tickets"];
 
 function formatNaira(amount: number) {
   return new Intl.NumberFormat("en-NG", {
@@ -290,9 +289,8 @@ export function ReceiptsPage() {
   const receiptItems = useMemo<ReceiptItem[]>(() => {
     if (!receipts || receipts.length === 0) return [];
     return receipts.map((r: ReceiptType) => {
-      let type: "payment" | "funding" | "ticket" = "payment";
-      if (r.paymentMethod === "WALLET" || r.description?.toLowerCase().includes("funding")) type = "funding";
-      else if (r.description?.toLowerCase().includes("ticket") || r.description?.toLowerCase().includes("event")) type = "ticket";
+      let type: "payment" | "ticket" = "payment";
+      if (r.description?.toLowerCase().includes("ticket") || r.description?.toLowerCase().includes("event")) type = "ticket";
 
       const amount = (r.totalAmount ?? r.amount ?? 0) / 100;
 
@@ -325,7 +323,7 @@ export function ReceiptsPage() {
   );
 
   const filtered = useMemo(() => {
-    const tabMap: Record<string, string> = { Dues: "payment", Funding: "funding", Tickets: "ticket" };
+    const tabMap: Record<string, string> = { Dues: "payment", Tickets: "ticket" };
     return receiptItems.filter((r) => {
       const tabMatch = tab === "All" || r.type === tabMap[tab];
       const searchMatch =

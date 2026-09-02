@@ -46,7 +46,7 @@ export const faqs = [
   },
   {
     number: "07",
-    question: "Are savings, wallets and event tickets available?",
+    question: "Are event tickets available?",
     answer: [
       "Not yet.",
       "These are part of the Heightt roadmap and will be clearly marked as Coming Soon until they become available.",

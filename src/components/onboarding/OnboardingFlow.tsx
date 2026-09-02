@@ -466,14 +466,6 @@ export function OnboardingFlow() {
 
               <div className="grid grid-cols-2 gap-3 text-left mb-6">
                 <div className="flex items-center gap-2.5 p-3 rounded-xl bg-[#f8faff] border border-slate-100 text-xs font-semibold text-[#0b1a33]">
-                  <Wallet className="w-4 h-4 text-[#1a5cff] shrink-0" />
-                  Smart Wallet
-                </div>
-                <div className="flex items-center gap-2.5 p-3 rounded-xl bg-[#f8faff] border border-slate-100 text-xs font-semibold text-[#0b1a33]">
-                  <Target className="w-4 h-4 text-[#1a5cff] shrink-0" />
-                  Goal Savings
-                </div>
-                <div className="flex items-center gap-2.5 p-3 rounded-xl bg-[#f8faff] border border-slate-100 text-xs font-semibold text-[#0b1a33]">
                   <Ticket className="w-4 h-4 text-[#1a5cff] shrink-0" />
                   Event Tickets
                 </div>
@@ -911,19 +903,7 @@ export function OnboardingFlow() {
                   <span className="w-6 h-6 rounded-full bg-white text-[#1a5cff] font-bold flex items-center justify-center shrink-0 border border-slate-200">
                     1
                   </span>
-                  <span>Fund your wallet to start paying dues</span>
-                </div>
-                <div className="flex items-center gap-3 text-xs font-semibold text-[#0b1a33]">
-                  <span className="w-6 h-6 rounded-full bg-white text-[#1a5cff] font-bold flex items-center justify-center shrink-0 border border-slate-200">
-                    2
-                  </span>
                   <span>Check out your organization's dues and events</span>
-                </div>
-                <div className="flex items-center gap-3 text-xs font-semibold text-[#0b1a33]">
-                  <span className="w-6 h-6 rounded-full bg-white text-[#1a5cff] font-bold flex items-center justify-center shrink-0 border border-slate-200">
-                    3
-                  </span>
-                  <span>Set up a savings goal for upcoming expenses</span>
                 </div>
               </div>
 

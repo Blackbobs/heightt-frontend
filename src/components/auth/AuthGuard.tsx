@@ -28,7 +28,6 @@ const PROTECTED_ROUTES = [
   "/dashboard",
   "/profile",
   "/settings",
-  "/wallet",
   "/organizations",
 ];
 
@@ -37,7 +36,6 @@ const ONBOARDING_REQUIRED_ROUTES = [
   "/dashboard",
   "/profile",
   "/settings",
-  "/wallet",
   "/organizations",
 ];
 

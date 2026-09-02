@@ -13,7 +13,6 @@ import {
   QrCode,
   Sparkles,
   Receipt,
-  Wallet,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
