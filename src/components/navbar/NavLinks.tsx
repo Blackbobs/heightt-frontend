@@ -15,7 +15,6 @@ export const navItems: NavItem[] = [
   { label: 'For Executives', href: '#for-executives' },
   { label: 'How It Works', href: '#how-it-works' },
   { label: 'Why Heightt', href: '#why-heightt' },
-  { label: 'Coming Soon', href: '#coming-soon' },
   { label: 'FAQ', href: '#faq' },
 ];
 
@@ -37,7 +36,7 @@ export function NavLinks({ className = '', onClick }: NavLinksProps) {
         .map((item) => item.href.replace('#', ''))
         .filter(Boolean);
 
-      const scrollPosition = window.scrollY + 160;
+      const scrollPosition = window.scrollY + 120;
 
       for (const sectionId of sections) {
         const el = document.getElementById(sectionId);
@@ -51,7 +50,7 @@ export function NavLinks({ className = '', onClick }: NavLinksProps) {
         }
       }
 
-      if (window.scrollY < 200) {
+      if (window.scrollY < 150) {
         setActiveSection('');
       }
     };
@@ -89,11 +88,9 @@ export function NavLinks({ className = '', onClick }: NavLinksProps) {
   };
 
   return (
-    <ul className={cn('flex items-center gap-6 xl:gap-8 list-none', className)}>
+    <ul className={cn('flex items-center gap-6 xl:gap-8 list-none m-0 p-0', className)}>
       {navItems.map((item) => {
-        const isActive =
-          activeSection === item.href ||
-          (pathname === '/' && activeSection === item.href);
+        const isActive = activeSection === item.href;
 
         return (
           <li key={item.href}>
@@ -101,13 +98,15 @@ export function NavLinks({ className = '', onClick }: NavLinksProps) {
               href={item.href}
               onClick={(e) => handleClick(e, item)}
               className={cn(
-                'text-sm font-medium text-muted-foreground transition-all duration-300 ease-in-out py-2 relative no-underline hover:text-foreground cursor-pointer whitespace-nowrap',
-                isActive && 'text-primary font-semibold'
+                'text-sm font-medium transition-colors py-1 relative no-underline cursor-pointer whitespace-nowrap',
+                isActive
+                  ? 'text-[#2563EB] font-semibold'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-[#0B1020] dark:hover:text-white'
               )}
             >
               {item.label}
               {isActive && (
-                <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full" />
+                <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-[#2563EB] rounded-full" />
               )}
             </Link>
           </li>

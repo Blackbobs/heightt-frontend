@@ -1,115 +1,113 @@
 'use client';
 
+import React from 'react';
 import Image from 'next/image';
-import {
-  FileSpreadsheet,
-  Image as ImageIcon,
-  MessageSquareWarning,
-  Clock,
-  Sparkles,
-} from 'lucide-react';
-import { ScrollReveal } from '@/components/ui/ScrollReveal';
 
-const painPoints = [
+const problemPoints = [
   {
-    icon: ImageIcon,
-    title: 'Payment screenshots everywhere',
-    description: 'Students send transfer proofs through WhatsApp, forcing executives to verify each receipt manually.',
+    step: '01',
+    title: 'Students send transfers',
+    desc: 'Fragmented manual transfers across different bank apps without automatic tracking.',
   },
   {
-    icon: FileSpreadsheet,
-    title: 'Endless spreadsheets',
-    description: 'Names, matric numbers, and amounts have to be entered and reconciled row by row.',
+    step: '02',
+    title: 'Executives manually confirm',
+    desc: 'Executive members spend endless hours cross-checking transaction alerts and chats.',
   },
   {
-    icon: MessageSquareWarning,
-    title: '“Have you paid?”',
-    description: 'Executives constantly chase students and search bank statements just to know who is cleared.',
+    step: '03',
+    title: 'Screenshots get lost',
+    desc: 'Payment proofs disappear in busy WhatsApp group threads and unorganized galleries.',
   },
   {
-    icon: Clock,
-    title: 'Reporting takes hours',
-    description: 'Scattered chats and spreadsheets make financial handovers and audits exhausting.',
+    step: '04',
+    title: 'Receipts are hard to verify',
+    desc: 'Paper receipts or screenshot images can be forged, misplaced, or disputed.',
   },
 ];
 
 export function ProblemSection() {
   return (
     <section
-      id="problem"
-      className="py-20 md:py-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative overflow-hidden"
+      id="why-heightt"
+      className="py-16 sm:py-20 bg-[#F8FAFC] dark:bg-[#0B1020] border-b border-[#E2E8F0] dark:border-slate-800 transition-colors"
     >
-      {/* Background Accent */}
-      <div className="absolute top-1/2 right-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[140px] pointer-events-none -z-10" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Section Header */}
+        <div className="max-w-3xl mb-12">
+          <div className="text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-2">
+            THE CURRENT FRAGMENTED SYSTEM
+          </div>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#0B1020] dark:text-white leading-tight tracking-tight">
+            Dues shouldn't require screenshots, spreadsheets and endless messages.
+          </h2>
+          <p className="mt-4 text-base text-slate-600 dark:text-slate-300 leading-relaxed">
+            Traditional campus dues collection relies on fragmented processes that drain time and create confusion for everyone involved.
+          </p>
+        </div>
 
-      {/* 2-Column Split: Image alone on the Left, Clean Scannable Text on the Right */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
-        {/* Left: Image Alone with responsive height */}
-        <ScrollReveal direction="right" className="lg:col-span-6 w-full">
-          <div className="relative w-full h-[360px] sm:h-[460px] lg:h-[500px] rounded-3xl overflow-hidden shadow-2xl border border-border/80 group bg-slate-950">
+        {/* 2-Column Split: Image Mockup on Left, Points on Right */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          
+          {/* Left Column: Platform Image Mockup */}
+          <div className="lg:col-span-5 relative w-full h-[320px] sm:h-[400px] lg:h-[440px] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg bg-slate-950">
             <Image
               src="/Page 19.png"
               alt="Heightt Platform Mockup"
               fill
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+              sizes="(max-width: 1024px) 100vw, 40vw"
+              className="object-cover object-center"
               priority
             />
           </div>
-        </ScrollReveal>
 
-        {/* Right: Clean, High-Scannability Text */}
-        <ScrollReveal direction="left" className="lg:col-span-6 flex flex-col gap-6">
+          {/* Right Column: Structured Grid of Fragmented Problems */}
+          <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {problemPoints.map((item) => (
+              <div
+                key={item.step}
+                className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-lg p-5 flex flex-col justify-between"
+              >
+                <div>
+                  <span className="text-xs font-mono font-bold text-slate-400 dark:text-slate-500 mb-2 block">
+                    {item.step}
+                  </span>
+                  <h3 className="text-sm font-bold text-[#0B1020] dark:text-white mb-2 leading-snug">
+                    {item.title}
+                  </h3>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    {item.desc}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+        </div>
+
+        {/* Strong Typography Transition */}
+        <div className="mt-12 p-6 sm:p-8 bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-6">
           <div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold mb-3">
-              <Sparkles className="w-3.5 h-3.5" />
-              The Old Way is Exhausting
+            <div className="text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+              THE HEIGHTT SOLUTION
             </div>
-
-            <h2 className="font-display text-3xl sm:text-4xl lg:text-[2.65rem] font-extrabold tracking-tight text-foreground leading-[1.12]">
-              Managing student dues shouldn't{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-glow to-primary">
-                feel like a full-time job.
-              </span>
-            </h2>
-
-            <p className="text-sm sm:text-base text-muted-foreground mt-3 leading-relaxed">
-              Collecting dues still means bank transfers, WhatsApp group chats, and manually updating spreadsheets. It works — until you're dealing with hundreds of students.
+            <h3 className="text-xl sm:text-2xl font-bold text-[#0B1020] dark:text-white">
+              Heightt puts everything in one place.
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1">
+              Direct due assignment, instant online payments, verified digital receipts, and clear financial history.
             </p>
           </div>
 
-          {/* 4 Clean Scannable Points */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-            {painPoints.map((item, idx) => {
-              const Icon = item.icon;
+          <a
+            href="#how-it-works"
+            className="px-5 py-2.5 bg-[#0B1020] dark:bg-white text-white dark:text-[#0B1020] font-semibold text-xs rounded-md hover:opacity-90 transition-opacity whitespace-nowrap"
+          >
+            See How It Works →
+          </a>
+        </div>
 
-              return (
-                <div
-                  key={idx}
-                  className="p-4 rounded-2xl bg-white border border-border/70 shadow-sm hover:border-primary/30 transition-colors"
-                >
-                  <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-2.5">
-                    <Icon className="w-4 h-4" />
-                  </div>
-                  <h3 className="text-sm font-bold text-foreground mb-1 leading-snug">
-                    {item.title}
-                  </h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    {item.description}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Bottom Highlight Callout */}
-          <div className="pt-2">
-            <div className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-primary bg-primary/5 border border-primary/15 px-4 py-2.5 rounded-xl">
-              <Sparkles className="w-4 h-4 text-primary shrink-0" />
-              <span>Heightt brings everything together into one automated system.</span>
-            </div>
-          </div>
-        </ScrollReveal>
       </div>
     </section>
   );

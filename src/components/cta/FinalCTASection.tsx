@@ -1,10 +1,8 @@
 'use client';
 
-import Image from 'next/image';
+import React from 'react';
 import Link from 'next/link';
-import { ArrowRight, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { ScrollReveal } from '@/components/ui/ScrollReveal';
+import Image from 'next/image';
 import { useAuthStore } from '@/store/auth-store';
 
 export function FinalCTASection() {
@@ -13,104 +11,63 @@ export function FinalCTASection() {
   const dashboardHref = needsOnboarding ? '/onboarding' : '/dashboard';
 
   return (
-    <section className="w-full relative overflow-hidden">
-      <ScrollReveal direction="up">
-        <div className="bg-white border-y border-border shadow-[0_8px_48px_rgba(0,0,0,0.06)] relative overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-12 items-stretch">
+    <section className="bg-[#0B1020] text-white py-16 sm:py-24 border-b border-slate-800 transition-colors overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+          
+          {/* Left Text Column */}
+          <div className="lg:col-span-7 space-y-6 text-left">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight">
+              Your campus payments. <br />
+              <span className="text-[#2563EB]">Finally organised.</span>
+            </h2>
 
-            {/* Left: CTA Text Content */}
-            <div className="lg:col-span-7 p-8 sm:p-14 md:p-20 lg:pl-24 xl:pl-32 flex flex-col justify-center gap-6 relative">
-              {/* Subtle ambient glow */}
-              <div className="absolute -top-20 -left-20 w-80 h-80 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+            <p className="text-base sm:text-lg text-slate-300 max-w-xl leading-relaxed">
+              Join Heightt and keep every due, payment and receipt in one place. Less time chasing payments, zero spreadsheet head-aches.
+            </p>
 
-              <div className="relative z-10 flex flex-col gap-5">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold w-fit">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Simple setup · No card required to start
-                </div>
-
-                <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-foreground leading-[1.1]">
-                  Still managing dues <br className="hidden sm:inline" />
-                  with spreadsheets?
-                </h2>
-
-                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-lg">
-                  There's a better way. Bring your organisation to Heightt and spend less time chasing payments, updating spreadsheets and verifying screenshots.
-                </p>
-
-                <p className="text-sm font-semibold text-foreground">
-                  Let Heightt handle the records while you focus on running your organisation.
-                </p>
-
-                {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-3 mt-1">
-                  {isAuthenticated && user ? (
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      className="font-bold rounded-2xl px-8 py-3.5 shadow-[0_10px_30px_rgba(26,92,255,0.3)] hover:shadow-[0_14px_36px_rgba(26,92,255,0.4)] hover:scale-105 transition-all duration-300 cursor-pointer"
-                      asChild
-                    >
-                      <Link href={dashboardHref}>
-                        {needsOnboarding ? 'Complete Onboarding' : 'Go to Dashboard'}
-                        <ArrowRight className="ml-2 w-4 h-4" />
-                      </Link>
-                    </Button>
-                  ) : (
-                    <>
-                      <Button
-                        variant="primary"
-                        size="lg"
-                        className="font-bold rounded-2xl px-8 py-3.5 shadow-[0_10px_30px_rgba(26,92,255,0.3)] hover:shadow-[0_14px_36px_rgba(26,92,255,0.4)] hover:scale-105 transition-all duration-300 cursor-pointer"
-                        asChild
-                      >
-                        <Link href="/signup">
-                          Get Started with Heightt
-                          <ArrowRight className="ml-2 w-4 h-4" />
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="lg"
-                        className="font-bold rounded-2xl px-8 py-3.5 cursor-pointer"
-                        asChild
-                      >
-                        <Link href="/signin">Sign In</Link>
-                      </Button>
-                    </>
-                  )}
-                </div>
-
-                {/* Reassurance pills */}
-                <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-muted-foreground">
-                  <span className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Free for students
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Instant verifiable receipts
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> 2-min onboarding
-                  </span>
-                </div>
-              </div>
+            <div className="flex flex-wrap items-center gap-4 pt-2">
+              {isAuthenticated && user ? (
+                <Link
+                  href={dashboardHref}
+                  className="px-8 py-3.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold rounded-lg text-sm transition-colors"
+                >
+                  {needsOnboarding ? 'Complete Onboarding' : 'Go to Dashboard'}
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/signup"
+                    className="px-8 py-3.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold rounded-lg text-sm transition-colors"
+                  >
+                    Create your account
+                  </Link>
+                  <Link
+                    href="/signin"
+                    className="px-6 py-3.5 text-slate-300 hover:text-white font-semibold text-sm transition-colors inline-flex items-center gap-1"
+                  >
+                    <span>Already have an account? Sign in</span>
+                    <span>→</span>
+                  </Link>
+                </>
+              )}
             </div>
-
-            {/* Right: 196920 (1).png image */}
-            <div className="lg:col-span-5 relative min-h-[320px] lg:min-h-0">
-              <Image
-                src="/196920 (1).png"
-                alt="Heightt Platform Preview"
-                fill
-                sizes="(max-width: 1024px) 100vw, 42vw"
-                className="object-cover object-center"
-                priority
-              />
-            </div>
-
           </div>
+
+          {/* Right Image Column */}
+          <div className="lg:col-span-5 relative w-full h-[300px] sm:h-[380px] lg:h-[420px] rounded-2xl overflow-hidden border border-slate-800 shadow-2xl bg-slate-950">
+            <Image
+              src="/196920 (1).png"
+              alt="Heightt Mobile & Web Platform"
+              fill
+              sizes="(max-width: 1024px) 100vw, 42vw"
+              className="object-cover object-center"
+              priority
+            />
+          </div>
+
         </div>
-      </ScrollReveal>
+      </div>
     </section>
   );
 }

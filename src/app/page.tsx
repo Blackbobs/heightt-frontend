@@ -1,9 +1,13 @@
 import { HeroSection } from '@/components/hero/HeroSection';
+import { TrustStrip } from '@/components/trust/TrustStrip';
 import { ProblemSection } from '@/components/problem/ProblemSection';
 import { AudienceSection } from '@/components/audience/AudienceSection';
 import { HowItWorksSection } from '@/components/how-it-works/HowItWorksSection';
-import { FinalCTASection } from '@/components/cta/FinalCTASection';
+import { ReceiptsSection } from '@/components/receipts/ReceiptsSection';
+import { TransparencySection } from '@/components/transparency/TransparencySection';
+import { RoadmapSection } from '@/components/roadmap/RoadmapSection';
 import { FAQSection } from '@/components/faq/FAQSection';
+import { FinalCTASection } from '@/components/cta/FinalCTASection';
 import { faqs } from '@/lib/faq';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL, SOCIAL_IMAGE, SUPPORT_EMAIL } from '@/lib/seo';
 import type { Metadata } from 'next';
@@ -85,22 +89,34 @@ export default function Home() {
           __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
         }}
       />
-      {/* HERO */}
+      {/* 1. HERO */}
       <HeroSection />
 
-      {/* THE PROBLEM */}
+      {/* 2. TRUST STRIP */}
+      <TrustStrip />
+
+      {/* 3. THE PROBLEM */}
       <ProblemSection />
 
-      {/* FOR STUDENTS + FOR EXECUTIVES (toggle) */}
+      {/* 4. FOR STUDENTS & FOR EXECUTIVES */}
       <AudienceSection />
 
-      {/* HOW IT WORKS */}
+      {/* 5. HOW IT WORKS */}
       <HowItWorksSection />
 
-      {/* FAQ */}
+      {/* 6. RECEIPTS */}
+      <ReceiptsSection />
+
+      {/* 7. TRANSPARENCY */}
+      <TransparencySection />
+
+      {/* 8. COMING SOON / ROADMAP */}
+      <RoadmapSection />
+
+      {/* 9. FAQ */}
       <FAQSection />
 
-      {/* FINAL CTA */}
+      {/* 10. FINAL CTA */}
       <FinalCTASection />
     </main>
   );

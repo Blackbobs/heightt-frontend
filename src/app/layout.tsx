@@ -72,24 +72,28 @@ export const viewport = {
   userScalable: false,
 };
 
+import { ThemeProvider } from "@/providers/ThemeProvider";
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen flex flex-col">
-        <QueryProvider>
-          <AcademicNotificationListener />
-          <AppLayout>
-            <AuthInitializer>
-            <AuthGuard>
-            {children}
-            </AuthGuard>
-            </AuthInitializer>
-          </AppLayout>
-        </QueryProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className="min-h-screen flex flex-col bg-[#F8FAFC] dark:bg-[#0B1020] text-[#0B1020] dark:text-[#F8FAFC] antialiased">
+        <ThemeProvider>
+          <QueryProvider>
+            <AcademicNotificationListener />
+            <AppLayout>
+              <AuthInitializer>
+                <AuthGuard>
+                  {children}
+                </AuthGuard>
+              </AuthInitializer>
+            </AppLayout>
+          </QueryProvider>
+        </ThemeProvider>
         <RegisterSW />
         <PWAInstallPrompt />
         <Toaster position="top-center" richColors closeButton />

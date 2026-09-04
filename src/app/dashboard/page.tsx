@@ -17,10 +17,10 @@ export default function DashboardPage() {
   // Show loading state while checking auth or fetching user
   if (!isInitialized || !user) {
     return (
-      <div className="flex h-screen bg-[#f0f2f5] items-center justify-center">
+      <div className="flex h-screen bg-[#F8FAFC] dark:bg-[#0B1020] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <HeighttLoader label="Loading dashboard" />
-          <span className="text-sm text-[#5b6d89] font-medium">Loading...</span>
+          <span className="text-sm text-slate-500 font-medium">Loading...</span>
         </div>
       </div>
     );
@@ -32,12 +32,11 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex h-screen bg-[#f0f2f5] overflow-hidden">
+    <div className="flex h-screen bg-[#F8FAFC] dark:bg-[#0B1020] text-[#0B1020] dark:text-[#F8FAFC] overflow-hidden transition-colors">
       <Sidebar />
       <div className="flex flex-col flex-1 min-w-0 h-full">
         <DashboardHeader pageTitle="Dashboard" user={user} onNotificationClick={() => {
-          // Custom notification click handler
-          router.push("/notifications");
+          router.push("/dashboard/notifications");
         }} />
         <main className="flex-1 overflow-y-auto pb-20 lg:pb-0">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

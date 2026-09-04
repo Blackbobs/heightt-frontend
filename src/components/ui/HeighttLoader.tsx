@@ -45,8 +45,8 @@ export function HeighttLoader({
         />
       </mask>
 
-      <circle className="loader-track" cx="250" cy="250" r="210" />
-      <circle className="loader-ring" cx="250" cy="250" r="210" />
+      <circle className="loader-track" fill="none" cx="250" cy="250" r="210" />
+      <circle className="loader-ring" fill="none" cx="250" cy="250" r="210" />
 
       <image
         className="heightt-actual-mark"

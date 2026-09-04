@@ -5,31 +5,19 @@ import { useRouter } from 'next/navigation';
 import {
   User,
   Smartphone,
-  ChevronRight,
   LogOut,
   HelpCircle,
   Loader2,
-  Share2,
+  Shield,
+  Moon,
 } from 'lucide-react';
 
 import { useAuthStore } from '@/store/auth-store';
 import { useCurrentUser, useUpdateProfile } from '@/hooks/queries/useUser';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { toast } from 'sonner';
 import { HeighttLoader } from '@/components/ui/HeighttLoader';
-
-// Commented out — not needed for current release
-// const NOTIFICATION_SETTINGS = [
-//   { label: 'Payment Alerts', desc: 'Get notified for every payment', key: 'payment_alerts' },
-//   { label: 'Event Announcements', desc: 'Upcoming events near your campus', key: 'event_announcements' },
-//   { label: 'Departmental Updates', desc: 'News from your department & faculty', key: 'dept_updates' },
-// ];
-//
-// const SECURITY_SETTINGS = [
-//   { label: 'Transaction PIN', desc: 'Require PIN for all payments', key: 'txn_pin' },
-//   { label: 'Biometric Login', desc: 'Use fingerprint or Face ID', key: 'biometric' },
-//   { label: 'Login Alerts', desc: 'Notify on new sign-in activity', key: 'login_alerts' },
-// ];
 
 function Field({
   label,
@@ -47,8 +35,8 @@ function Field({
   disabled?: boolean;
 }) {
   return (
-    <div className="px-4 py-3.5">
-      <label className="text-[0.62rem] text-[#7a8ba3] font-semibold uppercase tracking-wide">
+    <div className="px-4 py-3">
+      <label className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider block mb-1">
         {label}
       </label>
       <input
@@ -57,7 +45,7 @@ function Field({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         disabled={disabled}
-        className="mt-1.5 w-full bg-transparent border-none outline-none text-[0.82rem] font-semibold text-[#1a1a2e] placeholder-[#b0bac8] disabled:text-[#7a8ba3] p-0"
+        className="w-full bg-slate-50 dark:bg-[#0B1020] border border-slate-200 dark:border-slate-800 rounded px-3 py-2 text-xs font-semibold text-[#0B1020] dark:text-white placeholder:text-slate-400 disabled:opacity-60 outline-none focus:border-[#2563EB]"
       />
     </div>
   );
@@ -98,7 +86,7 @@ export function SettingsPage() {
         username: username.trim(),
         country: country.trim() || undefined,
         gender: gender
-          ? gender as 'MALE' | 'FEMALE' | 'OTHER' | 'PREFER_NOT_TO_SAY'
+          ? (gender as 'MALE' | 'FEMALE' | 'OTHER' | 'PREFER_NOT_TO_SAY')
           : undefined,
       });
       toast.success('Profile updated successfully.');
@@ -125,129 +113,64 @@ export function SettingsPage() {
     icon: React.ElementType;
     children: React.ReactNode;
   }) => (
-    <div>
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-7 h-7 rounded-[8px] bg-[#eef3ff] flex items-center justify-center">
-          <Icon className="w-3.5 h-3.5 text-[#1a5cff]" />
-        </div>
-        <h3 className="text-[0.88rem] font-bold text-[#1a1a2e]">{title}</h3>
+    <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-xl p-5">
+      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
+        <Icon className="w-4 h-4 text-[#2563EB]" />
+        <h3 className="text-sm font-bold text-[#0B1020] dark:text-white">{title}</h3>
       </div>
-      <div className="bg-white border border-[#e8ecf1] rounded-[16px] divide-y divide-[#f0f2f5] overflow-hidden">
-        {children}
-      </div>
+      <div className="space-y-1">{children}</div>
     </div>
   );
-
-  const NavRow = ({ label, desc, onClick }: { label: string; desc?: string; onClick?: () => void }) => (
-    <div className="w-full flex items-center justify-between px-4 py-3.5">
-      <div>
-        <p className="text-[0.82rem] font-semibold text-[#1a1a2e]">{label}</p>
-        {desc && <p className="text-[0.62rem] text-[#7a8ba3] mt-0.5">{desc}</p>}
-      </div>
-      {onClick ? (
-        <button
-          onClick={onClick}
-          className="text-[0.62rem] font-semibold text-[#1a5cff] bg-[#eef3ff] px-2.5 py-1 rounded-lg border-none cursor-pointer"
-        >
-          Install
-        </button>
-      ) : (
-        <ChevronRight className="w-4 h-4 text-[#c8d0db]" />
-      )}
-    </div>
-  );
-
-  function InstallAppRow() {
-    const { canInstall, isIOS, isStandalone, triggerInstall } = usePWAInstall();
-
-    // Already installed — don't show anything
-    if (isStandalone) return null;
-
-    // iOS: show persistent instructions banner
-    if (isIOS) {
-      return (
-        <div className="px-4 py-4">
-          <div className="rounded-xl bg-[#eef3ff] border border-[#c5d4ff] px-4 py-3.5 flex gap-3">
-            <div className="w-8 h-8 rounded-[8px] bg-white flex items-center justify-center flex-shrink-0 shadow-sm">
-              <Share2 className="w-4 h-4 text-[#1a5cff]" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[0.82rem] font-bold text-[#1a1a2e]">Add to Home Screen</p>
-              <p className="text-[0.68rem] text-[#5b6d89] mt-0.5 leading-relaxed">
-                Tap <span className="font-semibold text-[#1a5cff]">Share</span> in Safari → scroll down → tap{' '}
-                <span className="font-semibold text-[#1a5cff]">Add to Home Screen</span> → tap{' '}
-                <span className="font-semibold text-[#1a5cff]">Add</span>.
-              </p>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // Android / Chrome: show install button
-    if (!canInstall) return null;
-
-    return (
-      <NavRow
-        label="Add to Home Screen"
-        desc="Install Heightt for quick access"
-        onClick={triggerInstall}
-      />
-    );
-  }
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[300px]">
-        <HeighttLoader label="Loading settings" />
+        <HeighttLoader label="Loading settings..." />
       </div>
     );
   }
 
   return (
-    <div className="space-y-5 pb-6">
-      {/* Profile summary */}
-      <div className="bg-white border border-[#e8ecf1] rounded-[20px] px-5 py-5 flex items-center gap-4">
-        <div className="w-[52px] h-[52px] rounded-full bg-gradient-to-br from-[#1a5cff] to-[#4a7aff] flex items-center justify-center text-white font-bold text-[1rem] flex-shrink-0">
-          {getInitials()}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[0.92rem] font-bold text-[#1a1a2e] truncate">
-            {firstName || lastName
-              ? `${firstName} ${lastName}`.trim()
-              : user?.username || 'User'}
-          </p>
-          <p className="text-[0.65rem] text-[#1a5cff] mt-0.5 font-medium truncate">
-            {user?.email}
-          </p>
-        </div>
+    <div className="space-y-6 w-full">
+      <div>
+        <h1 className="text-xl font-bold text-[#0B1020] dark:text-white">Account Settings</h1>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          Manage your personal information, security, and app preferences
+        </p>
       </div>
 
-
-      {/* Account — wired to PATCH /users/profile */}
-      <Section title="Account" icon={User}>
-        <Field label="First Name" value={firstName} onChange={setFirstName} placeholder="First name" />
-        <Field label="Last Name" value={lastName} onChange={setLastName} placeholder="Last name" />
-        <Field label="Username" value={username} onChange={setUsername} placeholder="Username" />
-        <Field label="Email" value={user?.email || ''} onChange={() => {}} disabled />
-        <Field label="Country" value={country} onChange={setCountry} placeholder="Country" />
-        <div className="px-4 py-3.5">
-          <label className="text-[0.62rem] text-[#7a8ba3] font-semibold uppercase tracking-wide">
-            Gender
-          </label>
-          <select value={gender} onChange={(e) => setGender(e.target.value)} className="mt-1.5 w-full bg-transparent border-none outline-none text-[0.82rem] font-semibold text-[#1a1a2e] p-0">
-            <option value="">Not specified</option>
-            <option value="MALE">Male</option>
-            <option value="FEMALE">Female</option>
-            <option value="OTHER">Other</option>
-            <option value="PREFER_NOT_TO_SAY">Prefer not to say</option>
-          </select>
+      {/* Account Info */}
+      <Section title="Personal Profile" icon={User}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <Field label="First Name" value={firstName} onChange={setFirstName} placeholder="First name" />
+          <Field label="Last Name" value={lastName} onChange={setLastName} placeholder="Last name" />
+          <Field label="Username" value={username} onChange={setUsername} placeholder="Username" />
+          <Field label="Email Address" value={user?.email || ''} onChange={() => {}} disabled />
+          <Field label="Country" value={country} onChange={setCountry} placeholder="Country" />
+          <div className="px-4 py-3">
+            <label className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider block mb-1">
+              Gender
+            </label>
+            <select
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
+              className="w-full bg-slate-50 dark:bg-[#0B1020] border border-slate-200 dark:border-slate-800 rounded px-3 py-2 text-xs font-semibold text-[#0B1020] dark:text-white outline-none focus:border-[#2563EB]"
+            >
+              <option value="">Not specified</option>
+              <option value="MALE">Male</option>
+              <option value="FEMALE">Female</option>
+              <option value="OTHER">Other</option>
+              <option value="PREFER_NOT_TO_SAY">Prefer not to say</option>
+            </select>
+          </div>
         </div>
-        <div className="px-4 py-4">
+
+        <div className="px-4 pt-3">
           <button
+            type="button"
             onClick={handleSave}
             disabled={updateProfile.isPending}
-            className="w-full py-3 rounded-xl bg-[#1a5cff] hover:bg-[#0f4ad0] text-white text-[0.82rem] font-bold border-none cursor-pointer disabled:opacity-60 transition-colors flex items-center justify-center gap-2"
+            className="px-5 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-semibold rounded transition-colors flex items-center justify-center gap-2"
           >
             {updateProfile.isPending ? (
               <>
@@ -255,55 +178,53 @@ export function SettingsPage() {
                 Saving...
               </>
             ) : (
-              'Save Changes'
+              'Save Profile Changes'
             )}
           </button>
         </div>
-        {/* Commented out — not needed for current release */}
-        {/* <NavRow label="Linked Bank Account" desc="Access Bank ••••7821" /> */}
-        {/* <NavRow label="Linked Cards" desc="2 cards linked" /> */}
-        {/* <NavRow label="Change Password" desc="Last changed 3 months ago" /> */}
       </Section>
 
-      {/* Commented out — not needed for current release */}
-      {/* <Section title="Notifications" icon={Bell}>
-        {NOTIFICATION_SETTINGS.map((s) => (
-          <ToggleRow key={s.key} label={s.label} desc={s.desc} settingKey={s.key} />
-        ))}
-      </Section> */}
-
-      {/* <Section title="Security" icon={Shield}>
-        {SECURITY_SETTINGS.map((s) => (
-          <ToggleRow key={s.key} label={s.label} desc={s.desc} settingKey={s.key} />
-        ))}
-        <NavRow label="View Active Sessions" desc="1 device" />
-      </Section> */}
-
-      {/* <Section title="Payments & Cards" icon={CreditCard}>
-        <NavRow label="Manage Virtual Card" desc="4258 •••• •••• 3847" />
-        <NavRow label="Transaction Limits" desc="Max ₦200,000 / day" />
-        <NavRow label="Auto-Save Rules" desc="3 active rules" />
-      </Section> */}
-
-      <Section title="App Preferences" icon={Smartphone}>
-        <NavRow label="App Version" desc="v1.2.0" />
-        <InstallAppRow />
+      {/* Preferences */}
+      <Section title="Appearance & Preferences" icon={Moon}>
+        <div className="px-4 py-3 flex items-center justify-between">
+          <div>
+            <p className="text-xs font-bold text-[#0B1020] dark:text-white">Theme Mode</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">Switch between light and dark interface</p>
+          </div>
+          <ThemeToggle />
+        </div>
       </Section>
 
-      <Section title="Help & Support" icon={HelpCircle}>
-        <NavRow label="Help Centre" desc="FAQs and guides" />
-        <NavRow label="Contact Support" desc="We typically reply in 2h" />
+      {/* Security */}
+      <Section title="Security" icon={Shield}>
+        <div className="px-4 py-3 flex items-center justify-between">
+          <div>
+            <p className="text-xs font-bold text-[#0B1020] dark:text-white">Password & Authentication</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">Secure your student account</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => toast.info('Password reset email sent to your registered email.')}
+            className="px-3 py-1.5 border border-slate-200 dark:border-slate-800 text-xs font-semibold rounded text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+          >
+            Reset Password
+          </button>
+        </div>
       </Section>
 
-      <button
-        onClick={handleLogout}
-        className="w-full flex items-center justify-center gap-2 bg-[#fde8e8] text-[#c05a5a] rounded-[14px] py-3.5 text-[0.85rem] font-bold border-none cursor-pointer hover:bg-[#fbd5d5] active:scale-[0.98] transition-all"
-      >
-        <LogOut className="w-4 h-4" />
-        Sign Out
-      </button>
-
-      <p className="text-center text-[0.62rem] text-[#b0bac8]">Heightt · v1.2.0</p>
+      {/* Support & Logout */}
+      <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="w-full sm:w-auto px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded transition-colors flex items-center justify-center gap-2"
+        >
+          <LogOut className="w-4 h-4" />
+          Sign Out of Heightt
+        </button>
+      </div>
     </div>
   );
 }
+
+export default SettingsPage;

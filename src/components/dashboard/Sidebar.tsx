@@ -1,19 +1,17 @@
-// src/components/dashboard/Sidebar.tsx
-
-"use client";
+'use client';
 
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  LayoutDashboard,
+  Home,
+  CreditCard,
+  History,
   Receipt,
   Bell,
-  Megaphone,
+  User,
   Settings,
   LogOut,
-  CreditCard,
-  Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth-store';
@@ -21,15 +19,15 @@ import { useCurrentUser } from '@/hooks/queries/useUser';
 import { Logo } from '@/components/ui/Logo';
 
 const NAV_ITEMS = [
-  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, exact: true },
+  { label: 'Home', href: '/dashboard', icon: Home, exact: true },
   { label: 'Dues', href: '/dashboard/payments', icon: CreditCard },
-  { label: 'Organizations', href: '/dashboard/organizations', icon: Users },
+  { label: 'Transactions', href: '/dashboard/transactions', icon: History },
   { label: 'Receipts', href: '/dashboard/receipts', icon: Receipt },
-  { label: 'Announcements', href: '/dashboard/announcements', icon: Megaphone },
-  { label: 'Notifications', href: '/notifications', icon: Bell },
+  { label: 'Notifications', href: '/dashboard/notifications', icon: Bell },
 ];
 
-const BOTTOM_ITEMS = [
+const BOTTOM_NAV_ITEMS = [
+  { label: 'Profile', href: '/dashboard/profile', icon: User },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
@@ -39,23 +37,21 @@ export function Sidebar() {
   const { user, logout } = useAuthStore();
   const { data: userData } = useCurrentUser();
 
-  // Use user from store or from hook
   const currentUser = user || userData;
 
-  const getInitials = () => {
-    if (!currentUser?.profile) return 'U';
-    const firstName = currentUser.profile.firstName || '';
-    const lastName = currentUser.profile.lastName || '';
-    return `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase() || 'U';
-  };
-
   const getDisplayName = () => {
-    if (!currentUser?.profile) return 'User';
+    if (!currentUser?.profile) return 'Student User';
     const firstName = currentUser.profile.firstName || '';
     const lastName = currentUser.profile.lastName || '';
     const fullName = `${firstName} ${lastName}`.trim();
     if (fullName) return fullName;
-    return currentUser.username || currentUser.email?.split('@')[0] || 'User';
+    return currentUser.username || currentUser.email?.split('@')[0] || 'Student User';
+  };
+
+  const getAcademicInfo = () => {
+    const student = currentUser?.studentProfile;
+    const level = student?.currentAcademicLevel?.name || '300 Level';
+    return `Computer Science • ${level}`;
   };
 
   const handleLogout = async () => {
@@ -63,22 +59,19 @@ export function Sidebar() {
       await logout();
       router.push('/signin');
     } catch (error) {
-      console.error('Logout failed:', error);
       router.push('/signin');
     }
   };
 
-  const initials = getInitials();
-  const displayName = getDisplayName();
   return (
-    <aside className="hidden lg:flex flex-col w-[230px] flex-shrink-0 bg-[#F8FAFC] border-r border-border h-screen sticky top-0 font-sans">
+    <aside className="hidden lg:flex flex-col w-[220px] flex-shrink-0 bg-white dark:bg-[#0B1020] border-r border-[#E2E8F0] dark:border-slate-800 h-screen sticky top-0 font-sans transition-colors">
       {/* Logo */}
-      <div className="px-5 pt-6 pb-5">
+      <div className="px-5 py-5 border-b border-[#E2E8F0] dark:border-slate-800">
         <Logo />
       </div>
 
-      {/* Primary nav */}
-      <nav className="flex-1 px-3 flex flex-col gap-1 overflow-y-auto">
+      {/* Main Nav */}
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {NAV_ITEMS.map(({ label, href, icon: Icon, exact }) => {
           const active = exact
             ? pathname === href
@@ -88,66 +81,58 @@ export function Sidebar() {
               key={href}
               href={href}
               className={cn(
-                'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[0.82rem] font-semibold transition-all duration-150 no-underline',
+                'flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold transition-colors no-underline',
                 active
-                  ? 'bg-primary/10 text-primary font-bold shadow-sm'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  ? 'bg-[#2563EB] text-white'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0B1020] dark:hover:text-white'
               )}
             >
-              <Icon
-                className={cn('w-[18px] h-[18px] flex-shrink-0', active ? 'text-primary' : 'opacity-60')}
-              />
-              {label}
+              <Icon className={cn('w-4 h-4 flex-shrink-0', active ? 'text-white' : 'text-slate-400')} />
+              <span>{label}</span>
             </Link>
           );
         })}
+      </nav>
 
-        <div className="border-t border-border my-2 mx-2" />
-
-        {BOTTOM_ITEMS.map(({ label, href, icon: Icon }) => {
+      {/* Bottom Section */}
+      <div className="p-3 border-t border-[#E2E8F0] dark:border-slate-800 space-y-1">
+        {BOTTOM_NAV_ITEMS.map(({ label, href, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(`${href}/`);
           return (
             <Link
               key={href}
               href={href}
               className={cn(
-                'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[0.82rem] font-semibold transition-all duration-150 no-underline',
+                'flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold transition-colors no-underline',
                 active
-                  ? 'bg-primary/10 text-primary font-bold'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  ? 'bg-[#2563EB] text-white'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0B1020] dark:hover:text-white'
               )}
             >
-              <Icon className={cn('w-[18px] h-[18px] flex-shrink-0', active ? 'text-primary' : 'opacity-60')} />
-              {label}
+              <Icon className={cn('w-4 h-4 flex-shrink-0', active ? 'text-white' : 'text-slate-400')} />
+              <span>{label}</span>
             </Link>
           );
         })}
-      </nav>
 
-      {/* User footer with logout button */}
-      <div className="px-4 py-4 border-t border-border bg-white/50">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-[34px] h-[34px] rounded-xl bg-primary text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-sm">
-            {initials}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-foreground leading-tight truncate">
-              {displayName}
-            </p>
-            <p className="text-[11px] text-muted-foreground leading-tight truncate mt-0.5">
-              {currentUser?.email || 'Student account'}
-            </p>
-          </div>
+        {/* Student info box */}
+        <div className="mt-3 p-3 rounded-lg bg-[#F8FAFC] dark:bg-[#131B2E] border border-[#E2E8F0] dark:border-slate-800 text-xs">
+          <p className="font-bold text-[#0B1020] dark:text-white truncate">
+            {getDisplayName()}
+          </p>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
+            {getAcademicInfo()}
+          </p>
+          
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="mt-3 w-full py-1.5 px-2 bg-transparent text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Sign out</span>
+          </button>
         </div>
-        
-        {/* Logout Button */}
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-destructive hover:bg-destructive/10 transition-all w-full border-none cursor-pointer"
-        >
-          <LogOut className="w-4 h-4 flex-shrink-0" />
-          Sign out
-        </button>
       </div>
     </aside>
   );
