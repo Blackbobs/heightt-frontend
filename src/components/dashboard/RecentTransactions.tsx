@@ -21,23 +21,23 @@ export function RecentTransactions() {
   return (
     <div className="mb-2">
       <SectionTitle title="Recent transactions" linkLabel="See all" />
-      <div className="bg-white border border-[#e8ecf1] rounded-[16px] divide-y divide-[#f0f2f5] overflow-hidden">
+      <div className="bg-white border border-[#E2E8F0] rounded-2xl divide-y divide-[#F1F5F9] overflow-hidden">
         {TRANSACTIONS.map((tx, i) => (
           <div
             key={i}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-[#fafbff] transition-colors cursor-pointer"
+            className="flex items-center gap-3 px-4 py-3 hover:bg-[#F8FAFC] transition-colors cursor-pointer"
           >
             <div
               className={cn(
                 'w-[34px] h-[34px] rounded-full flex items-center justify-center text-[0.7rem] font-bold flex-shrink-0',
-                tx.type === 'credit' ? 'bg-[#eef3ff] text-[#1a5cff]' : 'bg-[#fde8e8] text-[#c05a5a]'
+                tx.type === 'credit' ? 'bg-[#EFF6FF] text-[#2563EB]' : 'bg-[#fde8e8] text-[#c05a5a]'
               )}
             >
               {tx.type === 'credit' ? '+' : '−'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[0.8rem] font-medium text-[#1a1a2e] truncate">{tx.desc}</p>
-              <p className="text-[0.58rem] text-[#7a8ba3] mt-0.5">{tx.meta}</p>
+              <p className="text-[0.8rem] font-medium text-[#0B1020] truncate">{tx.desc}</p>
+              <p className="text-[0.58rem] text-[#64748B] mt-0.5">{tx.meta}</p>
             </div>
             <span
               className={cn(

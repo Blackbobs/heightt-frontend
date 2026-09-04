@@ -175,27 +175,27 @@ export function VerifyEmailCard() {
       aria-labelledby="verify-heading"
     >
       {/* Icon badge */}
-      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#eef4ff] to-[#dbeafe] flex items-center justify-center mb-6 shadow-[0_4px_16px_rgba(26,92,255,0.12)]">
+      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#EFF6FF] to-[#dbeafe] flex items-center justify-center mb-6 shadow-[0_4px_16px_rgba(26,92,255,0.12)]">
         {isVerified ? (
           <CheckCircle2 className="w-8 h-8 text-[#0f7b4a] animate-bounce" />
         ) : (
-          <Mail className="w-8 h-8 text-[#1a5cff]" />
+          <Mail className="w-8 h-8 text-[#2563EB]" />
         )}
       </div>
 
       <h1
         id="verify-heading"
-        className="text-2xl sm:text-[1.6rem] font-bold text-[#0b1a33] tracking-tight mb-1.5"
+        className="text-2xl sm:text-[1.6rem] font-bold text-[#0B1020] tracking-tight mb-1.5"
       >
         {isVerified ? "Email verified!" : "Check your inbox"}
       </h1>
-      <p className="text-[0.95rem] text-[#5b6d89] mb-7 font-normal leading-snug">
+      <p className="text-[0.95rem] text-[#64748B] mb-7 font-normal leading-snug">
         {isVerified ? (
           "Taking you to your dashboard…"
         ) : (
           <>
             We sent a verification link to&nbsp;
-            <strong className="text-[#1a5cff] font-semibold">{email}</strong>.
+            <strong className="text-[#2563EB] font-semibold">{email}</strong>.
           </>
         )}
       </p>
@@ -234,13 +234,13 @@ export function VerifyEmailCard() {
                 onChange={(e) => handleChange(i, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(i, e)}
                 className={cn(
-                  "flex-1 min-w-0 w-0 h-14 sm:h-16 rounded-[14px] border-[1.5px] text-center text-xl font-bold text-[#0b1a33] bg-[#f8faff] transition-all duration-150",
-                  "focus:outline-none focus:border-[#1a5cff] focus:ring-4 focus:ring-[#1a5cff]/10 focus:bg-white",
+                  "flex-1 min-w-0 w-0 h-14 sm:h-16 rounded-xl border-[1.5px] text-center text-xl font-bold text-[#0B1020] bg-[#F8FAFC] transition-all duration-150",
+                  "focus:outline-none focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/10 focus:bg-white",
                   "placeholder:text-[#c8d6e8]",
                   error
                     ? "border-[#e53e3e] bg-[#fff8f8]"
                     : digit
-                      ? "border-[#1a5cff] bg-[#eef4ff]"
+                      ? "border-[#2563EB] bg-[#EFF6FF]"
                       : "border-[#e2e8f0]",
                 )}
               />
@@ -254,11 +254,11 @@ export function VerifyEmailCard() {
             onClick={handleVerifyOTP}
             disabled={isVerifying || digits.some((d) => !d)}
             className={cn(
-              "w-full mt-4 rounded-[40px] px-5 py-4 text-base font-semibold text-white flex items-center justify-center gap-2",
+              "w-full mt-4 rounded-xl px-5 py-4 text-base font-semibold text-white flex items-center justify-center gap-2",
               "transition-all duration-200 shadow-[0_8px_24px_rgba(26,92,255,0.25)] active:scale-[0.98]",
               isVerifying || digits.some((d) => !d)
                 ? "bg-[#93b4ff] cursor-not-allowed shadow-none"
-                : "bg-[#1a5cff] hover:bg-[#0f4ad0] hover:shadow-[0_12px_28px_rgba(26,92,255,0.3)] cursor-pointer",
+                : "bg-[#2563EB] hover:bg-[#1D4ED8] hover:shadow-[0_12px_28px_rgba(26,92,255,0.3)] cursor-pointer",
             )}
           >
             {isVerifying ? (
@@ -275,12 +275,12 @@ export function VerifyEmailCard() {
           </button>
 
           {/* Resend */}
-          <div className="mt-6 text-center text-[0.88rem] text-[#5b6d89]">
+          <div className="mt-6 text-center text-[0.88rem] text-[#64748B]">
             {canResend ? (
               <button
                 type="button"
                 onClick={handleResend}
-                className="inline-flex items-center gap-1.5 text-[#1a5cff] font-semibold hover:opacity-80 transition-opacity cursor-pointer"
+                className="inline-flex items-center gap-1.5 text-[#2563EB] font-semibold hover:opacity-80 transition-opacity cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 Resend code
@@ -288,7 +288,7 @@ export function VerifyEmailCard() {
             ) : (
               <span>
                 Resend code in{" "}
-                <strong className="text-[#1a5cff] tabular-nums">
+                <strong className="text-[#2563EB] tabular-nums">
                   {countdown}s
                 </strong>
               </span>
@@ -296,18 +296,18 @@ export function VerifyEmailCard() {
           </div>
 
           {/* Wrong email */}
-          <div className="mt-4 text-center text-[0.83rem] text-[#7a8ba3]">
+          <div className="mt-4 text-center text-[0.83rem] text-[#64748B]">
             Wrong email?{" "}
             <Link
               href="/signup"
-              className="text-[#1a5cff] font-semibold hover:border-b hover:border-[#1a5cff] transition-all"
+              className="text-[#2563EB] font-semibold hover:border-b hover:border-[#2563EB] transition-all"
             >
               Go back
             </Link>
           </div>
 
           {/* Demo hint */}
-          <div className="mt-8 text-[0.7rem] text-[#7a8ba3] text-center border-t border-[#edf2f7] pt-4 flex items-center justify-center gap-1.5">
+          <div className="mt-8 text-[0.7rem] text-[#64748B] text-center border-t border-[#edf2f7] pt-4 flex items-center justify-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
             <span>Demo mode · any 6-digit code is accepted</span>
           </div>
@@ -318,7 +318,7 @@ export function VerifyEmailCard() {
       {isVerifying && verificationToken && (
         <div className="flex flex-col items-center justify-center py-8">
           <HeighttLoader className="mb-4" label="Verifying your email" />
-          <p className="text-[#5b6d89]">Verifying your email...</p>
+          <p className="text-[#64748B]">Verifying your email...</p>
         </div>
       )}
     </div>

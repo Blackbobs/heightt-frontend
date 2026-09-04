@@ -35,7 +35,7 @@ export function AuthInitializer({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <HeighttLoader label="Loading Heightt" />
-          <span className="text-sm text-[#5b6d89] font-medium">Loading...</span>
+          <span className="text-sm text-[#64748B] font-medium">Loading...</span>
         </div>
       </div>
     );

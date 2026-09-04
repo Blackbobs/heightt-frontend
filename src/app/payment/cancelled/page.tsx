@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Building2 } from "lucide-react";
 import { PaymentCancelledView } from "@/components/payments/PaymentCancelledView";
 import { HeighttLoader } from "@/components/ui/HeighttLoader";
+import { Logo } from "@/components/ui/Logo";
 
 export const metadata: Metadata = {
   title: "Payment Cancelled — Heightt",
@@ -23,30 +23,28 @@ function CancelledFallback() {
 
 export default function StandalonePaymentCancelledPage() {
   return (
-    <div className="min-h-screen bg-[#f8f9fc] flex flex-col justify-between">
+    <div className="relative flex min-h-screen flex-col justify-between overflow-hidden bg-[#F8FAFC]">
+      <div className="hero-grid pointer-events-none absolute inset-0 opacity-35" aria-hidden="true" />
       {/* Brand Header */}
-      <header className="w-full max-w-5xl mx-auto px-6 py-6 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5 font-bold text-2xl text-[#1a1a2e] no-underline">
-          <Building2 className="w-7 h-7 text-[#1a5cff]" strokeWidth={1.8} />
-          <span>Heightt</span>
-        </Link>
+      <header className="relative z-10 flex w-full items-center justify-between border-b border-slate-200/80 px-5 py-5 sm:px-8 lg:px-12">
+        <Logo />
         <Link
           href="/dashboard"
-          className="text-xs font-semibold text-[#1a5cff] bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-xl transition-colors no-underline"
+          className="rounded-xl border border-[#2563EB]/15 bg-white px-4 py-2 text-xs font-semibold text-[#2563EB] no-underline transition-colors hover:bg-blue-50"
         >
           Go to Dashboard
         </Link>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center px-4 py-6">
+      <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-8">
         <Suspense fallback={<CancelledFallback />}>
           <PaymentCancelledView isEmbeddedInDashboard={false} />
         </Suspense>
       </main>
 
       {/* Footer */}
-      <footer className="w-full text-center py-6 text-xs text-slate-400 border-t border-slate-200/60">
+      <footer className="relative z-10 w-full border-t border-slate-200/60 py-6 text-center font-mono text-[10px] uppercase tracking-[0.1em] text-slate-400">
         <p>© {new Date().getFullYear()} Heightt. Secured Student Payment System.</p>
       </footer>
     </div>

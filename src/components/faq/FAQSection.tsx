@@ -14,14 +14,14 @@ export function FAQSection() {
   return (
     <section
       id="faq"
-      className="py-16 sm:py-24 bg-[#F8FAFC] dark:bg-[#0B1020] border-b border-[#E2E8F0] dark:border-slate-800 transition-colors"
+      className="border-b border-slate-200/80 bg-[#F8FAFC] py-16 dark:border-slate-800 dark:bg-[#0B1020] sm:py-24"
     >
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl px-5 sm:px-6 lg:px-8">
         
-        <div className="text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-2">
+        <div className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#2563EB]">
           FAQ
         </div>
-        <h2 className="text-2xl sm:text-3xl font-bold text-[#0B1020] dark:text-white tracking-tight mb-8">
+        <h2 className="mb-10 mt-3 text-center text-3xl font-semibold tracking-[-0.045em] text-[#0B1020] dark:text-white sm:text-4xl">
           Frequently Asked Questions
         </h2>
 
@@ -32,12 +32,12 @@ export function FAQSection() {
             return (
               <div
                 key={index}
-                className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden transition-colors"
+                className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white transition-colors dark:border-slate-800 dark:bg-[#131B2E]"
               >
                 <button
                   type="button"
                   onClick={() => toggleFAQ(index)}
-                  className="w-full px-5 py-4 flex items-center justify-between gap-4 text-left cursor-pointer"
+                  className="flex w-full cursor-pointer items-center justify-between gap-4 px-5 py-5 text-left sm:px-6"
                 >
                   <span className="text-sm sm:text-base font-bold text-[#0B1020] dark:text-white">
                     {faq.question}

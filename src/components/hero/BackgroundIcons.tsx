@@ -3,7 +3,6 @@
 import {
   CreditCard,
   Coins,
-  Landmark,
   TrendingUp,
   Receipt,
   GraduationCap,
@@ -46,7 +45,7 @@ const icons = [
 
 export function BackgroundIcons() {
   return (
-    <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+    <div className="absolute inset-0 pointer-events-none z-0 hidden md:block overflow-hidden opacity-55 dark:opacity-35" aria-hidden="true">
       {icons.map(({ Icon, size, position, delay, rotation, opacity }, index) => (
         <div
           key={index}

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { ArrowRight, LockKeyhole } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 
 export function FinalCTASection() {
@@ -11,40 +11,43 @@ export function FinalCTASection() {
   const dashboardHref = needsOnboarding ? '/onboarding' : '/dashboard';
 
   return (
-    <section className="bg-[#0B1020] text-white py-16 sm:py-24 border-b border-slate-800 transition-colors overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-          
-          {/* Left Text Column */}
-          <div className="lg:col-span-7 space-y-6 text-left">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight">
+    <section className="relative isolate overflow-hidden border-b border-slate-800 bg-[#0B1020] py-20 text-white sm:py-28">
+      <div className="hero-grid pointer-events-none absolute inset-0 -z-10 opacity-10" aria-hidden="true" />
+      <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#2563EB]/15 blur-3xl" aria-hidden="true" />
+      <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
+          <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-400">Ready when you are</div>
+          <div className="mt-4 space-y-6">
+            <h2 className="text-balance text-4xl font-semibold leading-[0.96] tracking-[-0.06em] text-white sm:text-5xl md:text-6xl">
               Your campus payments. <br />
               <span className="text-[#2563EB]">Finally organised.</span>
             </h2>
 
-            <p className="text-base sm:text-lg text-slate-300 max-w-xl leading-relaxed">
-              Join Heightt and keep every due, payment and receipt in one place. Less time chasing payments, zero spreadsheet head-aches.
+            <p className="mx-auto max-w-xl text-base leading-7 text-slate-300 sm:text-lg">
+              Keep every due, payment, and receipt in one trusted place. No chasing. No spreadsheets. No missing proof.
             </p>
 
-            <div className="flex flex-wrap items-center gap-4 pt-2">
+            <div className="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row">
               {isAuthenticated && user ? (
                 <Link
                   href={dashboardHref}
-                  className="px-8 py-3.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold rounded-lg text-sm transition-colors"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-7 py-3.5 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(37,99,235,0.25)] transition-all hover:-translate-y-0.5 hover:bg-[#1D4ED8] sm:w-auto"
                 >
                   {needsOnboarding ? 'Complete Onboarding' : 'Go to Dashboard'}
+                  <ArrowRight className="size-4" aria-hidden="true" />
                 </Link>
               ) : (
                 <>
                   <Link
                     href="/signup"
-                    className="px-8 py-3.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold rounded-lg text-sm transition-colors"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-7 py-3.5 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(37,99,235,0.25)] transition-all hover:-translate-y-0.5 hover:bg-[#1D4ED8] sm:w-auto"
                   >
                     Create your account
+                    <ArrowRight className="size-4" aria-hidden="true" />
                   </Link>
                   <Link
                     href="/signin"
-                    className="px-6 py-3.5 text-slate-300 hover:text-white font-semibold text-sm transition-colors inline-flex items-center gap-1"
+                    className="inline-flex items-center gap-1 px-4 py-3 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
                   >
                     <span>Already have an account? Sign in</span>
                     <span>→</span>
@@ -52,20 +55,8 @@ export function FinalCTASection() {
                 </>
               )}
             </div>
+            <p className="flex items-center justify-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500 sm:text-[10px]"><LockKeyhole className="size-3.5 text-blue-400" aria-hidden="true" /> Secure payments. Verified receipts.</p>
           </div>
-
-          {/* Right Image Column */}
-          <div className="lg:col-span-5 relative w-full h-[300px] sm:h-[380px] lg:h-[420px] rounded-2xl overflow-hidden border border-slate-800 shadow-2xl bg-slate-950">
-            <Image
-              src="/196920 (1).png"
-              alt="Heightt Mobile & Web Platform"
-              fill
-              sizes="(max-width: 1024px) 100vw, 42vw"
-              className="object-cover object-center"
-              priority
-            />
-          </div>
-
         </div>
       </div>
     </section>

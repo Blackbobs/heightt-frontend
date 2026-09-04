@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   Home,
   CreditCard,
-  History,
+  Building2,
   Receipt,
   Bell,
   User,
@@ -21,7 +21,7 @@ import { Logo } from '@/components/ui/Logo';
 const NAV_ITEMS = [
   { label: 'Home', href: '/dashboard', icon: Home, exact: true },
   { label: 'Dues', href: '/dashboard/payments', icon: CreditCard },
-  { label: 'Transactions', href: '/dashboard/transactions', icon: History },
+  { label: 'Organizations', href: '/dashboard/organizations', icon: Building2 },
   { label: 'Receipts', href: '/dashboard/receipts', icon: Receipt },
   { label: 'Notifications', href: '/dashboard/notifications', icon: Bell },
 ];
@@ -58,7 +58,7 @@ export function Sidebar() {
     try {
       await logout();
       router.push('/signin');
-    } catch (error) {
+    } catch {
       router.push('/signin');
     }
   };

@@ -30,19 +30,19 @@ export function ProblemSection() {
   return (
     <section
       id="why-heightt"
-      className="py-16 sm:py-20 bg-[#F8FAFC] dark:bg-[#0B1020] border-b border-[#E2E8F0] dark:border-slate-800 transition-colors"
+      className="border-b border-slate-200/80 bg-[#F8FAFC] py-16 dark:border-slate-800 dark:bg-[#0B1020] sm:py-24"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="max-w-3xl mb-12">
-          <div className="text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-2">
+        <div className="mx-auto mb-12 max-w-3xl text-center lg:mx-0 lg:text-left">
+          <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#2563EB]">
             THE CURRENT FRAGMENTED SYSTEM
           </div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#0B1020] dark:text-white leading-tight tracking-tight">
-            Dues shouldn't require screenshots, spreadsheets and endless messages.
+          <h2 className="mt-3 text-balance text-3xl font-semibold leading-tight tracking-[-0.045em] text-[#0B1020] dark:text-white sm:text-4xl lg:text-5xl">
+            Dues shouldn&apos;t require screenshots, spreadsheets and endless messages.
           </h2>
-          <p className="mt-4 text-base text-slate-600 dark:text-slate-300 leading-relaxed">
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300 sm:text-base lg:mx-0">
             Traditional campus dues collection relies on fragmented processes that drain time and create confusion for everyone involved.
           </p>
         </div>
@@ -51,7 +51,7 @@ export function ProblemSection() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           
           {/* Left Column: Platform Image Mockup */}
-          <div className="lg:col-span-5 relative w-full h-[320px] sm:h-[400px] lg:h-[440px] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg bg-slate-950">
+          <div className="relative h-[280px] w-full overflow-hidden rounded-3xl border border-slate-200 bg-slate-950 shadow-[0_24px_70px_-36px_rgba(15,42,100,0.4)] dark:border-slate-800 sm:h-[400px] lg:col-span-5 lg:h-[440px]">
             <Image
               src="/Page 19.png"
               alt="Heightt Platform Mockup"
@@ -67,7 +67,7 @@ export function ProblemSection() {
             {problemPoints.map((item) => (
               <div
                 key={item.step}
-                className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-lg p-5 flex flex-col justify-between"
+                className="flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 text-center dark:border-slate-800 dark:bg-[#131B2E] sm:text-left"
               >
                 <div>
                   <span className="text-xs font-mono font-bold text-slate-400 dark:text-slate-500 mb-2 block">
@@ -87,12 +87,12 @@ export function ProblemSection() {
         </div>
 
         {/* Strong Typography Transition */}
-        <div className="mt-12 p-6 sm:p-8 bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div>
-            <div className="text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+        <div className="mt-12 flex flex-col items-center justify-between gap-6 rounded-3xl border border-[#2563EB]/15 bg-[#2563EB]/5 p-7 text-center dark:bg-[#2563EB]/8 sm:flex-row sm:p-9 sm:text-left">
+          <div className="max-w-3xl">
+            <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#2563EB]">
               THE HEIGHTT SOLUTION
             </div>
-            <h3 className="text-xl sm:text-2xl font-bold text-[#0B1020] dark:text-white">
+            <h3 className="mt-2 text-2xl font-semibold tracking-[-0.035em] text-[#0B1020] dark:text-white sm:text-3xl">
               Heightt puts everything in one place.
             </h3>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1">
@@ -102,7 +102,7 @@ export function ProblemSection() {
 
           <a
             href="#how-it-works"
-            className="px-5 py-2.5 bg-[#0B1020] dark:bg-white text-white dark:text-[#0B1020] font-semibold text-xs rounded-md hover:opacity-90 transition-opacity whitespace-nowrap"
+            className="whitespace-nowrap rounded-xl bg-[#0B1020] px-5 py-3 text-xs font-semibold text-white transition-transform hover:-translate-y-0.5 dark:bg-white dark:text-[#0B1020]"
           >
             See How It Works →
           </a>

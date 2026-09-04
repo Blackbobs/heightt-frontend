@@ -244,6 +244,37 @@
   animation: float-icon 8s ease-in-out infinite;
 }
 
+/* Restrained technical texture used by the landing-page hero. */
+.hero-grid {
+  background-image:
+    linear-gradient(to right, rgb(148 163 184 / 0.16) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(148 163 184 / 0.16) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: linear-gradient(to bottom, black 0%, black 56%, transparent 94%);
+}
+
+/* Prevent iOS from zooming compact onboarding controls and obscuring actions. */
+@media (max-width: 639px) {
+  .onboarding-flow input,
+  .onboarding-flow select,
+  .onboarding-flow textarea {
+    font-size: 16px;
+  }
+}
+
+/* Keep older dashboard feature panels coherent while routes migrate to tokens. */
+.dark .dashboard-shell [class~="bg-white"] {
+  background-color: #131B2E;
+}
+
+.dark .dashboard-shell [class*="text-[#0B1020]"] {
+  color: #F8FAFC;
+}
+
+.dark .dashboard-shell [class*="border-[#E2E8F0]"] {
+  border-color: #1E293B;
+}
+
 @keyframes float-slow {
   0%, 100% { transform: translateY(0px) rotate(0deg); }
   50% { transform: translateY(-10px) rotate(2deg); }

@@ -100,7 +100,7 @@ export function VerificationSentCard({
         "w-full max-w-[520px] transition-shadow duration-200",
         borderless
           ? "bg-transparent p-0 border-none shadow-none"
-          : "bg-white p-7 sm:p-9 md:p-10 rounded-[28px] sm:rounded-[32px] shadow-[0_20px_60px_rgba(0,20,40,0.08),0_8px_24px_rgba(0,0,0,0.02)] border border-slate-100",
+          : "bg-white p-7 sm:p-9 md:p-10 rounded-3xl sm:rounded-3xl shadow-[0_20px_60px_rgba(0,20,40,0.08),0_8px_24px_rgba(0,0,0,0.02)] border border-slate-100",
         className,
       )}
       role="main"
@@ -115,42 +115,42 @@ export function VerificationSentCard({
 
       <h1
         id="verify-sent-heading"
-        className="text-2xl sm:text-[1.6rem] font-bold text-[#0b1a33] tracking-tight text-center mb-2"
+        className="text-2xl sm:text-[1.6rem] font-bold text-[#0B1020] tracking-tight text-center mb-2"
       >
         Check your inbox
       </h1>
 
-      <p className="text-[0.95rem] text-[#5b6d89] text-center mb-2 font-normal leading-snug">
+      <p className="text-[0.95rem] text-[#64748B] text-center mb-2 font-normal leading-snug">
         We've sent a verification email to
       </p>
 
-      <p className="text-[1rem] font-semibold text-[#1a5cff] text-center mb-6 break-all">
+      <p className="text-[1rem] font-semibold text-[#2563EB] text-center mb-6 break-all">
         {email}
       </p>
 
       {/* Instructions */}
-      <div className="bg-[#f8faff] rounded-xl p-5 mb-6 border border-[#e2e8f0]">
+      <div className="bg-[#F8FAFC] rounded-xl p-5 mb-6 border border-[#e2e8f0]">
         <div className="flex items-start gap-3">
-          <div className="w-6 h-6 rounded-full bg-[#1a5cff]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <Clock className="w-3.5 h-3.5 text-[#1a5cff]" />
+          <div className="w-6 h-6 rounded-full bg-[#2563EB]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <Clock className="w-3.5 h-3.5 text-[#2563EB]" />
           </div>
           <div>
-            <p className="text-[0.9rem] font-semibold text-[#0b1a33]">
+            <p className="text-[0.9rem] font-semibold text-[#0B1020]">
               What to do next:
             </p>
             <ol className="mt-1 space-y-1.5 text-[0.85rem] text-[#3d4f6b]">
               <li className="flex items-start gap-2">
-                <span className="text-[#1a5cff] font-bold">1.</span>
+                <span className="text-[#2563EB] font-bold">1.</span>
                 <span>Open your email inbox</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-[#1a5cff] font-bold">2.</span>
+                <span className="text-[#2563EB] font-bold">2.</span>
                 <span>
                   Click the <strong>Verify Email</strong> button in the email
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-[#1a5cff] font-bold">3.</span>
+                <span className="text-[#2563EB] font-bold">3.</span>
                 <span>You'll be redirected to complete your profile</span>
               </li>
             </ol>
@@ -162,7 +162,7 @@ export function VerificationSentCard({
       <div className="flex flex-col gap-3 mb-6">
         <button
           onClick={handleGoToInbox}
-          className="w-full rounded-[40px] px-5 py-3.5 bg-[#1a5cff] text-white font-semibold text-[0.95rem] flex items-center justify-center gap-2 transition-all duration-200 hover:bg-[#0f4ad0] hover:shadow-[0_8px_24px_rgba(26,92,255,0.25)] active:scale-[0.98]"
+          className="w-full rounded-xl px-5 py-3.5 bg-[#2563EB] text-white font-semibold text-[0.95rem] flex items-center justify-center gap-2 transition-all duration-200 hover:bg-[#1D4ED8] hover:shadow-[0_8px_24px_rgba(26,92,255,0.25)] active:scale-[0.98]"
         >
           <Mail className="w-4 h-4" />
           Open Gmail
@@ -171,7 +171,7 @@ export function VerificationSentCard({
 
         {/* <button
           onClick={handleContinueToVerification}
-          className="w-full rounded-[40px] px-5 py-3.5 bg-[#f0f4fc] text-[#1a5cff] font-semibold text-[0.95rem] flex items-center justify-center gap-2 transition-all duration-200 hover:bg-[#e2eaf6] active:scale-[0.98] border border-[#d6e2f0]"
+          className="w-full rounded-xl px-5 py-3.5 bg-[#f0f4fc] text-[#2563EB] font-semibold text-[0.95rem] flex items-center justify-center gap-2 transition-all duration-200 hover:bg-[#e2eaf6] active:scale-[0.98] border border-[#d6e2f0]"
         >
           <CheckCircle2 className="w-4 h-4" />I already verified
         </button> */}
@@ -179,7 +179,7 @@ export function VerificationSentCard({
 
       {/* Resend Section */}
       <div className="text-center border-t border-[#edf2f7] pt-5">
-        <p className="text-[0.85rem] text-[#5b6d89] mb-3">
+        <p className="text-[0.85rem] text-[#64748B] mb-3">
           Didn't receive the email? Check your spam folder or
         </p>
 
@@ -202,8 +202,8 @@ export function VerificationSentCard({
           className={cn(
             "inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-[0.9rem] transition-all duration-200",
             canResend && !isResending
-              ? "bg-[#1a5cff] text-white hover:bg-[#0f4ad0] shadow-[0_4px_12px_rgba(26,92,255,0.2)] cursor-pointer"
-              : "bg-[#e8edf5] text-[#7a8ba3] cursor-not-allowed",
+              ? "bg-[#2563EB] text-white hover:bg-[#1D4ED8] shadow-[0_4px_12px_rgba(26,92,255,0.2)] cursor-pointer"
+              : "bg-[#e8edf5] text-[#64748B] cursor-not-allowed",
           )}
         >
           {isResending ? (
@@ -226,18 +226,18 @@ export function VerificationSentCard({
       </div>
 
       {/* Wrong email link */}
-      <div className="mt-5 text-center text-[0.83rem] text-[#7a8ba3]">
+      <div className="mt-5 text-center text-[0.83rem] text-[#64748B]">
         Wrong email?{" "}
         <Link
           href="/signup"
-          className="text-[#1a5cff] font-semibold hover:border-b hover:border-[#1a5cff] transition-all"
+          className="text-[#2563EB] font-semibold hover:border-b hover:border-[#2563EB] transition-all"
         >
           Go back and change it
         </Link>
       </div>
 
       {/* Demo hint */}
-      <div className="mt-6 text-[0.7rem] text-[#7a8ba3] text-center border-t border-[#edf2f7] pt-4 flex items-center justify-center gap-1.5">
+      <div className="mt-6 text-[0.7rem] text-[#64748B] text-center border-t border-[#edf2f7] pt-4 flex items-center justify-center gap-1.5">
         <Sparkles className="w-3.5 h-3.5 text-amber-500" />
         <span>Check your spam folder if you don't see the email</span>
       </div>

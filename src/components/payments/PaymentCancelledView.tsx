@@ -160,7 +160,7 @@ export function PaymentCancelledView({
     return (
       <div className="w-full max-w-md mx-auto py-16 px-4 text-center">
         <HeighttLoader className="mx-auto mb-5" label="Checking payment status" />
-        <h1 className="text-xl font-bold text-[#0b1a33]">
+        <h1 className="text-xl font-bold text-[#0B1020]">
           Checking payment status
         </h1>
         <p className="mt-2 text-sm leading-6 text-slate-500">
@@ -171,12 +171,12 @@ export function PaymentCancelledView({
   }
 
   return (
-    <div className="w-full max-w-xl mx-auto py-4 px-2 sm:px-4 space-y-6 animate-fade-slide-up">
+    <div className="mx-auto w-full max-w-xl space-y-4 px-1 py-4 sm:space-y-5 sm:px-4">
       {/* Cancellation Hero Header Card */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-amber-950/90 via-[#26180f] to-[#1a110a] rounded-3xl p-6 sm:p-8 text-white shadow-2xl border border-amber-500/20 text-center">
+      <div className="relative overflow-hidden rounded-3xl border border-slate-800 bg-[#0B1020] p-6 text-center text-white shadow-[0_24px_70px_rgba(15,42,100,0.18)] sm:p-8">
+        <div className="hero-grid pointer-events-none absolute inset-0 opacity-10" aria-hidden="true" />
         {/* Ambient Glows */}
-        <div className="absolute -top-24 -left-24 w-48 h-48 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-rose-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="pointer-events-none absolute left-1/2 top-0 h-48 w-48 -translate-x-1/2 rounded-full bg-amber-500/15 blur-3xl" />
 
         {/* Badge */}
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/30 text-amber-300 text-xs font-semibold mb-6 backdrop-blur-md">
@@ -186,15 +186,14 @@ export function PaymentCancelledView({
 
         {/* Animated Cancel Icon */}
         <div className="relative mx-auto mb-6 w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center">
-          <div className="absolute inset-0 rounded-full bg-amber-500/10 animate-pulse opacity-75" />
-          <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-amber-600 to-rose-500 flex items-center justify-center shadow-lg shadow-amber-950/50">
+          <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500 sm:h-20 sm:w-20">
             <XCircle className="w-10 h-10 sm:w-12 sm:h-12 text-white stroke-[2.2]" />
           </div>
         </div>
 
         {/* Title */}
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mb-2">
-          Payment Cancelled
+        <h1 className="mb-2 text-2xl font-semibold tracking-[-0.04em] text-white sm:text-3xl">
+          Payment cancelled
         </h1>
         <p className="text-amber-200/80 text-sm max-w-md mx-auto">
           {reason}
@@ -232,7 +231,7 @@ export function PaymentCancelledView({
             {orgName && (
               <div className="flex justify-between items-center text-xs sm:text-sm">
                 <span className="text-slate-500 font-medium">Organization</span>
-                <span className="font-medium text-[#1a5cff] text-right">
+                <span className="font-medium text-[#2563EB] text-right">
                   {orgName}
                 </span>
               </div>
@@ -274,7 +273,7 @@ export function PaymentCancelledView({
       {/* Why might this happen? Troubleshooting Guide */}
       <div className="bg-slate-50 border border-slate-200/80 rounded-3xl p-5 space-y-3">
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
-          <HelpCircle className="w-4 h-4 text-[#1a5cff]" />
+          <HelpCircle className="w-4 h-4 text-[#2563EB]" />
           Common reasons for cancelled payments
         </h3>
 
@@ -290,7 +289,7 @@ export function PaymentCancelledView({
       <div className="space-y-3 pt-2">
         <Link
           href={retryUrl}
-          className="w-full py-3.5 px-6 rounded-2xl bg-[#1a5cff] hover:bg-[#0f4ad0] text-white font-bold text-sm shadow-lg shadow-blue-500/25 transition-all duration-200 flex items-center justify-center gap-2 no-underline cursor-pointer active:scale-[0.99]"
+          className="w-full py-3.5 px-6 rounded-2xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-sm shadow-lg shadow-blue-500/25 transition-all duration-200 flex items-center justify-center gap-2 no-underline cursor-pointer active:scale-[0.99]"
         >
           <RotateCcw className="w-4 h-4" />
           Try Payment Again
@@ -318,7 +317,7 @@ export function PaymentCancelledView({
           <div className="text-center pt-2">
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-[#1a5cff] font-medium no-underline"
+              className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-[#2563EB] font-medium no-underline"
             >
               <Home className="w-3.5 h-3.5" />
               Return to main dashboard

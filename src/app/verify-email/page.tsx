@@ -94,7 +94,7 @@ function VerifyEmailContent() {
         <div
           className={cn(
             "w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-all duration-500",
-            status === "loading" && "bg-gradient-to-br from-[#eef4ff] to-[#dbeafe]",
+            status === "loading" && "bg-gradient-to-br from-[#EFF6FF] to-[#dbeafe]",
             status === "success" && "bg-gradient-to-br from-green-50 to-emerald-100",
             status === "error" && "bg-gradient-to-br from-red-50 to-rose-100"
           )}
@@ -113,7 +113,7 @@ function VerifyEmailContent() {
 
       {/* Title */}
       <h1
-        className="text-2xl sm:text-[1.6rem] font-bold text-[#0b1a33] tracking-tight text-center mb-2"
+        className="text-2xl sm:text-[1.6rem] font-bold text-[#0B1020] tracking-tight text-center mb-2"
       >
         {status === "loading" && "Verifying your email..."}
         {status === "success" && "Email Verified! ✅"}
@@ -124,7 +124,7 @@ function VerifyEmailContent() {
       <p
         className={cn(
           "text-[0.95rem] text-center mb-6 font-normal leading-snug",
-          status === "loading" && "text-[#5b6d89]",
+          status === "loading" && "text-[#64748B]",
           status === "success" && "text-emerald-600",
           status === "error" && "text-red-600"
         )}
@@ -190,10 +190,10 @@ function VerifyEmailContent() {
                 onClick={handleResend}
                 disabled={isResending || !email}
                 className={cn(
-                  "w-full rounded-[40px] px-5 py-3.5 font-semibold text-[0.95rem] flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.98]",
+                  "w-full rounded-xl px-5 py-3.5 font-semibold text-[0.95rem] flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.98]",
                   isResending || !email
-                    ? "bg-[#e8edf5] text-[#7a8ba3] cursor-not-allowed"
-                    : "bg-[#1a5cff] text-white hover:bg-[#0f4ad0] hover:shadow-[0_8px_24px_rgba(26,92,255,0.25)] cursor-pointer"
+                    ? "bg-[#e8edf5] text-[#64748B] cursor-not-allowed"
+                    : "bg-[#2563EB] text-white hover:bg-[#1D4ED8] hover:shadow-[0_8px_24px_rgba(26,92,255,0.25)] cursor-pointer"
                 )}
               >
                 {isResending ? (
@@ -227,7 +227,7 @@ function VerifyEmailContent() {
           {/* Sign In Button */}
           <Link
             href="/signin"
-            className="w-full rounded-[40px] px-5 py-3.5 bg-[#f0f4fc] text-[#1a5cff] font-semibold text-[0.95rem] flex items-center justify-center gap-2 transition-all duration-200 hover:bg-[#e2eaf6] active:scale-[0.98] border border-[#d6e2f0]"
+            className="w-full rounded-xl px-5 py-3.5 bg-[#f0f4fc] text-[#2563EB] font-semibold text-[0.95rem] flex items-center justify-center gap-2 transition-all duration-200 hover:bg-[#e2eaf6] active:scale-[0.98] border border-[#d6e2f0]"
           >
             <span>
               {status === "success" ? "Sign In Now" : "Back to Sign In"}
@@ -240,7 +240,7 @@ function VerifyEmailContent() {
       {/* Loading State */}
       {status === "loading" && (
         <div className="flex flex-col gap-3">
-          <div className="bg-[#f8faff] rounded-xl p-5 border border-[#e2e8f0]">
+          <div className="bg-[#F8FAFC] rounded-xl p-5 border border-[#e2e8f0]">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-[#e8edf5] animate-pulse" />
               <div className="flex-1">
@@ -249,7 +249,7 @@ function VerifyEmailContent() {
               </div>
             </div>
           </div>
-          <div className="flex items-center justify-center gap-2 text-[0.85rem] text-[#5b6d89]">
+          <div className="flex items-center justify-center gap-2 text-[0.85rem] text-[#64748B]">
             <Mail className="w-4 h-4" />
             <span>Checking verification...</span>
           </div>
@@ -257,7 +257,7 @@ function VerifyEmailContent() {
       )}
 
       {/* Help Text */}
-      <div className="mt-6 text-[0.7rem] text-[#7a8ba3] text-center border-t border-[#edf2f7] pt-4 flex items-center justify-center gap-1.5">
+      <div className="mt-6 text-[0.7rem] text-[#64748B] text-center border-t border-[#edf2f7] pt-4 flex items-center justify-center gap-1.5">
         <Sparkles className="w-3.5 h-3.5 text-amber-500" />
         <span>
           {status === "success" 
@@ -273,13 +273,13 @@ function VerifyEmailContent() {
 
 export default function VerifyEmailPage() {
   return (
-    <div className="min-h-screen bg-[#f8faff] flex items-center justify-center p-4">
-      <div className="w-full max-w-[520px] bg-white p-7 sm:p-9 md:p-10 rounded-[28px] sm:rounded-[32px] shadow-[0_20px_60px_rgba(0,20,40,0.08),0_8px_24px_rgba(0,0,0,0.02)] border border-slate-100">
+    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4">
+      <div className="w-full max-w-[520px] bg-white p-7 sm:p-9 md:p-10 rounded-3xl sm:rounded-3xl shadow-[0_20px_60px_rgba(0,20,40,0.08),0_8px_24px_rgba(0,0,0,0.02)] border border-slate-100">
         <Suspense 
           fallback={
             <div className="flex flex-col items-center justify-center py-12">
               <HeighttLoader className="mb-4" label="Loading email verification" />
-              <p className="text-[#5b6d89]">Loading...</p>
+              <p className="text-[#64748B]">Loading...</p>
             </div>
           }
         >

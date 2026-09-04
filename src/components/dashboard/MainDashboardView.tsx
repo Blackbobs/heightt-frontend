@@ -3,19 +3,18 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import {
-  CreditCard,
   Receipt,
   AlertCircle,
   CheckCircle2,
 } from 'lucide-react';
-import { cn, koboToNaira } from '@/lib/utils';
+import { koboToNaira } from '@/lib/utils';
 import { useDashboardData } from '@/hooks/queries/useDashboard';
 import { DueAssignment } from '@/lib/api/finance';
 import { HeighttLoader } from '@/components/ui/HeighttLoader';
 
 export function MainDashboardView() {
   const { data, isLoading, isError, error, refetch } = useDashboardData();
-  const [selectedReceipt, setSelectedReceipt] = useState<any | null>(null);
+  const [selectedReceipt, setSelectedReceipt] = useState<DueAssignment | null>(null);
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -37,7 +36,7 @@ export function MainDashboardView() {
     return `Computer Science • ${level} • 2026/2027 Session`;
   }, [data?.user]);
 
-  const dues = data?.dues || [];
+  const dues = useMemo(() => data?.dues || [], [data?.dues]);
 
   const pendingDues = useMemo(() => dues.filter((d: DueAssignment) => !d.isPaid), [dues]);
   const paidDues = useMemo(() => dues.filter((d: DueAssignment) => d.isPaid), [dues]);
@@ -82,7 +81,7 @@ export function MainDashboardView() {
     <div className="space-y-6 w-full">
       
       {/* ── GREETING & ACADEMIC SUBTEXT ── */}
-      <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-xl p-5 sm:p-6 transition-colors">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 transition-colors dark:border-slate-800 dark:bg-[#131B2E] sm:p-6">
         <h1 className="text-xl sm:text-2xl font-bold text-[#0B1020] dark:text-white tracking-tight">
           {greeting}, <span className="text-[#2563EB]">{studentName}</span>
         </h1>
@@ -92,9 +91,9 @@ export function MainDashboardView() {
       </div>
 
       {/* ── FINANCIAL OVERVIEW CARDS (3-Grid, Clean, Minimalist) ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
         {/* Outstanding Card */}
-        <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-xl p-5 flex flex-col justify-between">
+        <div className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-[#131B2E] sm:p-5">
           <div>
             <div className="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
               <span>Outstanding</span>
@@ -110,7 +109,7 @@ export function MainDashboardView() {
         </div>
 
         {/* Paid This Session Card */}
-        <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-xl p-5 flex flex-col justify-between">
+        <div className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-[#131B2E] sm:p-5">
           <div>
             <div className="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
               <span>Paid this session</span>
@@ -126,7 +125,7 @@ export function MainDashboardView() {
         </div>
 
         {/* Receipts Available Card */}
-        <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-xl p-5 flex flex-col justify-between">
+        <div className="col-span-2 flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-[#131B2E] sm:col-span-1 sm:p-5">
           <div>
             <div className="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
               <span>Verified Receipts</span>

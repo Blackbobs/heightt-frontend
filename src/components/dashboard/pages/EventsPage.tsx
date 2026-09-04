@@ -30,7 +30,7 @@ const EVENTS: Event[] = [
   {
     id: 'e2', title: 'NACOSS Tech Expo 2025', organizer: 'NACOSS',
     venue: 'ICT Centre', date: 'November 22, 2025', day: '22', month: 'Nov',
-    price: '₦2,000', free: false, category: 'Tech', ticketAvail: 120, color: 'from-[#1a5cff] to-[#0f4ad0]', registered: true,
+    price: '₦2,000', free: false, category: 'Tech', ticketAvail: 120, color: 'from-[#2563EB] to-[#1D4ED8]', registered: true,
   },
   {
     id: 'e3', title: 'Inter-Hall Sports Finale', organizer: 'Sports Directorate',
@@ -78,8 +78,8 @@ export function EventsPage() {
   return (
     <div className="space-y-5 pb-6">
       {/* Featured event banner */}
-      <div className={cn('rounded-[22px] p-6 text-white relative overflow-hidden bg-gradient-to-br', EVENTS[0].color)}>
-        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10 pointer-events-none" />
+      <div className="relative overflow-hidden rounded-3xl border border-slate-800 bg-[#0B1020] p-6 text-white">
+        <div className="hero-grid pointer-events-none absolute inset-0 opacity-10" aria-hidden="true" />
         <span className="inline-block text-[0.62rem] font-bold bg-white/20 px-3 py-1 rounded-full mb-3 uppercase tracking-widest">
           Featured Event
         </span>
@@ -101,8 +101,8 @@ export function EventsPage() {
             className={cn(
               'flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[0.75rem] font-bold border-none cursor-pointer transition-all active:scale-95',
               registered.has(EVENTS[0].id)
-                ? 'bg-white/20 text-white border border-white/30'
-                : 'bg-white text-violet-600'
+                ? 'border border-white/30 bg-white/15 text-white'
+                : 'bg-[#2563EB] text-white'
             )}
           >
             <Ticket className="w-3.5 h-3.5" />
@@ -113,13 +113,13 @@ export function EventsPage() {
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7a8ba3]" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
         <input
           type="text"
           placeholder="Search events…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full bg-white border border-[#e8ecf1] rounded-[12px] pl-10 pr-4 py-3 text-[0.82rem] text-[#1a1a2e] placeholder-[#b0bac8] outline-none focus:border-[#1a5cff] transition-colors"
+          className="w-full rounded-xl border border-[#E2E8F0] bg-white py-3 pl-10 pr-4 text-sm text-[#0B1020] outline-none transition-colors placeholder:text-slate-400 focus:border-[#2563EB] dark:border-slate-800 dark:bg-[#131B2E] dark:text-white"
         />
       </div>
 
@@ -132,8 +132,8 @@ export function EventsPage() {
             className={cn(
               'flex-shrink-0 text-[0.72rem] font-semibold px-4 py-2 rounded-full border-none cursor-pointer transition-all',
               category === cat
-                ? 'bg-[#1a5cff] text-white'
-                : 'bg-white border border-[#e8ecf1] text-[#6b7a8f] hover:border-[#1a5cff] hover:text-[#1a5cff]'
+                ? 'bg-[#2563EB] text-white'
+                : 'border border-[#E2E8F0] bg-white text-[#64748B] hover:border-[#2563EB] hover:text-[#2563EB] dark:border-slate-800 dark:bg-[#131B2E] dark:text-slate-300'
             )}
           >
             {cat}
@@ -144,25 +144,25 @@ export function EventsPage() {
       {/* Events list */}
       <div className="space-y-2.5">
         {filtered.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-12 bg-white border border-[#e8ecf1] rounded-[16px]">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-[#E2E8F0] bg-white py-12 dark:border-slate-800 dark:bg-[#131B2E]">
             <CalendarDays className="w-8 h-8 text-[#c8d0db] mb-2" />
-            <p className="text-[0.82rem] font-medium text-[#6b7a8f]">No events found</p>
+            <p className="text-[0.82rem] font-medium text-[#64748B]">No events found</p>
           </div>
         )}
         {filtered.map((ev) => {
           const isReg = registered.has(ev.id);
           return (
-            <div key={ev.id} className="bg-white border border-[#e8ecf1] rounded-[16px] px-4 py-4 hover:bg-[#fafbff] transition-colors cursor-pointer group">
+            <div key={ev.id} className="group cursor-pointer rounded-2xl border border-[#E2E8F0] bg-white px-4 py-4 transition-colors hover:bg-[#F8FAFC] dark:border-slate-800 dark:bg-[#131B2E] dark:hover:bg-slate-900">
               <div className="flex items-start gap-3">
-                <div className={cn('rounded-[10px] px-3 py-2 text-center min-w-[46px] flex-shrink-0 bg-gradient-to-br text-white', ev.color)}>
+                <div className="min-w-[46px] flex-shrink-0 rounded-xl bg-[#2563EB]/10 px-3 py-2 text-center text-[#2563EB]">
                   <span className="block text-[1rem] font-extrabold leading-none">{ev.day}</span>
                   <span className="block text-[0.52rem] font-bold uppercase tracking-wide mt-0.5">{ev.month}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-[0.84rem] font-semibold text-[#1a1a2e] leading-snug truncate">{ev.title}</p>
-                      <p className="text-[0.62rem] text-[#7a8ba3] mt-0.5">{ev.organizer}</p>
+                      <p className="truncate text-sm font-semibold leading-snug text-[#0B1020] dark:text-white">{ev.title}</p>
+                      <p className="text-[0.62rem] text-[#64748B] mt-0.5">{ev.organizer}</p>
                     </div>
                     {isReg && (
                       <span className="flex-shrink-0 text-[0.58rem] font-bold bg-[#e6f7f0] text-[#0f7b4a] px-2 py-0.5 rounded-full">Registered</span>
@@ -170,11 +170,11 @@ export function EventsPage() {
                   </div>
 
                   <div className="flex items-center gap-3 mt-2.5">
-                    <div className="flex items-center gap-1 text-[0.6rem] text-[#7a8ba3]">
+                    <div className="flex items-center gap-1 text-[0.6rem] text-[#64748B]">
                       <MapPin className="w-3 h-3" />
                       <span>{ev.venue}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-[0.6rem] text-[#7a8ba3]">
+                    <div className="flex items-center gap-1 text-[0.6rem] text-[#64748B]">
                       <Tag className="w-3 h-3" />
                       <span>{ev.category}</span>
                     </div>
@@ -182,7 +182,7 @@ export function EventsPage() {
 
                   <div className="flex items-center justify-between mt-3">
                     <div>
-                      <p className={cn('text-[0.82rem] font-bold', ev.free ? 'text-[#0f7b4a]' : 'text-[#1a1a2e]')}>{ev.price}</p>
+                      <p className={cn('text-[0.82rem] font-bold', ev.free ? 'text-[#0f7b4a]' : 'text-[#0B1020]')}>{ev.price}</p>
                       <p className="text-[0.58rem] text-[#b0bac8]">{ev.ticketAvail} tickets left</p>
                     </div>
                     <button
@@ -190,8 +190,8 @@ export function EventsPage() {
                       className={cn(
                         'flex items-center gap-1.5 px-4 py-2 rounded-full text-[0.7rem] font-bold border cursor-pointer transition-all active:scale-95',
                         isReg
-                          ? 'bg-[#f0f2f5] text-[#6b7a8f] border-[#e8ecf1]'
-                          : 'bg-[#1a5cff] text-white border-transparent hover:bg-[#0f4ad0]'
+                          ? 'bg-[#F1F5F9] text-[#64748B] border-[#E2E8F0]'
+                          : 'bg-[#2563EB] text-white border-transparent hover:bg-[#1D4ED8]'
                       )}
                     >
                       <Ticket className="w-3 h-3" />
@@ -199,7 +199,7 @@ export function EventsPage() {
                     </button>
                   </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-[#c8d0db] group-hover:text-[#6b7a8f] transition-colors flex-shrink-0 mt-0.5" />
+                <ChevronRight className="w-4 h-4 text-[#c8d0db] group-hover:text-[#64748B] transition-colors flex-shrink-0 mt-0.5" />
               </div>
             </div>
           );

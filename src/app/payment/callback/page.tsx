@@ -22,7 +22,7 @@ function CallbackFallback() {
 
 export default function PaymentCallbackPage() {
   return (
-    <div className="min-h-screen bg-[#f8f9fc] flex flex-col justify-between">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-between">
       <header className="w-full max-w-5xl mx-auto px-6 py-6 flex items-center justify-between">
         <Logo className="[&_img]:h-12 sm:[&_img]:h-14" />
       </header>

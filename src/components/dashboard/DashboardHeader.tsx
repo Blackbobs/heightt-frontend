@@ -33,7 +33,7 @@ export function DashboardHeader({
   const PRIMARY_5_NAV_PATHS = [
     '/dashboard',
     '/dashboard/payments',
-    '/dashboard/transactions',
+    '/dashboard/organizations',
     '/dashboard/receipts',
     '/dashboard/notifications',
   ];
@@ -64,7 +64,7 @@ export function DashboardHeader({
       await logout();
       router.push('/signin');
       toast.success('Logged out successfully');
-    } catch (error) {
+    } catch {
       toast.error('Failed to logout');
     }
   };

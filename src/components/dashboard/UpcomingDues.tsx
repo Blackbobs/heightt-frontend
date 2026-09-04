@@ -24,15 +24,15 @@ export function UpcomingDues() {
   return (
     <div className="mb-2">
       <SectionTitle title="Upcoming dues" linkLabel="View all" />
-      <div className="bg-white border border-[#e8ecf1] rounded-[16px] divide-y divide-[#f0f2f5] overflow-hidden">
+      <div className="bg-white border border-[#E2E8F0] rounded-2xl divide-y divide-[#F1F5F9] overflow-hidden">
         {DUES.map((due) => (
-          <div key={due.title} className="flex items-center justify-between px-4 py-3.5 hover:bg-[#fafbff] transition-colors cursor-pointer">
+          <div key={due.title} className="flex items-center justify-between px-4 py-3.5 hover:bg-[#F8FAFC] transition-colors cursor-pointer">
             <div>
-              <p className="text-[0.82rem] font-semibold text-[#1a1a2e]">{due.title}</p>
-              <p className="text-[0.6rem] text-[#7a8ba3] mt-0.5">{due.meta}</p>
+              <p className="text-[0.82rem] font-semibold text-[#0B1020]">{due.title}</p>
+              <p className="text-[0.6rem] text-[#64748B] mt-0.5">{due.meta}</p>
             </div>
             <div className="text-right">
-              <p className="text-[0.82rem] font-bold text-[#1a1a2e]">{due.amount}</p>
+              <p className="text-[0.82rem] font-bold text-[#0B1020]">{due.amount}</p>
               <span className={`mt-1 inline-block text-[0.55rem] font-semibold px-2.5 py-0.5 rounded-full ${BADGE[due.status]}`}>
                 {due.status}
               </span>

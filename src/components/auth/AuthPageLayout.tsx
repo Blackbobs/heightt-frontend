@@ -4,7 +4,6 @@ import React from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { AuthHeroBanner } from './AuthHeroBanner';
-import { BackgroundIcons } from '@/components/hero/BackgroundIcons';
 import { Logo } from '@/components/ui/Logo';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
@@ -14,21 +13,16 @@ interface AuthPageLayoutProps {
 
 export function AuthPageLayout({ children }: AuthPageLayoutProps) {
   return (
-    <div className="fixed inset-0 flex overflow-hidden bg-[#F8FAFC] dark:bg-[#0B1020] text-[#0B1020] dark:text-[#F8FAFC] transition-colors">
+    <div className="fixed inset-0 flex overflow-hidden bg-[#F8FAFC] text-[#0B1020] dark:bg-[#0B1020] dark:text-[#F8FAFC]">
       {/* ── Left Panel: Hero Banner (desktop only) ── */}
       <div className="hidden lg:flex flex-col h-full w-[44%] shrink-0 border-r border-slate-200 dark:border-slate-800">
         <AuthHeroBanner />
       </div>
 
       {/* ── Right Panel: Form Area ── */}
-      <div className="flex-1 h-full flex flex-col justify-between overflow-y-auto relative p-6 sm:p-10 lg:p-12">
-        {/* Floating Icons Background (hidden on mobile to keep form clean and accessible) */}
-        <div className="hidden lg:block">
-          <BackgroundIcons />
-        </div>
-
-        {/* Ambient Glow */}
-        <div className="absolute top-1/3 right-1/4 w-[450px] h-[450px] bg-[#2563EB]/5 rounded-full blur-[130px] pointer-events-none -z-10" />
+      <div className="relative flex h-full flex-1 flex-col justify-between overflow-y-auto p-5 sm:p-8 lg:p-12">
+        <div className="hero-grid pointer-events-none absolute inset-0 opacity-35 dark:opacity-10" aria-hidden="true" />
+        <div className="pointer-events-none absolute left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-[#2563EB]/8 blur-3xl" aria-hidden="true" />
 
         {/* Top Header */}
         <div className="flex items-center justify-between relative z-10">
@@ -49,8 +43,8 @@ export function AuthPageLayout({ children }: AuthPageLayoutProps) {
         </div>
 
         {/* Center Form Box */}
-        <div className="my-auto py-8 flex justify-center relative z-10">
-          <div className="w-full max-w-md bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8 shadow-md">
+        <div className="relative z-10 my-auto flex justify-center py-8">
+          <div className="w-full max-w-md rounded-3xl border border-slate-200/90 bg-white p-0 shadow-[0_24px_70px_rgba(15,42,100,0.10)] sm:p-8">
             {children}
           </div>
         </div>

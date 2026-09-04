@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   Home,
   CreditCard,
-  History,
+  Building2,
   Receipt,
   User,
 } from 'lucide-react';
@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 const MOBILE_NAV = [
   { label: 'Home', href: '/dashboard', icon: Home, exact: true },
   { label: 'Dues', href: '/dashboard/payments', icon: CreditCard },
-  { label: 'Transactions', href: '/dashboard/transactions', icon: History },
+  { label: 'Organizations', href: '/dashboard/organizations', icon: Building2 },
   { label: 'Receipts', href: '/dashboard/receipts', icon: Receipt },
   { label: 'Profile', href: '/dashboard/profile', icon: User },
 ];
@@ -36,8 +36,8 @@ export function BottomNav() {
             key={href}
             href={href}
             className={cn(
-              'flex flex-col items-center gap-1 min-w-0 flex-1 text-[11px] font-semibold no-underline transition-colors px-1',
-              active ? 'text-[#2563EB]' : 'text-slate-500 dark:text-slate-400'
+              'mx-0.5 flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-1.5 text-[10px] font-semibold no-underline transition-colors',
+              active ? 'bg-[#2563EB]/8 text-[#2563EB]' : 'text-slate-500 dark:text-slate-400'
             )}
           >
             <Icon className={cn('w-5 h-5 shrink-0', active ? 'text-[#2563EB]' : 'text-slate-400')} />

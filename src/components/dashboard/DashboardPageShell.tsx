@@ -18,7 +18,7 @@ export function DashboardPageShell({
   const router = useRouter();
 
   return (
-    <div className="flex h-screen bg-[#F8FAFC] dark:bg-[#0B1020] text-[#0B1020] dark:text-[#F8FAFC] overflow-hidden transition-colors">
+    <div className="dashboard-shell flex h-screen overflow-hidden bg-[#F8FAFC] text-[#0B1020] transition-colors dark:bg-[#0B1020] dark:text-[#F8FAFC]">
       <Sidebar />
       <div className="flex flex-col flex-1 min-w-0 h-full">
         <DashboardHeader
@@ -28,7 +28,7 @@ export function DashboardPageShell({
           }}
         />
         <main className="flex-1 overflow-y-auto pb-20 lg:pb-0">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
             {children}
           </div>
         </main>

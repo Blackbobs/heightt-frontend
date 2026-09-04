@@ -41,7 +41,7 @@ export function AuthHeroBanner() {
       {/* ── Animated Background Orbs ── */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {/* large primary orb */}
-        <div className="absolute -top-32 -right-32 w-[480px] h-[480px] rounded-full bg-[#1a5cff]/18 blur-[80px] animate-orb-pulse" />
+        <div className="absolute -top-32 -right-32 w-[480px] h-[480px] rounded-full bg-[#2563EB]/18 blur-[80px] animate-orb-pulse" />
         {/* mid violet orb */}
         <div className="absolute top-1/2 -left-24 w-80 h-80 rounded-full bg-violet-600/12 blur-[60px] animate-orb-pulse delay-1000" />
         {/* small cyan orb bottom */}
@@ -115,7 +115,7 @@ export function AuthHeroBanner() {
           {/* Header */}
           <div className="flex items-center justify-between mb-5 relative z-10">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-[#1a5cff]/25 border border-blue-400/20 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl bg-[#2563EB]/25 border border-blue-400/20 flex items-center justify-center">
                 <Receipt className="w-4 h-4 text-blue-300" />
               </div>
               <span className="text-[0.72rem] font-bold text-slate-300 tracking-widest uppercase">

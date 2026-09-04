@@ -4,7 +4,6 @@ import { ProblemSection } from '@/components/problem/ProblemSection';
 import { AudienceSection } from '@/components/audience/AudienceSection';
 import { HowItWorksSection } from '@/components/how-it-works/HowItWorksSection';
 import { ReceiptsSection } from '@/components/receipts/ReceiptsSection';
-import { TransparencySection } from '@/components/transparency/TransparencySection';
 import { RoadmapSection } from '@/components/roadmap/RoadmapSection';
 import { FAQSection } from '@/components/faq/FAQSection';
 import { FinalCTASection } from '@/components/cta/FinalCTASection';
@@ -107,16 +106,13 @@ export default function Home() {
       {/* 6. RECEIPTS */}
       <ReceiptsSection />
 
-      {/* 7. TRANSPARENCY */}
-      <TransparencySection />
-
-      {/* 8. COMING SOON / ROADMAP */}
+      {/* 7. COMING SOON / ROADMAP */}
       <RoadmapSection />
 
-      {/* 9. FAQ */}
+      {/* 8. FAQ */}
       <FAQSection />
 
-      {/* 10. FINAL CTA */}
+      {/* 9. FINAL CTA */}
       <FinalCTASection />
     </main>
   );

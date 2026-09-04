@@ -88,8 +88,8 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
       className={cn(
         "w-full max-w-[520px] transition-all duration-200",
         borderless
-          ? "bg-white sm:bg-transparent p-6 sm:p-0 rounded-3xl sm:rounded-none border border-slate-200/90 sm:border-none shadow-xl shadow-slate-900/5 sm:shadow-none"
-          : "bg-white p-6 sm:p-9 md:p-10 rounded-[28px] sm:rounded-[32px] shadow-[0_20px_60px_rgba(0,20,40,0.08),0_8px_24px_rgba(0,0,0,0.02)] border border-slate-200/80",
+          ? "bg-white p-5 sm:bg-transparent sm:p-0 rounded-3xl sm:rounded-none border border-slate-200/90 sm:border-none shadow-xl shadow-slate-900/5 sm:shadow-none"
+          : "bg-white p-6 sm:p-9 md:p-10 rounded-3xl sm:rounded-3xl shadow-[0_20px_60px_rgba(0,20,40,0.08),0_8px_24px_rgba(0,0,0,0.02)] border border-slate-200/80",
         className,
       )}
       role="main"
@@ -102,11 +102,11 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
 
       <h1
         id="signin-heading"
-        className="text-2xl sm:text-[1.6rem] font-bold text-[#0b1a33] tracking-tight mb-1.5"
+        className="text-2xl sm:text-[1.6rem] font-bold text-[#0B1020] tracking-tight mb-1.5"
       >
         Welcome back
       </h1>
-      <p className="text-[0.92rem] text-[#5b6d89] mb-6 font-normal leading-snug">
+      <p className="text-[0.92rem] text-[#64748B] mb-6 font-normal leading-snug">
         Sign in to continue managing your campus finances.
       </p>
 
@@ -135,7 +135,7 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
               placeholder="Email or username"
               autoComplete="username"
               className={cn(
-                "bg-white sm:bg-[#f8faff] border-[1.5px] border-[#cbd5e1] rounded-[14px] px-3.5 py-3 text-[0.95rem] font-medium text-[#0b1a33] transition-all duration-150 w-full placeholder:text-[#9aabbf] focus:outline-none focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10 shadow-xs",
+                "bg-white sm:bg-[#F8FAFC] border-[1.5px] border-[#cbd5e1] rounded-xl px-3.5 py-3 text-[0.95rem] font-medium text-[#0B1020] transition-all duration-150 w-full placeholder:text-[#9aabbf] focus:outline-none focus:border-[#2563EB] focus:bg-white focus:ring-4 focus:ring-[#2563EB]/10 shadow-xs",
                 errors.identifier && "border-[#e53e3e] bg-[#fff8f8]",
               )}
             />
@@ -162,7 +162,7 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
                 placeholder="••••••••"
                 autoComplete="current-password"
                 className={cn(
-                  "bg-white sm:bg-[#f8faff] border-[1.5px] border-[#cbd5e1] rounded-[14px] pl-3.5 pr-10 py-3 text-[0.95rem] font-medium text-[#0b1a33] transition-all duration-150 w-full placeholder:text-[#9aabbf] focus:outline-none focus:border-[#1a5cff] focus:bg-white focus:ring-4 focus:ring-[#1a5cff]/10 shadow-xs",
+                  "bg-white sm:bg-[#F8FAFC] border-[1.5px] border-[#cbd5e1] rounded-xl pl-3.5 pr-10 py-3 text-[0.95rem] font-medium text-[#0B1020] transition-all duration-150 w-full placeholder:text-[#9aabbf] focus:outline-none focus:border-[#2563EB] focus:bg-white focus:ring-4 focus:ring-[#2563EB]/10 shadow-xs",
                   errors.password && "border-[#e53e3e] bg-[#fff8f8]",
                 )}
               />
@@ -193,14 +193,14 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
                 {...register("rememberMe")}
                 type="checkbox"
                 id="rememberMe"
-                className="w-4 h-4 accent-[#1a5cff] rounded border border-[#cbd5e1] focus:ring-2 focus:ring-[#1a5cff]/20 cursor-pointer"
+                className="w-4 h-4 accent-[#2563EB] rounded border border-[#cbd5e1] focus:ring-2 focus:ring-[#2563EB]/20 cursor-pointer"
               />
               Remember me
             </label>
 
             <Link
               href="/forgot-password"
-              className="text-[0.88rem] text-[#1a5cff] font-semibold hover:underline transition-all"
+              className="text-[0.88rem] text-[#2563EB] font-semibold hover:underline transition-all"
             >
               Forgot password?
             </Link>
@@ -212,10 +212,10 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
             id="signinSubmit"
             disabled={isLoading}
             className={cn(
-              "border-none rounded-[40px] px-5 py-3.5 sm:py-4 text-base font-semibold text-white w-full cursor-pointer transition-all duration-200 mt-2 tracking-tight shadow-[0_8px_24px_rgba(26,92,255,0.25)] flex items-center justify-center gap-2 active:scale-[0.98]",
+              "mt-2 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-none px-5 py-3.5 text-base font-semibold tracking-tight text-white shadow-[0_8px_24px_rgba(26,92,255,0.25)] transition-all duration-200 active:scale-[0.98] sm:py-4",
               isSubmitted
                 ? "bg-[#0f7b4a] shadow-[0_8px_24px_rgba(15,123,74,0.25)]"
-                : "bg-[#1a5cff] hover:bg-[#0f4ad0] hover:shadow-[0_12px_28px_rgba(26,92,255,0.3)]",
+                : "bg-[#2563EB] hover:bg-[#1D4ED8] hover:shadow-[0_12px_28px_rgba(26,92,255,0.3)]",
               isLoading && "opacity-70 cursor-not-allowed",
             )}
           >
@@ -239,7 +239,7 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
             Don&apos;t have an account?{" "}
             <Link
               href="/signup"
-              className="text-[#1a5cff] font-semibold hover:underline transition-all"
+              className="text-[#2563EB] font-semibold hover:underline transition-all"
             >
               Create one
             </Link>
@@ -248,7 +248,7 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
       </form>
 
       {/* Subtle hint */}
-      <div className="mt-5 text-[0.72rem] text-[#7a8ba3] text-center border-t border-[#edf2f7] pt-4 flex items-center justify-center gap-1.5">
+      <div className="mt-5 text-[0.72rem] text-[#64748B] text-center border-t border-[#edf2f7] pt-4 flex items-center justify-center gap-1.5">
         <Sparkles className="w-3.5 h-3.5 text-amber-500" />
         <span>Secure sign in to your Heightt account</span>
       </div>

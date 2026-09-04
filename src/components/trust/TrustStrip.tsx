@@ -1,39 +1,25 @@
-'use client';
-
-import React from 'react';
-import { ShieldCheck, FileCheck, History, Lock } from 'lucide-react';
-
 export function TrustStrip() {
   const items = [
-    { icon: ShieldCheck, label: 'Verified payments' },
-    { icon: FileCheck, label: 'Digital receipts' },
-    { icon: History, label: 'Clear payment history' },
-    { icon: Lock, label: 'Secure transactions' },
+    'Verified payments',
+    'Digital receipts',
+    'Clear payment history',
+    'Secure transactions',
   ];
 
   return (
-    <section className="bg-white dark:bg-[#0B1020] border-b border-[#E2E8F0] dark:border-slate-800 py-6 transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-4">
-          <div className="text-sm font-bold text-[#0B1020] dark:text-white uppercase tracking-wider whitespace-nowrap">
+    <section className="border-b border-slate-200/80 bg-white py-5 dark:border-slate-800 dark:bg-[#0B1020]">
+      <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+        <div className="flex flex-col items-center justify-between gap-4 lg:flex-row">
+          <div className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.13em] text-[#0B1020] dark:text-white lg:text-left">
             Built for how campus payments actually work.
           </div>
-
-          <div className="flex flex-wrap items-center justify-center md:justify-end gap-6 sm:gap-8">
-            {items.map((item, idx) => {
-              const Icon = item.icon;
-              return (
-                <React.Fragment key={item.label}>
-                  <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300">
-                    <Icon className="w-4 h-4 text-[#2563EB] flex-shrink-0" />
-                    <span>{item.label}</span>
-                  </div>
-                  {idx < items.length - 1 && (
-                    <span className="hidden sm:inline-block text-slate-300 dark:text-slate-700">|</span>
-                  )}
-                </React.Fragment>
-              );
-            })}
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 font-mono text-[9px] font-medium uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400 sm:text-[10px]">
+            {items.map((item, idx) => (
+              <span key={item} className="flex items-center gap-2">
+                <span className={`size-1.5 rounded-full ${idx === 0 ? 'bg-emerald-500' : 'bg-[#2563EB]/40'}`} aria-hidden="true" />
+                {item}
+              </span>
+            ))}
           </div>
         </div>
       </div>
