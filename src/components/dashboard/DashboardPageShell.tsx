@@ -18,17 +18,17 @@ export function DashboardPageShell({
   const router = useRouter();
 
   return (
-    <div className="flex h-screen bg-[#f0f2f5] overflow-hidden">
+    <div className="dashboard-shell flex h-screen overflow-hidden bg-[#F8FAFC] text-[#0B1020] transition-colors dark:bg-[#0B1020] dark:text-[#F8FAFC]">
       <Sidebar />
       <div className="flex flex-col flex-1 min-w-0 h-full">
         <DashboardHeader
           pageTitle={pageTitle}
           onNotificationClick={() => {
-            router.push("/notifications");
+            router.push("/dashboard/notifications");
           }}
         />
         <main className="flex-1 overflow-y-auto pb-20 lg:pb-0">
-          <div className="max-w-2xl mx-auto px-5 lg:px-7 py-5">
+          <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
             {children}
           </div>
         </main>

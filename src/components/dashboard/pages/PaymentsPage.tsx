@@ -1,9 +1,7 @@
-// apps/web/app/dashboard/payments/page.tsx
+'use client';
 
-"use client";
-
-import React, { useState, useMemo, useEffect, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   CreditCard,
   AlertCircle,
@@ -15,46 +13,46 @@ import {
   Building2,
   ShieldCheck,
   ArrowRight,
-} from "lucide-react";
-import { cn, koboToNaira } from "@/lib/utils";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+  FileText,
+} from 'lucide-react';
+import { cn, koboToNaira } from '@/lib/utils';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import {
   useMyDues,
   useMakePayment,
   usePaymentHistory,
-} from "@/hooks/queries/usePayments";
+} from '@/hooks/queries/usePayments';
 import {
   DueAssignment,
   PaymentHistoryRecord,
   groupStudentDues,
   normalisePaymentConflict,
-} from "@/lib/api/finance";
-import { queryKeys } from "@/lib/api/keys";
-import { HeighttLoader } from "@/components/ui/HeighttLoader";
-import { toast } from "sonner";
+} from '@/lib/api/finance';
+import { HeighttLoader } from '@/components/ui/HeighttLoader';
+import { toast } from 'sonner';
 
-type Tab = "all" | "unpaid" | "paid";
+type Tab = 'all' | 'unpaid' | 'paid';
 
 function formatNaira(amount: number) {
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
+  return new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
     minimumFractionDigits: 2,
   }).format(amount);
 }
 
 export function PaymentsPage() {
   const searchParams = useSearchParams();
-  const highlightDueId = searchParams.get("dueId");
-  const paymentStatus = searchParams.get("status");
+  const highlightDueId = searchParams.get('dueId');
+  const paymentStatus = searchParams.get('status');
 
   const { data: dues, isLoading, isError, error, refetch } = useMyDues();
   const makePayment = useMakePayment();
   const { data: paymentHistory, refetch: refetchPaymentHistory } =
     usePaymentHistory({ page: 1, limit: 20 });
 
-  const [tab, setTab] = useState<Tab>("all");
-  const [search, setSearch] = useState("");
+  const [tab, setTab] = useState<Tab>('all');
+  const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, 300);
   const [payingId, setPayingId] = useState<string | null>(null);
   const [selectedDue, setSelectedDue] = useState<DueAssignment | null>(null);
@@ -62,19 +60,19 @@ export function PaymentsPage() {
   const paymentInitiationLock = useRef(false);
 
   useEffect(() => {
-    if (paymentStatus === "success") {
+    if (paymentStatus === 'success') {
       setStatusBanner(
-        "Payment initiated successfully. Your official receipt will appear shortly.",
+        'Payment initiated successfully. Your official receipt will appear shortly.'
       );
-    } else if (paymentStatus === "cancelled") {
-      setStatusBanner("Payment was cancelled.");
+    } else if (paymentStatus === 'cancelled') {
+      setStatusBanner('Payment was cancelled.');
     }
   }, [paymentStatus]);
 
   useEffect(() => {
     if (highlightDueId && dues?.length) {
       const due = dues.find(
-        (d) => d.id === highlightDueId || d.dueId === highlightDueId,
+        (d) => d.id === highlightDueId || d.dueId === highlightDueId
       );
       if (due && !due.isPaid && due.canPay) setSelectedDue(due);
     }
@@ -84,9 +82,9 @@ export function PaymentsPage() {
     if (!dues) return [];
     return dues.filter((d) => {
       const tabMatch =
-        tab === "all" ||
-        (tab === "unpaid" && !d.isPaid) ||
-        (tab === "paid" && d.isPaid);
+        tab === 'all' ||
+        (tab === 'unpaid' && !d.isPaid) ||
+        (tab === 'paid' && d.isPaid);
       const q = debouncedSearch.toLowerCase();
       const searchMatch =
         !q ||
@@ -130,9 +128,9 @@ export function PaymentsPage() {
 
     try {
       const origin =
-        typeof window !== "undefined"
+        typeof window !== 'undefined'
           ? window.location.origin
-          : "https://www.heightt.app";
+          : 'https://www.heightt.app';
 
       const paymentInput = due.isAutoAssigned
         ? { dueId: due.dueId }
@@ -140,9 +138,9 @@ export function PaymentsPage() {
       const payload = {
         amount: due.amount,
         organizationId: due.due.organization.id,
-        paymentMethod: "CARD" as const,
+        paymentMethod: 'CARD' as const,
         ...paymentInput,
-        description: `Payment for ${due.due?.name || "Student Due"}`,
+        description: `Payment for ${due.due?.name || 'Student Due'}`,
         successUrl: `${origin}/payment/callback`,
         cancelUrl: `${origin}/payment/cancelled`,
       };
@@ -151,12 +149,12 @@ export function PaymentsPage() {
       const { checkoutUrl, pendingPaymentId } = response.data;
 
       sessionStorage.setItem(
-        "heightt.pendingPayment",
-        JSON.stringify({ pendingPaymentId, dueId: dueIdParam, dueAssignmentId: due.id, startedAt: Date.now() }),
+        'heightt.pendingPayment',
+        JSON.stringify({ pendingPaymentId, dueId: dueIdParam, dueAssignmentId: due.id, startedAt: Date.now() })
       );
       sessionStorage.setItem(
         `heightt:due-payment:${due.id}`,
-        pendingPaymentId,
+        pendingPaymentId
       );
       window.location.assign(checkoutUrl);
     } catch (err: unknown) {
@@ -165,29 +163,29 @@ export function PaymentsPage() {
       })?.response;
       const responseData = response?.data;
       const message =
-        (typeof responseData?.message === "string" && responseData.message) ||
-        "Failed to initiate payment. Please try again.";
+        (typeof responseData?.message === 'string' && responseData.message) ||
+        'Failed to initiate payment. Please try again.';
 
-      if (response?.status === 400 && message === "This due has already been paid") {
+      if (response?.status === 400 && message === 'This due has already been paid') {
         setSelectedDue(null);
-        setStatusBanner("This due has already been paid. Your records have been refreshed.");
+        setStatusBanner('This due has already been paid. Your records have been refreshed.');
         await Promise.all([refetch(), refetchPaymentHistory()]);
       } else {
         const conflict = normalisePaymentConflict(err);
         if (conflict?.pendingPaymentId) {
           sessionStorage.setItem(
-            "heightt.pendingPayment",
-            JSON.stringify({ pendingPaymentId: conflict.pendingPaymentId, dueId: dueIdParam, dueAssignmentId: due.id, startedAt: Date.now() }),
+            'heightt.pendingPayment',
+            JSON.stringify({ pendingPaymentId: conflict.pendingPaymentId, dueId: dueIdParam, dueAssignmentId: due.id, startedAt: Date.now() })
           );
           window.location.assign(`/payment/callback?payment=${encodeURIComponent(conflict.pendingPaymentId)}`);
           return;
         }
         if (conflict) {
           setSelectedDue(null);
-          setStatusBanner("The previous payment attempt has been refreshed. You can try again.");
+          setStatusBanner('The previous payment attempt has been refreshed. You can try again.');
           await refetch();
         } else {
-          toast.error("Payment failed. Please try again.");
+          toast.error('Payment failed. Please try again.');
         }
       }
     } finally {
@@ -199,24 +197,20 @@ export function PaymentsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-3">
-          <HeighttLoader label="Loading your dues" />
-          <span className="text-sm text-muted-foreground font-medium">
-            Loading your dues...
-          </span>
-        </div>
+        <HeighttLoader label="Loading your assigned dues..." />
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="bg-destructive/10 border border-destructive/20 rounded-2xl p-6 text-destructive">
-        <p className="font-bold">Error loading dues</p>
-        <p className="text-xs mt-1">Something went wrong. Please try again.</p>
+      <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-lg p-6 text-red-600 dark:text-red-300">
+        <p className="font-bold text-sm">Error loading dues</p>
+        <p className="text-xs mt-1">Check your connection and try again.</p>
         <button
+          type="button"
           onClick={() => refetch()}
-          className="mt-3 px-4 py-2 bg-destructive text-white rounded-xl text-xs font-bold hover:opacity-90 cursor-pointer"
+          className="mt-3 px-3 py-1.5 bg-red-600 text-white rounded text-xs font-semibold"
         >
           Retry
         </button>
@@ -225,313 +219,188 @@ export function PaymentsPage() {
   }
 
   return (
-    <div className="space-y-5 pb-6">
-      {/* Status Banner */}
+    <div className="space-y-6 w-full">
+      {/* Banner */}
       {statusBanner && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3 text-emerald-800 text-xs font-semibold flex items-start justify-between gap-3 shadow-xs">
+        <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 text-emerald-800 dark:text-emerald-300 text-xs font-medium flex items-center justify-between">
           <span>{statusBanner}</span>
-          <button
-            onClick={() => setStatusBanner(null)}
-            className="text-emerald-600 hover:text-emerald-800 border-none bg-transparent cursor-pointer p-0"
-          >
+          <button type="button" onClick={() => setStatusBanner(null)} className="text-emerald-600">
             <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
-
-      {/* Unpaid Alert Banner */}
-      {stats.unpaidCount > 0 && (
-        <div className="bg-amber-50/90 border border-amber-200/80 rounded-2xl p-4 flex items-start gap-3 shadow-xs">
-          <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0 text-amber-700">
-            <AlertCircle className="w-4 h-4" />
-          </div>
-          <div>
-            <p className="text-xs font-bold text-amber-900">
-              You have {stats.unpaidCount} unpaid due{stats.unpaidCount !== 1 ? "s" : ""}
-            </p>
-            <p className="text-[11px] text-amber-700 mt-0.5 font-medium">
-              {formatNaira(koboToNaira(stats.unpaidTotal))} total outstanding for your registered organisations.
-            </p>
-          </div>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-[#0B1020] dark:text-white">Your Dues</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Manage assigned departmental, faculty, and level dues
+          </p>
         </div>
-      )}
 
-      {dues && dues.length === 0 && (
-        <div className="bg-primary/5 border border-primary/20 rounded-2xl p-5 flex items-start gap-3 shadow-xs">
-          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
-            <Building2 className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-xs font-bold text-foreground">
-              No dues assigned yet
-            </p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              You don't have any active dues. Join an organisation to see assigned dues and levies.
-            </p>
-          </div>
+        {/* Filter Tabs */}
+        <div className="flex items-center gap-1 bg-[#F8FAFC] dark:bg-[#131B2E] p-1 border border-slate-200 dark:border-slate-800 rounded-lg">
+          {(
+            [
+              { key: 'all', label: 'All Dues' },
+              { key: 'unpaid', label: 'Unpaid' },
+              { key: 'paid', label: 'Paid' },
+            ] as const
+          ).map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setTab(key)}
+              className={cn(
+                'text-xs font-semibold px-3 py-1.5 rounded transition-colors',
+                tab === key
+                  ? 'bg-[#2563EB] text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-[#0B1020] dark:hover:text-white'
+              )}
+            >
+              {label}
+            </button>
+          ))}
         </div>
-      )}
+      </div>
 
       {/* Search Input */}
       <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
         <input
           type="text"
-          placeholder="Search dues by name or organisation…"
+          placeholder="Search dues by title or organization..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full bg-white border border-border rounded-xl pl-10 pr-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-primary transition-colors shadow-xs"
+          className="w-full bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-lg pl-9 pr-4 py-2 text-xs text-[#0B1020] dark:text-white placeholder:text-slate-400 outline-none focus:border-[#2563EB]"
         />
       </div>
 
-      {/* Dues Status Filter Tabs */}
-      <div className="flex gap-1.5">
-        {(
-          [
-            { key: "all", label: "All Dues" },
-            { key: "unpaid", label: "Unpaid" },
-            { key: "paid", label: "Paid" },
-          ] as const
-        ).map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => setTab(key)}
-            className={cn(
-              "text-xs font-semibold px-4 py-2 rounded-full border transition-all cursor-pointer",
-              tab === key
-                ? "bg-primary text-white border-primary shadow-sm"
-                : "bg-white border-border text-muted-foreground hover:border-primary hover:text-primary",
-            )}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Dues grouped by backend-provided session category */}
+      {/* Dues List */}
       {filtered.length === 0 ? (
-        <div className="bg-white border border-border rounded-2xl shadow-sm">
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center mb-3">
-              <CreditCard className="w-5 h-5 text-muted-foreground" />
-            </div>
-            <p className="text-sm font-bold text-foreground">
-              No dues found
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {search
-                ? "No matching dues found. Try adjusting your search."
-                : "Join an organisation to see assigned dues."}
-            </p>
-          </div>
+        <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-lg p-8 text-center text-xs text-slate-500 dark:text-slate-400">
+          No dues found matching your selection.
         </div>
       ) : (
-        <div className="space-y-5">
-          {([
-            { key: "arrears", title: "Arrears", items: groupedDues.arrears },
-            { key: "current", title: "Current session", items: groupedDues.current },
-            { key: "all-sessions", title: "All sessions", items: groupedDues.allSessions },
-          ] as const).map((section) => section.items.length > 0 && (
-            <section key={section.key} className="space-y-2">
-              <h2 className="text-sm font-bold text-foreground">{section.title}</h2>
-              <div className="bg-white border border-border rounded-2xl divide-y divide-border overflow-hidden shadow-sm">
-                {section.items.map((due) => {
-                  const isPaying = payingId === due.id;
-                  const sessionLabel = due.sessionCategory === "PREVIOUS"
-                    ? `Outstanding from ${due.due.session?.name || "previous session"}`
-                    : due.sessionCategory === "CURRENT"
-                      ? due.due.session?.name || "Current session"
-                      : "All sessions";
+        <div className="space-y-3">
+          {filtered.map((due) => {
+            const isPaying = payingId === due.id;
+            return (
+              <div
+                key={due.id}
+                className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+              >
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-[#0B1020] dark:text-white">
+                      {due.due.name}
+                    </span>
+                    {due.isPaid ? (
+                      <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                        ✓ Paid
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800">
+                        Payment Due
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    {due.due.organization.name}
+                  </p>
+                </div>
 
-                  return (
-                    <div
-                      key={due.id}
-                      className={cn(
-                        "flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 hover:bg-muted/40 transition-colors",
-                        (highlightDueId === due.id || highlightDueId === due.dueId) && "bg-primary/5 border-l-4 border-l-primary",
-                      )}
+                <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100 dark:border-slate-800">
+                  <span className="text-base font-extrabold text-[#0B1020] dark:text-white font-mono">
+                    {formatNaira(koboToNaira(due.amount))}
+                  </span>
+
+                  {due.isPaid ? (
+                    <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Cleared
+                    </span>
+                  ) : due.canPay ? (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDue(due)}
+                      disabled={isPaying}
+                      className="px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-semibold rounded transition-colors"
                     >
-                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
-                          <CreditCard className="w-5 h-5" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-bold text-foreground truncate">{due.due.name}</p>
-                          <div className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1.5 flex-wrap">
-                            <Building2 className="w-3.5 h-3.5 flex-shrink-0" />
-                            <span>{due.due.organization.name}</span>
-                            <span>·</span>
-                            <span className={cn(due.isArrear && "font-bold text-destructive")}>{sessionLabel}</span>
-                            {due.isArrear && (
-                              <span className="text-[10px] font-bold text-destructive">Outstanding</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/60">
-                        <span className="text-sm font-extrabold text-foreground font-display">
-                          {formatNaira(koboToNaira(due.amount))}
-                        </span>
-                        {due.isPaid ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> Paid
-                          </span>
-                        ) : due.canPay ? (
-                          <button
-                            onClick={() => setSelectedDue(due)}
-                            disabled={isPaying}
-                            className={cn(
-                              "py-1.5 px-4 rounded-lg text-xs font-semibold border-none transition-colors flex items-center gap-1.5",
-                              isPaying ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-[#1a5cff] hover:bg-[#0f4ad0] text-white cursor-pointer",
-                            )}
-                          >
-                            {isPaying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ArrowRight className="w-3.5 h-3.5" />}
-                            {isPaying ? "Processing..." : "Pay Due"}
-                          </button>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-muted-foreground">
-                            <Clock className="w-3.5 h-3.5" /> Payment closed
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                      {isPaying ? 'Processing...' : 'Pay now'}
+                    </button>
+                  ) : (
+                    <span className="text-xs text-slate-400 font-semibold">
+                      Payment closed
+                    </span>
+                  )}
+                </div>
               </div>
-            </section>
-          ))}
+            );
+          })}
         </div>
       )}
 
       {/* Pay Confirmation Modal */}
       {selectedDue && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full border border-border shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <h3 className="text-base font-bold text-foreground">
-                Confirm Due Payment
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#131B2E] rounded-xl p-6 max-w-md w-full border border-slate-200 dark:border-slate-800 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-[#0B1020] dark:text-white">
+                Payment Breakdown
               </h3>
               <button
+                type="button"
                 onClick={() => setSelectedDue(null)}
-                className="text-muted-foreground hover:text-foreground border-none bg-transparent cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 text-xs"
               >
-                <X className="w-5 h-5" />
+                ✕
               </button>
             </div>
 
-            <div className="bg-muted/40 p-4 rounded-2xl border border-border space-y-2 text-xs">
+            <div className="space-y-2 text-xs text-slate-600 dark:text-slate-300 font-mono bg-[#F8FAFC] dark:bg-[#0B1020] p-4 rounded-lg border border-slate-200 dark:border-slate-800">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Due Name</span>
-                <span className="font-bold text-foreground">
-                  {selectedDue.due?.name || "Due Payment"}
+                <span>Due Item</span>
+                <span className="font-bold text-slate-900 dark:text-white">
+                  {selectedDue.due?.name}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Organisation</span>
-                <span className="font-semibold text-primary">
-                  {selectedDue.due?.organization?.name || "Unknown"}
+                <span>Organization</span>
+                <span className="font-bold text-slate-900 dark:text-white">
+                  {selectedDue.due?.organization?.name}
                 </span>
               </div>
-              <div className="flex justify-between pt-1 border-t border-border/80">
-                <span className="text-muted-foreground">Total Amount</span>
-                <span className="font-extrabold text-foreground text-sm font-display">
+              <div className="flex justify-between pt-2 border-t border-slate-200 dark:border-slate-800">
+                <span>Due Amount</span>
+                <span className="font-bold text-slate-900 dark:text-white">
                   {formatNaira(koboToNaira(selectedDue.amount))}
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-primary/5 border border-primary/20 text-[11px] text-muted-foreground">
-              <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
-              <span>You will be redirected to the secure payment portal to complete this transaction.</span>
-            </div>
-
-            <div className="flex gap-2.5 pt-1">
+            <div className="flex gap-2 pt-2">
               <button
+                type="button"
                 onClick={() => setSelectedDue(null)}
-                className="flex-1 py-2.5 rounded-xl border border-border text-foreground font-bold text-xs hover:bg-muted transition-colors cursor-pointer bg-white"
+                className="flex-1 py-2.5 border border-slate-200 dark:border-slate-800 text-xs font-semibold rounded text-slate-700 dark:text-slate-300"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={() => {
                   handlePay(selectedDue);
                   setSelectedDue(null);
                 }}
-                disabled={
-                  selectedDue.isPaid ||
-                  !selectedDue.canPay ||
-                  payingId !== null
-                }
-                className="flex-1 py-2.5 rounded-xl bg-[#1a5cff] hover:bg-[#0f4ad0] text-white font-semibold text-sm transition-colors cursor-pointer border-none disabled:opacity-60 flex items-center justify-center gap-2"
+                className="flex-1 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-semibold rounded text-center"
               >
-                {payingId === selectedDue.id ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Redirecting...
-                  </>
-                ) : (
-                  "Proceed to Pay"
-                )}
+                Proceed to Pay
               </button>
             </div>
           </div>
         </div>
       )}
-
-      <section className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-bold text-[#1a1a2e]">Payment history</h2>
-          <span className="text-xs text-[#7a8ba3]">
-            {paymentHistory?.meta.total ?? paymentHistory?.data.length ?? 0} payments
-          </span>
-        </div>
-        <div className="bg-white border border-[#e8ecf1] rounded-[16px] divide-y divide-[#f0f2f5] overflow-hidden">
-          {paymentHistory?.data.length ? (
-            paymentHistory.data.map((payment: PaymentHistoryRecord) => {
-              const due = payment.duePayment?.assignment?.due;
-              const transaction = payment.transaction;
-              const status = transaction?.status ?? payment.status;
-              const amount = transaction?.amount ?? payment.amount;
-              const organization =
-                payment.organization?.name ?? due?.organization?.name ?? "Organization";
-
-              return (
-                <div key={payment.id} className="flex items-center gap-3 px-4 py-4">
-                  <div className="w-9 h-9 rounded-[8px] bg-[#eef3ff] flex items-center justify-center shrink-0">
-                    <CreditCard className="w-4 h-4 text-[#1a5cff]" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[0.82rem] font-semibold text-[#1a1a2e]">
-                      {due?.name ?? transaction?.description ?? "Due payment"}
-                    </p>
-                    <p className="mt-0.5 truncate text-[0.62rem] text-[#7a8ba3]">
-                      {organization} · {payment.reference ?? transaction?.reference ?? "No reference"}
-                    </p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-[0.8rem] font-bold text-[#1a1a2e]">
-                      {formatNaira(amount / 100)}
-                    </p>
-                    <p className={cn(
-                      "mt-1 text-[0.58rem] font-semibold",
-                      status === "COMPLETED" ? "text-emerald-700" :
-                      status === "FAILED" ? "text-red-600" : "text-amber-700",
-                    )}>
-                      {status}
-                    </p>
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <div className="px-4 py-10 text-center text-sm text-[#7a8ba3]">
-              Your payment history will appear here.
-            </div>
-          )}
-        </div>
-      </section>
     </div>
   );
 }

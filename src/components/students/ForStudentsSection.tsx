@@ -13,7 +13,6 @@ import {
   QrCode,
   Sparkles,
   Receipt,
-  Wallet,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
@@ -78,7 +77,7 @@ export function ForStudentsSection() {
     >
       {/* Blue Background Framer Banner Container */}
       <ScrollReveal direction="up">
-        <div className="relative rounded-[36px] bg-gradient-to-br from-[#1a5cff] via-[#124bda] to-[#0932a3] text-white p-8 sm:p-12 md:p-14 lg:p-16 overflow-hidden shadow-[0_30px_90px_rgba(26,92,255,0.3)] border border-white/20">
+        <div className="relative rounded-[36px] bg-gradient-to-br from-[#2563EB] via-[#124bda] to-[#0932a3] text-white p-8 sm:p-12 md:p-14 lg:p-16 overflow-hidden shadow-[0_30px_90px_rgba(26,92,255,0.3)] border border-white/20">
           {/* Ambient Lighting & Glow Flares */}
           <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/20 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-black/20 rounded-full blur-3xl pointer-events-none" />

@@ -6,22 +6,17 @@ import Link from "next/link";
 import {
   CheckCircle2,
   Download,
-  ArrowLeft,
   Copy,
   Check,
   Receipt as ReceiptIcon,
   CreditCard,
   Building2,
   Calendar,
-  Share2,
   Printer,
-  Sparkles,
-  ExternalLink,
   ShieldCheck,
   Loader2,
   Home,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useReceipts, useDownloadReceipt } from "@/hooks/queries/useReceipts";
 
 interface PaymentSuccessViewProps {
@@ -77,7 +72,7 @@ export function PaymentSuccessView({
     searchParams.get("reference") ||
     searchParams.get("trxref") ||
     searchParams.get("tx_ref") ||
-    "HT-" + Math.floor(10000000 + Math.random() * 90000000);
+    "Reference pending";
   
   const rawAmount = searchParams.get("amount");
   const parsedAmount = rawAmount ? parseFloat(rawAmount) : null;
@@ -106,17 +101,20 @@ export function PaymentSuccessView({
   const { data: receipts } = useReceipts({ limit: 5 });
 
   useEffect(() => {
-    setCurrentDate(
-      new Date().toLocaleDateString("en-US", {
-        weekday: "short",
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    );
-    setPaymentBreakdown(readPaymentBreakdown());
+    const updateClientDetails = () => {
+      setCurrentDate(
+        new Date().toLocaleDateString("en-US", {
+          weekday: "short",
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      );
+      setPaymentBreakdown(readPaymentBreakdown());
+    };
+    queueMicrotask(updateClientDetails);
   }, []);
 
   // Try to find matching receipt from recent receipts if amount/ref match
@@ -177,31 +175,29 @@ export function PaymentSuccessView({
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto py-4 px-2 sm:px-4 space-y-6 animate-fade-slide-up">
+    <div className="mx-auto w-full max-w-xl space-y-4 px-1 py-4 sm:space-y-5 sm:px-4">
       {/* Success Hero Header Card */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-emerald-900/90 via-[#0a2f1d] to-[#081f14] rounded-3xl p-6 sm:p-8 text-white shadow-2xl border border-emerald-500/20 text-center">
+      <div className="relative overflow-hidden rounded-3xl border border-slate-800 bg-[#0B1020] p-6 text-center text-white shadow-[0_24px_70px_rgba(15,42,100,0.18)] sm:p-8">
+        <div className="hero-grid pointer-events-none absolute inset-0 opacity-10" aria-hidden="true" />
         {/* Decorative background glow orbs */}
-        <div className="absolute -top-24 -left-24 w-48 h-48 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-teal-400/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="pointer-events-none absolute left-1/2 top-0 h-48 w-48 -translate-x-1/2 rounded-full bg-[#2563EB]/20 blur-3xl" />
 
         {/* Floating Sparkles Badge */}
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-semibold mb-6 backdrop-blur-md">
-          <Sparkles className="w-3.5 h-3.5 animate-pulse text-emerald-300" />
+          <span className="size-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
           <span>Payment Verified & Confirmed</span>
         </div>
 
         {/* Animated Checkmark Circle */}
         <div className="relative mx-auto mb-6 w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center">
-          <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping opacity-75" />
-          <div className="absolute inset-2 rounded-full bg-emerald-500/30 animate-pulse" />
-          <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-900/50">
+          <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500 sm:h-20 sm:w-20">
             <CheckCircle2 className="w-10 h-10 sm:w-12 sm:h-12 text-white stroke-[2.5]" />
           </div>
         </div>
 
         {/* Title & Amount */}
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mb-2">
-          Payment Successful!
+        <h1 className="mb-2 text-2xl font-semibold tracking-[-0.04em] text-white sm:text-3xl">
+          Payment successful
         </h1>
         <p className="text-emerald-200/80 text-sm max-w-md mx-auto mb-6">
           Your transaction was processed successfully. A payment confirmation
@@ -246,7 +242,7 @@ export function PaymentSuccessView({
             </div>
             <div className="flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
               <span className="font-bold text-slate-700">Subtotal</span>
-              <span className="font-extrabold text-[#0b1a33]">
+              <span className="font-extrabold text-[#0B1020]">
                 {formatNaira(paymentBreakdown.subtotal)}
               </span>
             </div>
@@ -284,7 +280,7 @@ export function PaymentSuccessView({
               </span>
               <button
                 onClick={handleCopyReference}
-                className="text-slate-500 hover:text-[#1a5cff] transition-colors border-none bg-transparent cursor-pointer p-0.5"
+                className="text-slate-500 hover:text-[#2563EB] transition-colors border-none bg-transparent cursor-pointer p-0.5"
                 title="Copy reference code"
                 aria-label="Copy reference code"
               >
@@ -314,7 +310,7 @@ export function PaymentSuccessView({
               <Building2 className="w-4 h-4 text-slate-400" />
               Organization
             </span>
-            <span className="font-semibold text-[#1a5cff] text-right">
+            <span className="font-semibold text-[#2563EB] text-right">
               {displayOrg}
             </span>
           </div>
@@ -347,7 +343,7 @@ export function PaymentSuccessView({
           <span>Official Heightt Payment Receipt</span>
           <button
             onClick={handlePrint}
-            className="flex items-center gap-1.5 text-slate-600 hover:text-[#1a5cff] font-medium border-none bg-transparent cursor-pointer transition-colors"
+            className="flex items-center gap-1.5 text-slate-600 hover:text-[#2563EB] font-medium border-none bg-transparent cursor-pointer transition-colors"
           >
             <Printer className="w-3.5 h-3.5" />
             Print Summary
@@ -360,7 +356,7 @@ export function PaymentSuccessView({
         <button
           onClick={handleDownloadReceipt}
           disabled={downloading}
-          className="w-full py-3.5 px-6 rounded-2xl bg-[#1a5cff] hover:bg-[#0f4ad0] text-white font-bold text-sm shadow-lg shadow-blue-500/25 transition-all duration-200 flex items-center justify-center gap-2 border-none cursor-pointer disabled:opacity-75 active:scale-[0.99]"
+          className="w-full py-3.5 px-6 rounded-2xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-sm shadow-lg shadow-blue-500/25 transition-all duration-200 flex items-center justify-center gap-2 border-none cursor-pointer disabled:opacity-75 active:scale-[0.99]"
         >
           {downloading ? (
             <>
@@ -380,7 +376,7 @@ export function PaymentSuccessView({
             href="/dashboard/receipts"
             className="py-3 px-4 rounded-2xl bg-white border border-slate-200/90 text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-semibold text-xs sm:text-sm transition-colors text-center no-underline flex items-center justify-center gap-2"
           >
-            <ReceiptIcon className="w-4 h-4 text-[#1a5cff]" />
+            <ReceiptIcon className="w-4 h-4 text-[#2563EB]" />
             View All Receipts
           </Link>
 
@@ -397,7 +393,7 @@ export function PaymentSuccessView({
           <div className="text-center pt-2">
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-[#1a5cff] font-medium no-underline"
+              className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-[#2563EB] font-medium no-underline"
             >
               <Home className="w-3.5 h-3.5" />
               Return to main dashboard

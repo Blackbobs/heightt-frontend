@@ -1,151 +1,76 @@
 'use client';
 
-import { useState } from 'react';
-import {
-  Route,
-  Building2,
-  UserPlus,
-  FilePlus2,
-  CreditCard,
-  CheckCircle2,
-} from 'lucide-react';
-import { PhoneFrame } from '@/components/hero/PhoneFrame';
-import { ScrollReveal } from '@/components/ui/ScrollReveal';
+import React from 'react';
 
 const steps = [
   {
-    number: '01',
-    icon: Building2,
-    title: 'Onboard your organisation',
-    description:
-      'Create your organisation on Heightt and set up the executives responsible for managing it.',
-    tag: 'Quick Setup',
+    step: '01',
+    title: 'Create your account',
+    desc: 'Join Heightt using your student information.',
   },
   {
-    number: '02',
-    icon: UserPlus,
-    title: 'Add your members',
-    description:
-      'Bring your students onto the platform and organise your membership records.',
-    tag: 'Roster Sync',
+    step: '02',
+    title: 'See what you owe',
+    desc: 'Your assigned dues appear automatically.',
   },
   {
-    number: '03',
-    icon: FilePlus2,
-    title: 'Create a due',
-    description:
-      'Enter the name, amount and relevant information for the payment you want to collect.',
-    tag: 'Custom Amounts',
+    step: '03',
+    title: 'Pay securely',
+    desc: 'Complete your payment through Heightt.',
   },
   {
-    number: '04',
-    icon: CreditCard,
-    title: 'Students pay',
-    description:
-      'Members can view their dues and make payments directly through Heightt.',
-    tag: 'Online Checkout',
-  },
-  {
-    number: '05',
-    icon: CheckCircle2,
-    title: 'Heightt keeps the records',
-    description:
-      'Payments are automatically recorded, giving executives an up-to-date view of collections without manually updating spreadsheets.',
-    tag: 'Automated Audit',
+    step: '04',
+    title: 'Get your receipt',
+    desc: 'Your verified receipt is immediately available.',
   },
 ];
 
 export function HowItWorksSection() {
-  const [activeStep, setActiveStep] = useState(3);
-
   return (
     <section
       id="how-it-works"
-      className="py-24 md:py-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative overflow-hidden"
+      className="relative overflow-hidden border-b border-slate-200/80 bg-[#F8FAFC] py-16 dark:border-slate-800 dark:bg-[#0B1020] sm:py-24"
     >
-      {/* Background Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-primary/5 rounded-full blur-[160px] pointer-events-none -z-10" />
-
-      {/* Header */}
-      <ScrollReveal direction="up" className="text-center mb-16 md:mb-20 relative z-10">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold shadow-sm mb-4">
-          <Route className="w-3.5 h-3.5" />
-          How Heightt Works
+      <div className="hero-grid pointer-events-none absolute inset-0 opacity-30 dark:opacity-10" aria-hidden="true" />
+      <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+        
+        <div className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#2563EB] lg:text-left">
+          SIMPLE PROCESS
         </div>
-        <h2 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground mb-4 leading-tight text-balance">
-          From creating a due to <br className="hidden sm:inline" />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-glow to-primary">
-            tracking every payment.
-          </span>
+        <h2 className="mx-auto mt-3 max-w-2xl text-balance text-center text-3xl font-semibold leading-tight tracking-[-0.045em] text-[#0B1020] dark:text-white sm:text-4xl lg:mx-0 lg:text-left lg:text-5xl">
+          From due assigned to receipt issued.
         </h2>
-        <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-          A seamless 5-step workflow designed to eliminate manual reconciliation completely.
-        </p>
-      </ScrollReveal>
+        <p className="mx-auto mt-4 max-w-xl text-center text-sm leading-6 text-slate-600 dark:text-slate-300 sm:text-base lg:mx-0 lg:text-left">Every step is visible, verified, and kept in one clear payment history.</p>
 
-      {/* 2-Column Interactive Showcase with Steps on Left and Phone on Right */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
-        {/* Left: 5 Interactive Steps List */}
-        <div className="lg:col-span-7 flex flex-col gap-3.5">
-          {steps.map((step, index) => {
-            const Icon = step.icon;
-            const isActive = activeStep === index;
-
-            return (
-              <ScrollReveal key={index} delay={index * 60}>
-                <div
-                  onClick={() => setActiveStep(index)}
-                  className={`p-5 sm:p-6 rounded-3xl border transition-all duration-300 cursor-pointer flex items-start gap-4 sm:gap-5 ${
-                    isActive
-                      ? 'bg-white border-2 border-primary shadow-[0_10px_30px_rgba(26,92,255,0.12)] -translate-y-0.5'
-                      : 'bg-white/60 border-border hover:bg-white hover:border-primary/40 hover:shadow-md'
-                  }`}
-                >
-                  {/* Numbered node */}
-                  <div
-                    className={`w-12 h-12 rounded-2xl flex items-center justify-center font-display font-extrabold text-base flex-shrink-0 transition-colors ${
-                      isActive
-                        ? 'bg-primary text-white shadow-md shadow-primary/25'
-                        : 'bg-muted text-primary border border-border'
-                    }`}
-                  >
-                    {step.number}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <h3
-                        className={`text-base sm:text-lg font-bold transition-colors ${
-                          isActive ? 'text-primary' : 'text-foreground'
-                        }`}
-                      >
-                        {step.title}
-                      </h3>
-                      <span
-                        className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
-                          isActive
-                            ? 'bg-primary/10 text-primary border-primary/20'
-                            : 'bg-muted text-muted-foreground border-border'
-                        }`}
-                      >
-                        {step.tag}
-                      </span>
-                    </div>
-
-                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                      {step.description}
-                    </p>
-                  </div>
+        {/* Process Steps with thin connecting lines */}
+        <div className="relative mt-12 grid grid-cols-1 gap-3 md:grid-cols-4 md:gap-0">
+          
+          {steps.map((item, idx) => (
+            <div
+              key={item.step}
+              className="relative border border-slate-200/90 bg-white p-6 text-center dark:border-slate-800 dark:bg-[#131B2E] md:min-h-52 md:text-left md:[&:first-child]:rounded-l-3xl md:[&:last-child]:rounded-r-3xl md:[&:not(:first-child)]:border-l-0"
+            >
+              <div>
+                <div className="mb-8 flex items-center justify-center md:justify-between">
+                  <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[#2563EB]">
+                    {item.step}
+                  </span>
+                  {idx < steps.length - 1 && (
+                    <span className="hidden text-slate-300 dark:text-slate-700 md:inline-block">→</span>
+                  )}
                 </div>
-              </ScrollReveal>
-            );
-          })}
+                <h3 className="mb-2 text-base font-semibold text-[#0B1020] dark:text-white">
+                  {item.title}
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                  {item.desc}
+                </p>
+              </div>
+            </div>
+          ))}
+
         </div>
 
-        {/* Right: Phone Frame Preview Connected to the Walkthrough */}
-        <ScrollReveal delay={150} direction="left" className="lg:col-span-5 flex justify-center items-center">
-          <PhoneFrame currentStep={activeStep} onStepSelect={setActiveStep} />
-        </ScrollReveal>
       </div>
     </section>
   );

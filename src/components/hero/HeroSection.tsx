@@ -1,125 +1,118 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { HeroContent } from './HeroContent';
-import { BackgroundIcons } from './BackgroundIcons';
-import { UniversityMarquee } from './UniversityMarquee';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import Link from 'next/link';
+import { ArrowRight, ArrowUpRight, Check, LockKeyhole, ReceiptText, ScanLine } from 'lucide-react';
+import { useAuthStore } from '@/store/auth-store';
+
+function HeighttMark() {
+  return (
+    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#2563EB] text-white" aria-hidden="true">
+      <span className="font-mono text-xs font-bold tracking-[-0.08em]">ht</span>
+    </span>
+  );
+}
+
+function PaymentPreview() {
+  return (
+    <div className="relative w-full max-w-[560px]">
+      <div className="absolute -inset-2.5 rounded-[1.75rem] border border-[#2563EB]/10 bg-[#2563EB]/3 sm:-inset-3 sm:rounded-[2rem]" aria-hidden="true" />
+      <div className="relative overflow-hidden rounded-[1.4rem] border border-slate-200/90 bg-white shadow-[0_28px_80px_-38px_rgba(15,42,100,0.38)] dark:border-slate-800 dark:bg-[#131B2E]">
+        <div className="flex items-center justify-between border-b border-slate-200/80 px-4 py-3.5 dark:border-slate-800 sm:px-6 sm:py-4">
+          <div className="flex items-center gap-3">
+            <HeighttMark />
+            <div>
+              <p className="text-sm font-semibold tracking-tight text-[#0B1020] dark:text-white">Heightt Pay</p>
+              <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Student wallet</p>
+            </div>
+          </div>
+          <span className="rounded-full border border-[#2563EB]/15 bg-[#2563EB]/8 px-2.5 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-[#2563EB]">Live</span>
+        </div>
+
+        <div className="grid md:grid-cols-[1.15fr_0.85fr]">
+          <div className="p-4 sm:p-6 md:border-r md:border-slate-200/80 md:dark:border-slate-800">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Next payment</p>
+                <p className="mt-2 text-3xl font-bold tracking-[-0.05em] text-[#0B1020] dark:text-white sm:text-4xl">₦5,000</p>
+              </div>
+              <span className="rounded-lg bg-amber-50 px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.06em] text-amber-700 dark:bg-amber-950/40 dark:text-amber-400">Due Sep 30</span>
+            </div>
+
+            <div className="mt-6 space-y-3 border-t border-slate-200/80 pt-4 text-xs dark:border-slate-800 sm:text-sm">
+              <div className="flex items-center justify-between gap-4"><span className="text-slate-500 dark:text-slate-400">Departmental dues</span><span className="font-medium text-slate-800 dark:text-slate-200">Computer Science</span></div>
+              <div className="flex items-center justify-between gap-4"><span className="text-slate-500 dark:text-slate-400">Academic session</span><span className="font-medium text-slate-800 dark:text-slate-200">2026 / 2027</span></div>
+              <div className="flex items-center justify-between gap-4"><span className="text-slate-500 dark:text-slate-400">Assigned level</span><span className="font-medium text-slate-800 dark:text-slate-200">300 Level</span></div>
+            </div>
+
+            <button type="button" className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-4 py-3 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:ring-offset-2">
+              Pay securely <ArrowUpRight className="size-4" aria-hidden="true" />
+            </button>
+          </div>
+
+          <div className="hidden flex-col justify-between bg-slate-50/80 p-6 dark:bg-slate-950/20 md:flex">
+            <div>
+              <div className="flex items-center justify-between">
+                <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Recent receipt</p>
+                <ReceiptText className="size-4 text-[#2563EB]" aria-hidden="true" />
+              </div>
+              <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-[#131B2E]">
+                <div className="flex items-center justify-between border-b border-dashed border-slate-200 pb-4 dark:border-slate-700">
+                  <div><p className="text-xs font-semibold text-[#0B1020] dark:text-white">Heightt Receipt</p><p className="mt-1 font-mono text-[8px] text-slate-500 dark:text-slate-400">HTT-20260903-92817</p></div>
+                  <span className="flex size-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50"><Check className="size-4" aria-hidden="true" /></span>
+                </div>
+                <div className="space-y-2 pt-4 font-mono text-[9px] uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+                  <div className="flex justify-between"><span>Paid</span><span className="font-semibold text-slate-800 dark:text-slate-200">₦5,000.00</span></div>
+                  <div className="flex justify-between"><span>Method</span><span className="font-semibold text-slate-800 dark:text-slate-200">Wallet</span></div>
+                  <div className="flex justify-between"><span>Status</span><span className="font-semibold text-emerald-600">Verified</span></div>
+                </div>
+              </div>
+            </div>
+            <div className="mt-7 flex items-center gap-2 border-t border-slate-200/80 pt-4 text-[11px] text-slate-500 dark:border-slate-800 dark:text-slate-400"><LockKeyhole className="size-3.5 text-[#2563EB]" aria-hidden="true" /> Every payment comes with proof.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function HeroSection() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const titleRef = useRef<HTMLHeadingElement>(null);
-  const descriptionRef = useRef<HTMLParagraphElement>(null);
-  const actionsRef = useRef<HTMLDivElement>(null);
-  const statsRef = useRef<HTMLDivElement>(null);
-  const marqueeRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
-
-    const tl = gsap.timeline({
-      defaults: {
-        ease: 'power3.out',
-        duration: 0.8,
-      },
-    });
-
-    if (titleRef.current) {
-      tl.to(titleRef.current, { opacity: 1, y: 0, duration: 0.7 });
-    }
-
-    if (descriptionRef.current) {
-      tl.to(descriptionRef.current, { opacity: 1, y: 0, duration: 0.7 }, '-=0.4');
-    }
-
-    if (actionsRef.current) {
-      tl.to(actionsRef.current, { opacity: 1, y: 0, duration: 0.6 }, '-=0.3');
-    }
-
-    if (statsRef.current) {
-      tl.to(statsRef.current, { opacity: 1, y: 0, duration: 0.6 }, '-=0.3');
-    }
-
-    if (marqueeRef.current) {
-      tl.to(marqueeRef.current, { opacity: 1, y: 0, duration: 0.6 }, '-=0.2');
-    }
-
-    return () => {
-      ScrollTrigger.getAll().forEach((st) => st.kill());
-    };
-  }, []);
+  const { isAuthenticated, user } = useAuthStore();
+  const needsOnboarding = user ? !user.profile?.onboardingCompleted : false;
+  const dashboardHref = needsOnboarding ? '/onboarding' : '/dashboard';
 
   return (
-    <section
-      ref={sectionRef}
-      className="min-h-[calc(100vh-5rem)] flex flex-col items-center justify-center bg-background pt-20 sm:pt-24 lg:pt-28 pb-28 sm:pb-36 lg:pb-44 relative overflow-hidden bg-dot-pattern"
-    >
-      {/* Background Floating Financial & Campus Icons */}
-      <BackgroundIcons />
+    <section className="relative isolate overflow-hidden border-b border-slate-200/80 bg-[#F8FAFC] dark:border-slate-800 dark:bg-[#0B1020]">
+      <div className="hero-grid pointer-events-none absolute inset-0 -z-10 opacity-55 dark:opacity-20" aria-hidden="true" />
+      <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-80 w-80 -translate-x-1/2 rounded-full bg-[#2563EB]/8 blur-3xl lg:left-[20%]" aria-hidden="true" />
 
-      {/* Ambient background light orbs */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background pointer-events-none" />
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-primary/10 rounded-full blur-[140px] pointer-events-none -z-10" />
+      <div className="mx-auto max-w-7xl px-5 py-14 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+        <div className="grid items-center gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16 xl:gap-20">
+          <div className="mx-auto flex max-w-xl flex-col items-center text-center lg:mx-0 lg:items-start lg:text-left">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#2563EB]/15 bg-white/70 px-3 py-1.5 font-mono text-[9px] font-semibold uppercase tracking-[0.14em] text-[#2563EB] shadow-sm backdrop-blur dark:bg-[#131B2E]/70 sm:text-[10px]">
+              <ScanLine className="size-3.5" aria-hidden="true" /> Built for campus life
+            </div>
+            <h1 className="max-w-[680px] text-balance text-[clamp(3.15rem,14vw,5rem)] font-semibold leading-[0.92] tracking-[-0.07em] text-[#0B1020] dark:text-white lg:text-[clamp(4.5rem,6vw,6.15rem)]">
+              Campus payments, <span className="text-[#2563EB]">sorted.</span>
+            </h1>
+            <p className="mt-7 max-w-lg text-pretty text-[15px] leading-7 text-slate-600 dark:text-slate-300 sm:text-lg">Pay dues, keep track of your payments, and access verified receipts from one trusted place.</p>
 
-      {/* Centered Hero Content */}
-      <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 md:px-8 lg:px-12 relative z-10">
-        <HeroContent
-          onTitleRef={(el) => (titleRef.current = el)}
-          onDescriptionRef={(el) => (descriptionRef.current = el)}
-          onActionsRef={(el) => (actionsRef.current = el)}
-          onStatsRef={(el) => (statsRef.current = el)}
-        />
-      </div>
+            <div className="mt-8 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row lg:justify-start">
+              <Link href={isAuthenticated && user ? dashboardHref : '/signup'} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(37,99,235,0.22)] transition-all hover:-translate-y-0.5 hover:bg-[#1D4ED8] sm:w-auto">
+                {isAuthenticated && user ? (needsOnboarding ? 'Complete onboarding' : 'Go to dashboard') : 'Get started'}
+                <ArrowRight className="size-4" aria-hidden="true" />
+              </Link>
+              <Link href={isAuthenticated && user ? '#how-it-works' : '/signin'} className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:text-[#2563EB] dark:text-slate-300">
+                {isAuthenticated && user ? 'See how it works' : 'Sign in'} <span aria-hidden="true">{isAuthenticated && user ? '↓' : '→'}</span>
+              </Link>
+            </div>
 
-      {/* Full-width University Marquee spanning 100% of the screen */}
-      <div ref={marqueeRef} className="w-full opacity-0 translate-y-6">
-        <UniversityMarquee />
-      </div>
+            <div className="mt-9 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-slate-200/80 pt-5 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-500 dark:border-slate-800 dark:text-slate-400 lg:justify-start sm:text-[10px]">
+              <span>For students</span><span>For organisations</span><span className="text-emerald-600">Verified by design</span>
+            </div>
+          </div>
 
-      {/* Layered Blue Wave Divider at the bottom of Hero */}
-      <div className="absolute bottom-0 left-0 right-0 w-full overflow-hidden leading-none z-10 pointer-events-none">
-        <svg
-          className="relative block w-full h-14 sm:h-20 md:h-28"
-          viewBox="0 0 1440 120"
-          fill="none"
-          preserveAspectRatio="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <defs>
-            <linearGradient id="hero-blue-wave-1" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#1a5cff" stopOpacity="0.18" />
-              <stop offset="50%" stopColor="#638fff" stopOpacity="0.28" />
-              <stop offset="100%" stopColor="#1a5cff" stopOpacity="0.18" />
-            </linearGradient>
-            <linearGradient id="hero-blue-wave-2" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#1a5cff" stopOpacity="0.08" />
-              <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.15" />
-              <stop offset="100%" stopColor="#1a5cff" stopOpacity="0.08" />
-            </linearGradient>
-          </defs>
-
-          {/* Deep soft blue wave */}
-          <path
-            d="M0,32 C240,96 480,8 720,56 C960,104 1200,24 1440,64 L1440,120 L0,120 Z"
-            fill="url(#hero-blue-wave-2)"
-          />
-
-          {/* Crisp primary glow wave */}
-          <path
-            d="M0,56 C320,112 560,32 800,72 C1040,112 1280,48 1440,80 L1440,120 L0,120 Z"
-            fill="url(#hero-blue-wave-1)"
-          />
-
-          {/* Subtle top crest stroke line */}
-          <path
-            d="M0,56 C320,112 560,32 800,72 C1040,112 1280,48 1440,80"
-            stroke="#1a5cff"
-            strokeOpacity="0.25"
-            strokeWidth="1.5"
-            fill="none"
-          />
-        </svg>
+          <div className="flex w-full justify-center lg:justify-end"><PaymentPreview /></div>
+        </div>
       </div>
     </section>
   );

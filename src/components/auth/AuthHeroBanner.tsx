@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Wallet, Sparkles, PiggyBank, Coins, ShieldCheck, Bell } from 'lucide-react';
+import { Receipt, Sparkles, GraduationCap, Coins, ShieldCheck, Bell } from 'lucide-react';
 import { Logo } from '../ui/Logo';
 
 const STATS = [
@@ -11,10 +11,10 @@ const STATS = [
   { value: '₦480M+', label: 'Collected' },
 ];
 
-const GOALS = [
-  { label: 'Dept. Dues', pct: 74, color: 'from-blue-500 to-emerald-400', textColor: 'text-emerald-300' },
-  { label: 'Faculty Week', pct: 64, color: 'from-amber-500 to-amber-300', textColor: 'text-amber-300' },
-  { label: 'Project Fund', pct: 35, color: 'from-violet-500 to-purple-400', textColor: 'text-violet-300' },
+const DUES = [
+  { label: 'Dept. Dues', pct: 100, color: 'from-blue-500 to-emerald-400', textColor: 'text-emerald-300' },
+  { label: 'Faculty Week', pct: 0, color: 'from-amber-500 to-amber-300', textColor: 'text-amber-300' },
+  { label: 'SUG Dues', pct: 0, color: 'from-violet-500 to-purple-400', textColor: 'text-violet-300' },
 ];
 
 export function AuthHeroBanner() {
@@ -24,7 +24,7 @@ export function AuthHeroBanner() {
   useEffect(() => {
     setMounted(true);
     // stagger progress bar fills
-    GOALS.forEach((g, i) => {
+    DUES.forEach((g, i) => {
       setTimeout(() => {
         setFilledPcts(prev => {
           const next = [...prev];
@@ -41,7 +41,7 @@ export function AuthHeroBanner() {
       {/* ── Animated Background Orbs ── */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {/* large primary orb */}
-        <div className="absolute -top-32 -right-32 w-[480px] h-[480px] rounded-full bg-[#1a5cff]/18 blur-[80px] animate-orb-pulse" />
+        <div className="absolute -top-32 -right-32 w-[480px] h-[480px] rounded-full bg-[#2563EB]/18 blur-[80px] animate-orb-pulse" />
         {/* mid violet orb */}
         <div className="absolute top-1/2 -left-24 w-80 h-80 rounded-full bg-violet-600/12 blur-[60px] animate-orb-pulse delay-1000" />
         {/* small cyan orb bottom */}
@@ -53,7 +53,7 @@ export function AuthHeroBanner() {
 
         {/* Floating icons */}
         <div className="absolute top-[18%] right-[8%] text-white/6 animate-float-slow delay-300">
-          <PiggyBank className="w-20 h-20" />
+          <GraduationCap className="w-20 h-20" />
         </div>
         <div className="absolute bottom-[22%] left-[6%] text-white/5 animate-float-medium delay-700">
           <Coins className="w-16 h-16" />
@@ -90,7 +90,7 @@ export function AuthHeroBanner() {
         </p>
       </div>
 
-      {/* ── Demo Wallet Card ── */}
+      {/* ── Demo Dashboard Card ── */}
       <div className={`relative z-10 my-8 ${mounted ? 'animate-fade-slide-up delay-300' : 'opacity-0'}`}>
         <div className="relative bg-white/8 backdrop-blur-2xl rounded-3xl p-6 sm:p-7 shadow-[0_20px_60px_rgba(0,0,0,0.4)] overflow-hidden group transition-all duration-500"
           style={{ border: '1px solid rgba(99,102,241,0.3)' }}
@@ -115,11 +115,11 @@ export function AuthHeroBanner() {
           {/* Header */}
           <div className="flex items-center justify-between mb-5 relative z-10">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-[#1a5cff]/25 border border-blue-400/20 flex items-center justify-center">
-                <Wallet className="w-4 h-4 text-blue-300" />
+              <div className="w-9 h-9 rounded-xl bg-[#2563EB]/25 border border-blue-400/20 flex items-center justify-center">
+                <Receipt className="w-4 h-4 text-blue-300" />
               </div>
               <span className="text-[0.72rem] font-bold text-slate-300 tracking-widest uppercase">
-                Demo wallet
+                Dues Overview
               </span>
             </div>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[0.68rem] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">
@@ -141,14 +141,14 @@ export function AuthHeroBanner() {
             <div className="flex items-center gap-1.5 mt-1.5">
               <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
               <span className="text-[0.72rem] text-slate-400 font-medium">
-                3 active savings goals&nbsp;•&nbsp;2 outstanding dues
+                2 outstanding dues
               </span>
             </div>
           </div>
 
           {/* Progress bars */}
           <div className="flex flex-col gap-3 pt-4 border-t border-white/8 relative z-10">
-            {GOALS.map((g, i) => (
+            {DUES.map((g, i) => (
               <div key={g.label}>
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-[0.7rem] font-semibold text-slate-300">{g.label}</span>

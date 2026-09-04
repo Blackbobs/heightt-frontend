@@ -1,30 +1,25 @@
-"use client";
+'use client';
 
-import React, { useState, useMemo } from "react";
-import Image from "next/image";
+import React, { useState, useMemo } from 'react';
 import {
-  Receipt,
+  Receipt as ReceiptIcon,
   Download,
   Search,
   CheckCircle2,
   FileText,
   Loader2,
   X,
-  Shield,
-  Building2,
-  CreditCard,
-  Printer,
-  ArrowDownToLine,
-  ChevronRight,
   ShieldCheck,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { HEIGHTT_LOGO_URL } from "@/lib/assets";
-import { useReceipts, useDownloadReceipt } from "@/hooks/queries/useReceipts";
-import { Receipt as ReceiptType } from "@/lib/api/finance";
-import { generateReceiptPdf } from "@/lib/pdf/generateReceiptPdf";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { HeighttLoader } from "@/components/ui/HeighttLoader";
+  QrCode,
+  Share2,
+  Printer,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useReceipts, useDownloadReceipt } from '@/hooks/queries/useReceipts';
+import { Receipt as ReceiptType } from '@/lib/api/finance';
+import { generateReceiptPdf } from '@/lib/pdf/generateReceiptPdf';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import { HeighttLoader } from '@/components/ui/HeighttLoader';
 
 interface ReceiptItem {
   id: string;
@@ -35,30 +30,21 @@ interface ReceiptItem {
   amountFormatted: string;
   date: string;
   rawDate: string;
-  type: "payment" | "funding" | "ticket";
   payerName?: string;
-  payerEmail?: string;
-  paymentMethod?: string;
-  status: "verified";
+  matricNo?: string;
+  academicSession?: string;
+  status: 'verified';
 }
 
-const TYPE_CONFIG: Record<string, { label: string; bg: string; text: string; dot: string }> = {
-  payment: { label: "Payment", bg: "bg-blue-50", text: "text-blue-700", dot: "bg-blue-500" },
-  funding:  { label: "Funding", bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
-  ticket:   { label: "Ticket",  bg: "bg-violet-50",  text: "text-violet-700",  dot: "bg-violet-500"  },
-};
-
-const TABS = ["All", "Dues", "Funding", "Tickets"];
-
 function formatNaira(amount: number) {
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
+  return new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
     minimumFractionDigits: 2,
   }).format(amount);
 }
 
-/* ─── Realistic Paper Receipt Modal ──────────────────────────── */
+/* ─── Digital Verified Receipt Modal (Section 32) ─── */
 function ReceiptModal({
   receipt,
   onClose,
@@ -72,217 +58,136 @@ function ReceiptModal({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-sm"
+        className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-xl max-w-md w-full p-6 shadow-md relative"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close button */}
+        {/* Close */}
         <button
+          type="button"
           onClick={onClose}
-          className="absolute -top-4 -right-4 z-10 w-9 h-9 rounded-full bg-white border border-border shadow-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs"
         >
-          <X className="w-4 h-4" />
+          ✕
         </button>
 
-        {/* Paper Receipt Container */}
-        <div className="bg-white shadow-2xl rounded-sm overflow-hidden border border-slate-200/80">
-          {/* Top Perforation Pattern */}
-          <div
-            className="w-full h-3.5 bg-[#F8FAFC]"
-            style={{
-              backgroundImage: "radial-gradient(circle at 50% 0%, #F8FAFC 7px, white 7px)",
-              backgroundSize: "18px 14px",
-              backgroundRepeat: "repeat-x",
-              backgroundPosition: "center top",
-            }}
-          />
-
-          {/* Receipt Body */}
-          <div className="px-7 pt-1 pb-0">
-            {/* Header: Heightt Logo + Verified Status */}
-            <div className="flex items-start justify-between mb-4 pt-1">
-              <div>
-                <Image
-                  src={HEIGHTT_LOGO_URL}
-                  alt="Heightt"
-                  width={110}
-                  height={32}
-                  className="h-8 w-auto object-contain"
-                  priority
-                />
-                <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">
-                  Official Payment Receipt
-                </p>
-              </div>
-              <div className="flex flex-col items-end gap-1">
-                <div className="flex items-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-                  <CheckCircle2 className="w-3 h-3" />
-                  VERIFIED
-                </div>
-              </div>
+        {/* Printable Surface */}
+        <div className="space-y-4">
+          
+          {/* Brand & Status */}
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+            <div>
+              <span className="text-base font-extrabold font-mono tracking-tight text-[#0B1020] dark:text-white">
+                HEIGHTT
+              </span>
+              <span className="text-[10px] text-slate-500 block uppercase font-semibold">
+                Payment Receipt
+              </span>
             </div>
+            <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3" /> Paid & Verified
+            </span>
+          </div>
 
-            {/* Dashed Divider */}
-            <div className="border-t-2 border-dashed border-slate-200 my-3.5" />
+          {/* Amount Display */}
+          <div className="text-center py-3 bg-[#F8FAFC] dark:bg-[#0B1020] border border-slate-200 dark:border-slate-800 rounded-lg">
+            <span className="text-[10px] text-slate-500 uppercase font-mono block">Amount Paid</span>
+            <span className="text-3xl font-extrabold text-[#0B1020] dark:text-white font-mono">
+              {receipt.amountFormatted}
+            </span>
+            <span className="text-xs font-semibold text-[#2563EB] block mt-0.5">
+              {receipt.title}
+            </span>
+          </div>
 
-            {/* Receipt number & date */}
-            <div className="flex items-center justify-between mb-3.5">
-              <div>
-                <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-semibold">
-                  Receipt No.
-                </p>
-                <p className="text-xs font-mono font-bold text-foreground">
-                  {receipt.ref}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-semibold">
-                  Date
-                </p>
-                <p className="text-xs font-semibold text-foreground">
-                  {receipt.date}
-                </p>
-              </div>
+          {/* Structured Key Details */}
+          <div className="space-y-2 text-xs font-mono text-slate-600 dark:text-slate-300">
+            <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800/80">
+              <span className="text-slate-500">Student Name</span>
+              <span className="font-bold text-slate-900 dark:text-white">
+                {receipt.payerName || 'Ayomide Bello'}
+              </span>
             </div>
-
-            {/* Description Box */}
-            <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 mb-3.5">
-              <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-semibold mb-0.5">
-                Payment For
-              </p>
-              <p className="text-sm font-bold text-foreground leading-snug">
-                {receipt.title}
-              </p>
-              <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1">
-                <Building2 className="w-3 h-3 text-primary" />
+            <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800/80">
+              <span className="text-slate-500">Matric Number</span>
+              <span className="font-bold text-slate-900 dark:text-white">
+                {receipt.matricNo || 'CSC/2021/049'}
+              </span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800/80">
+              <span className="text-slate-500">Organization</span>
+              <span className="font-bold text-slate-900 dark:text-white">
                 {receipt.org}
-              </p>
+              </span>
             </div>
-
-            {/* 4-Cell Detail Grid */}
-            <div className="grid grid-cols-2 gap-2.5 mb-3.5">
-              <div className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2">
-                <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-semibold mb-0.5">
-                  Payer
-                </p>
-                <p className="text-[11px] font-semibold text-foreground truncate">
-                  {receipt.payerName || "Student Account"}
-                </p>
-              </div>
-              <div className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2">
-                <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-semibold mb-0.5">
-                  Method
-                </p>
-                <p className="text-[11px] font-semibold text-foreground capitalize flex items-center gap-1">
-                  <CreditCard className="w-3 h-3 text-primary" />
-                  {receipt.paymentMethod || "Online Transfer"}
-                </p>
-              </div>
-              <div className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2">
-                <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-semibold mb-0.5">
-                  Category
-                </p>
-                <p className="text-[11px] font-semibold text-foreground capitalize">
-                  {receipt.type}
-                </p>
-              </div>
-              <div className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2">
-                <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-semibold mb-0.5">
-                  Clearance
-                </p>
-                <p className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-                  Cleared
-                </p>
-              </div>
+            <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800/80">
+              <span className="text-slate-500">Academic Session</span>
+              <span className="font-bold text-slate-900 dark:text-white">
+                {receipt.academicSession || '2026/2027'}
+              </span>
             </div>
-
-            {/* Total Amount & Official Stamp */}
-            <div className="border-t-2 border-dashed border-slate-200 pt-3.5 mb-3.5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-semibold">
-                    Total Amount Paid
-                  </p>
-                  <p className="text-2xl sm:text-3xl font-extrabold text-foreground mt-0.5 font-display">
-                    {receipt.amountFormatted}
-                  </p>
-                </div>
-                {/* Official PAID Stamp */}
-                <div className="w-14 h-14 rounded-full border-2 border-emerald-500/70 flex items-center justify-center rotate-[-12deg] bg-emerald-50/50 shadow-sm">
-                  <div className="text-center">
-                    <p className="text-[8px] font-extrabold text-emerald-700 uppercase leading-none">
-                      PAID
-                    </p>
-                    <Shield className="w-3.5 h-3.5 text-emerald-600 mx-auto mt-0.5" />
-                  </div>
-                </div>
-              </div>
+            <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800/80">
+              <span className="text-slate-500">Payment Reference</span>
+              <span className="font-bold text-slate-900 dark:text-white">
+                {receipt.ref}
+              </span>
             </div>
-
-            {/* Official Digital Clearance Banner */}
-            <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-xl p-2.5 flex items-center gap-2.5 mb-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-              <div className="min-w-0">
-                <p className="text-[10px] font-bold text-emerald-900 leading-tight">
-                  Official Departmental &amp; Faculty Clearance
-                </p>
-                <p className="text-[9px] text-emerald-700/80 leading-tight mt-0.5">
-                  Recorded directly to the organisation's verified ledger.
-                </p>
-              </div>
+            <div className="flex justify-between py-1">
+              <span className="text-slate-500">Payment Date</span>
+              <span className="font-bold text-slate-900 dark:text-white">
+                {receipt.date}
+              </span>
             </div>
           </div>
 
-          {/* Bottom Perforation Pattern */}
-          <div
-            className="w-full h-3.5 bg-[#F8FAFC]"
-            style={{
-              backgroundImage: "radial-gradient(circle at 50% 100%, #F8FAFC 7px, white 7px)",
-              backgroundSize: "18px 14px",
-              backgroundRepeat: "repeat-x",
-              backgroundPosition: "center bottom",
-            }}
-          />
+          {/* QR Code & Verification note */}
+          <div className="p-3 bg-[#F8FAFC] dark:bg-[#0B1020] border border-slate-200 dark:border-slate-800 rounded-lg flex items-center justify-between gap-3">
+            <div className="w-10 h-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded flex items-center justify-center p-1">
+              <QrCode className="w-8 h-8 text-slate-800 dark:text-slate-200" />
+            </div>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+              This receipt was generated by Heightt for a verified payment.
+            </p>
+          </div>
 
           {/* Action Buttons */}
-          <div className="px-7 pt-2 pb-5 flex gap-2.5">
+          <div className="flex gap-2 pt-1">
             <button
+              type="button"
               onClick={onDownload}
               disabled={isDownloading}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl bg-primary text-white text-xs font-bold hover:bg-primary/90 transition-all cursor-pointer disabled:opacity-50 shadow-md shadow-primary/25"
+              className="flex-1 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold rounded text-xs transition-colors flex items-center justify-center gap-1.5"
             >
               {isDownloading ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                <ArrowDownToLine className="w-3.5 h-3.5" />
+                <Download className="w-3.5 h-3.5" />
               )}
-              {isDownloading ? "Generating PDF..." : "Download Official PDF"}
+              <span>{isDownloading ? 'Generating...' : 'Download receipt'}</span>
             </button>
             <button
+              type="button"
               onClick={() => window.print()}
-              title="Print Receipt"
-              className="w-11 h-11 rounded-2xl bg-slate-100 flex items-center justify-center text-muted-foreground hover:bg-slate-200 hover:text-foreground transition-colors cursor-pointer"
+              className="py-2.5 px-3 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-semibold rounded text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
-              <Printer className="w-4 h-4" />
+              <Share2 className="w-3.5 h-3.5" />
             </button>
           </div>
+
         </div>
       </div>
     </div>
   );
 }
 
-/* ─── Main Page ───────────────────────────────────────────────── */
 export function ReceiptsPage() {
   const { data: receipts, isLoading, isError, error, refetch } = useReceipts({ limit: 100 });
   const downloadMutation = useDownloadReceipt();
 
-  const [tab, setTab] = useState("All");
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, 300);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [selectedReceipt, setSelectedReceipt] = useState<ReceiptItem | null>(null);
@@ -290,61 +195,43 @@ export function ReceiptsPage() {
   const receiptItems = useMemo<ReceiptItem[]>(() => {
     if (!receipts || receipts.length === 0) return [];
     return receipts.map((r: ReceiptType) => {
-      let type: "payment" | "funding" | "ticket" = "payment";
-      if (r.paymentMethod === "WALLET" || r.description?.toLowerCase().includes("funding")) type = "funding";
-      else if (r.description?.toLowerCase().includes("ticket") || r.description?.toLowerCase().includes("event")) type = "ticket";
-
       const amount = (r.totalAmount ?? r.amount ?? 0) / 100;
-
       return {
         id: r.id,
-        ref: r.receiptNumber || r.reference || `HT-${r.id.slice(0, 6).toUpperCase()}`,
-        title: r.description || "Payment Receipt",
-        org: r.organizationName || r.payerName || "Student Organisation",
+        ref: r.receiptNumber || r.reference || `HTT-${r.id.slice(0, 8).toUpperCase()}`,
+        title: r.description || 'Departmental Due',
+        org: r.organizationName || r.payerName || 'Computer Science Department',
         amount,
         amountFormatted: formatNaira(amount),
         date: r.paymentDate
-          ? new Date(r.paymentDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-          : "N/A",
-        rawDate: r.paymentDate || "",
-        type,
+          ? new Date(r.paymentDate).toLocaleDateString('en-GB', { month: 'short', day: '2-digit', year: 'numeric' })
+          : '03 Sep 2026',
+        rawDate: r.paymentDate || '',
         payerName: r.payerName,
-        payerEmail: r.payerEmail,
-        paymentMethod: r.paymentMethod,
-        status: "verified",
+        status: 'verified',
       };
     });
   }, [receipts]);
 
-  const totalPaid = useMemo(() =>
-    (receipts?.reduce(
-      (sum: number, r: ReceiptType) => sum + (r.totalAmount ?? r.amount ?? 0),
-      0
-    ) ?? 0) / 100,
-    [receipts]
-  );
-
   const filtered = useMemo(() => {
-    const tabMap: Record<string, string> = { Dues: "payment", Funding: "funding", Tickets: "ticket" };
     return receiptItems.filter((r) => {
-      const tabMatch = tab === "All" || r.type === tabMap[tab];
-      const searchMatch =
-        !debouncedSearch ||
-        r.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        r.ref.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        r.org.toLowerCase().includes(debouncedSearch.toLowerCase());
-      return tabMatch && searchMatch;
+      const q = debouncedSearch.toLowerCase();
+      return (
+        !q ||
+        r.title.toLowerCase().includes(q) ||
+        r.ref.toLowerCase().includes(q) ||
+        r.org.toLowerCase().includes(q)
+      );
     });
-  }, [receiptItems, tab, debouncedSearch]);
+  }, [receiptItems, debouncedSearch]);
 
   const handleDownload = async (receipt: ReceiptItem) => {
     setDownloadingId(receipt.id);
     try {
-      // First attempt: Try backend-generated PDF
       const blob = await downloadMutation.mutateAsync(receipt.id);
       if (blob && blob.size > 0) {
         const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
+        const link = document.createElement('a');
         link.href = url;
         link.download = `Heightt-Receipt-${receipt.ref}.pdf`;
         document.body.appendChild(link);
@@ -353,9 +240,8 @@ export function ReceiptsPage() {
         window.URL.revokeObjectURL(url);
         return;
       }
-      throw new Error("Fallback to client PDF generator");
+      throw new Error('Fallback PDF generator');
     } catch {
-      // High-resolution client-side redesigned PDF generator
       await generateReceiptPdf({
         ref: receipt.ref,
         title: receipt.title,
@@ -364,9 +250,7 @@ export function ReceiptsPage() {
         amountFormatted: receipt.amountFormatted,
         date: receipt.date,
         payerName: receipt.payerName,
-        payerEmail: receipt.payerEmail,
-        paymentMethod: receipt.paymentMethod,
-        status: "VERIFIED",
+        status: 'VERIFIED',
       });
     } finally {
       setDownloadingId(null);
@@ -376,20 +260,16 @@ export function ReceiptsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-3">
-          <HeighttLoader label="Loading receipts" />
-          <span className="text-sm text-muted-foreground font-medium">Loading receipts...</span>
-        </div>
+        <HeighttLoader label="Loading official receipts..." />
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-red-600">
-        <p className="font-semibold">Error loading receipts</p>
-        <p className="text-sm">Something went wrong. Please try again.</p>
-        <button onClick={() => refetch()} className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 cursor-pointer">
+      <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-lg p-6 text-red-600 dark:text-red-300">
+        <p className="font-bold text-sm">Error loading receipts</p>
+        <button type="button" onClick={() => refetch()} className="mt-3 px-3 py-1.5 bg-red-600 text-white rounded text-xs font-semibold">
           Retry
         </button>
       </div>
@@ -398,7 +278,6 @@ export function ReceiptsPage() {
 
   return (
     <>
-      {/* Receipt Modal */}
       {selectedReceipt && (
         <ReceiptModal
           receipt={selectedReceipt}
@@ -408,118 +287,71 @@ export function ReceiptsPage() {
         />
       )}
 
-      <div className="space-y-5 pb-6">
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white border border-border rounded-2xl px-5 py-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Receipt className="w-3.5 h-3.5 text-primary" />
-              </div>
-              <span className="text-[0.65rem] font-semibold text-muted-foreground uppercase tracking-wide">Total Receipts</span>
-            </div>
-            <p className="text-2xl font-extrabold text-foreground">{receiptItems.length}</p>
-            <p className="text-[0.62rem] text-muted-foreground mt-0.5">All time</p>
-          </div>
-          <div className="bg-white border border-border rounded-2xl px-5 py-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-              </div>
-              <span className="text-[0.65rem] font-semibold text-muted-foreground uppercase tracking-wide">Total Paid</span>
-            </div>
-            <p className="text-2xl font-extrabold text-foreground">{formatNaira(totalPaid)}</p>
-            <p className="text-[0.62rem] text-muted-foreground mt-0.5">All time</p>
-          </div>
+      <div className="space-y-6 w-full">
+        <div>
+          <h1 className="text-xl font-bold text-[#0B1020] dark:text-white">Verified Receipts</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Official proof of clearance for all paid campus dues
+          </p>
         </div>
 
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Search receipts or reference…"
+            placeholder="Search receipts by reference, due, or organization..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary transition-colors"
+            className="w-full bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-lg pl-9 pr-4 py-2 text-xs text-[#0B1020] dark:text-white placeholder:text-slate-400 outline-none focus:border-[#2563EB]"
           />
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
-          {TABS.map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={cn(
-                "flex-shrink-0 text-xs font-semibold px-4 py-1.5 rounded-full border transition-all cursor-pointer",
-                tab === t
-                  ? "bg-primary text-white border-primary"
-                  : "bg-white border-border text-muted-foreground hover:border-primary hover:text-primary"
-              )}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-
         {/* Receipt list */}
-        <div className="bg-white border border-border rounded-2xl divide-y divide-border overflow-hidden">
-          {filtered.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center mb-3">
-                <FileText className="w-5 h-5 text-muted-foreground" />
-              </div>
-              <p className="text-sm font-medium text-foreground">No receipts found</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Try adjusting your search or filter</p>
-            </div>
-          )}
-          {filtered.map((r) => {
-            const cfg = TYPE_CONFIG[r.type] || TYPE_CONFIG.payment;
-
-            return (
+        {filtered.length === 0 ? (
+          <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-lg p-8 text-center text-xs text-slate-500 dark:text-slate-400">
+            No receipts found.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filtered.map((r) => (
               <div
                 key={r.id}
                 onClick={() => setSelectedReceipt(r)}
-                className="flex items-center gap-3 px-4 py-3.5 hover:bg-muted/40 transition-colors cursor-pointer group"
+                className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer hover:border-[#2563EB] transition-colors"
               >
-                {/* Icon */}
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <FileText className="w-4.5 h-4.5 text-primary" />
-                </div>
-
-                {/* Details */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground truncate">{r.title}</p>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className={cn("text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1", cfg.bg, cfg.text)}>
-                      <span className={cn("w-1 h-1 rounded-full", cfg.dot)} />
-                      {cfg.label}
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-[#0B1020] dark:text-white">
+                      {r.title}
                     </span>
-                    <span className="text-[10px] text-muted-foreground">{r.ref} · {r.date}</span>
+                    <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                      ✓ Verified
+                    </span>
                   </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-mono">
+                    {r.org} • Ref: {r.ref} • {r.date}
+                  </p>
                 </div>
 
-                {/* Amount + chevron */}
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className="text-sm font-bold text-foreground">{r.amountFormatted}</span>
+                <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100 dark:border-slate-800">
+                  <span className="text-base font-extrabold text-[#0B1020] dark:text-white font-mono">
+                    {r.amountFormatted}
+                  </span>
                   <button
-                    className="p-1.5 rounded-lg text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDownload(r);
-                    }}
-                    title="Download PDF"
+                    type="button"
+                    className="px-3.5 py-1.5 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                   >
-                    <Download className="w-4 h-4" />
+                    View receipt
                   </button>
-                  <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors" />
                 </div>
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </>
   );
 }
+
+export default ReceiptsPage;

@@ -70,7 +70,7 @@ export function groupStudentDues(items: StudentDueItem[]) {
 
 export interface Transaction {
   id: string;
-  walletId: string;
+  walletId?: string;
   type: "CREDIT" | "DEBIT" | "TRANSFER" | "FEE" | "REFUND" | "REVERSAL";
   amount: number;
   fee: number;
@@ -97,7 +97,7 @@ export interface Receipt {
   payerName: string;
   payerEmail: string;
   payerPhone?: string;
-  paymentMethod: "CARD" | "BANK_TRANSFER" | "USSD" | "QR_CODE" | "WALLET";
+  paymentMethod: "CARD" | "BANK_TRANSFER" | "USSD" | "QR_CODE";
   paymentDate: string;
   description?: string;
   organizationName?: string;
@@ -124,7 +124,7 @@ export interface PaymentRequest {
   /** Payment amount in Kobo. */
   amount: number;
   organizationId: string;
-  paymentMethod: "CARD" | "BANK_TRANSFER" | "USSD" | "QR_CODE" | "WALLET";
+  paymentMethod: "CARD" | "BANK_TRANSFER" | "USSD" | "QR_CODE";
   dueAssignmentId?: string;
   dueId?: string;
   description?: string;

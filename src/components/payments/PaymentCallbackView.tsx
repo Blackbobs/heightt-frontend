@@ -234,7 +234,7 @@ export function PaymentCallbackView() {
         title={state.payment.status === "PENDING" ? "Checkout interrupted" : `Payment ${state.payment.status.toLowerCase()}`}
         description={state.message}
       >
-        <Link href="/dashboard/payments" className="rounded-2xl bg-[#1a5cff] px-5 py-3 text-sm font-semibold text-white no-underline">Return to dues</Link>
+        <Link href="/dashboard/payments" className="rounded-2xl bg-[#2563EB] px-5 py-3 text-sm font-semibold text-white no-underline">Return to dues</Link>
       </PaymentStatusMessage>
     );
   }
@@ -272,7 +272,7 @@ function PaymentAwaitingConfirmation() {
 
         <div className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center sm:h-24 sm:w-24">
           <div className="absolute inset-0 animate-pulse rounded-full bg-blue-400/15" />
-          <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-tr from-[#1a5cff] to-[#56a0ff] shadow-lg shadow-blue-950/60 sm:h-20 sm:w-20">
+          <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-tr from-[#2563EB] to-[#56a0ff] shadow-lg shadow-blue-950/60 sm:h-20 sm:w-20">
             <Clock3 className="h-9 w-9 text-white sm:h-11 sm:w-11" strokeWidth={2.2} />
           </div>
         </div>
@@ -297,10 +297,10 @@ function PaymentAwaitingConfirmation() {
       <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xl sm:p-6">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-blue-50">
-            <AlertCircle className="h-5 w-5 text-[#1a5cff]" />
+            <AlertCircle className="h-5 w-5 text-[#2563EB]" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-[#0b1a33]">What happens next?</h2>
+            <h2 className="text-sm font-bold text-[#0B1020]">What happens next?</h2>
             <p className="mt-1 text-xs leading-5 text-slate-500">
               You can check again now or return to your payments. Your record
               will update automatically once the provider responds.
@@ -312,7 +312,7 @@ function PaymentAwaitingConfirmation() {
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="flex-1 rounded-2xl bg-[#1a5cff] px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-500/20 transition-colors hover:bg-[#0f4ad0]"
+            className="flex-1 rounded-2xl bg-[#2563EB] px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-500/20 transition-colors hover:bg-[#1D4ED8]"
           >
             Check again
           </button>
@@ -344,14 +344,14 @@ function PaymentStatusMessage({
       <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50">
         {icon}
       </div>
-      <h1 className="text-xl font-bold text-[#0b1a33]">{title}</h1>
+      <h1 className="text-xl font-bold text-[#0B1020]">{title}</h1>
       <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>
       <div className="mt-6 flex justify-center gap-3">
         {children || (
           <>
         <Link
           href="/dashboard/payments"
-          className="rounded-2xl bg-[#1a5cff] px-5 py-3 text-sm font-semibold text-white no-underline"
+          className="rounded-2xl bg-[#2563EB] px-5 py-3 text-sm font-semibold text-white no-underline"
         >
           View Payments
         </Link>

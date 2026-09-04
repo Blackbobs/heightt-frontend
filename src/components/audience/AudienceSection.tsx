@@ -1,296 +1,252 @@
 'use client';
 
-import { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import {
-  GraduationCap,
-  Briefcase,
-  Eye,
-  CreditCard,
-  CheckCircle2,
-  FileCheck,
-  ArrowRight,
-  ShieldCheck,
-  QrCode,
-  Sparkles,
-  Receipt,
-  PlusCircle,
-  Activity,
-  Users,
-  FolderLock,
-  FileCheck2,
-  TrendingDown,
-} from 'lucide-react';
-import { ScrollReveal } from '@/components/ui/ScrollReveal';
-
-/* ── Student data ──────────────────────────────────────────── */
-const studentDues = [
-  {
-    id: 'dept',
-    label: 'Dept Dues',
-    title: 'Departmental Annual Dues',
-    org: 'Computer Science (NACOS)',
-    amount: '₦12,500',
-    receiptNo: 'HT-84920',
-  },
-  {
-    id: 'fac',
-    label: 'Faculty',
-    title: 'Faculty Development Levy',
-    org: 'Faculty of Physical Sciences',
-    amount: '₦8,000',
-    receiptNo: 'HT-84921',
-  },
-  {
-    id: 'sug',
-    label: 'SUG',
-    title: 'Student Union Government',
-    org: 'SUG General Dues',
-    amount: '₦2,500',
-    receiptNo: 'HT-84922',
-  },
-];
-
-const studentPillars = [
-  { icon: Eye,         title: 'See Your Dues',     desc: 'Clear breakdown of active dues and assigned amounts.' },
-  { icon: CreditCard,  title: 'Pay Online',         desc: 'Pay directly via card or bank transfer without queueing.' },
-  { icon: CheckCircle2, title: 'Track Payments',   desc: 'Instant confirmation — no need to ask the exco.' },
-  { icon: FileCheck,   title: 'Keep Your Records',  desc: 'Permanent digital clearance receipts on your account.' },
-];
-
-/* ── Executive data ────────────────────────────────────────── */
-const execPillars = [
-  { icon: PlusCircle,  title: 'Create & Manage Dues',    desc: 'Set amounts, details and publish dues to your members in minutes.' },
-  { icon: Activity,    title: 'Track Payments Live',      desc: 'See payments as they happen — no more spreadsheet updates.' },
-  { icon: Users,       title: 'Know Who Has Paid',        desc: 'Filter by matric, department or payment status instantly.' },
-  { icon: FolderLock,  title: 'Member Directory',         desc: 'All members and payment records in one organised place.' },
-  { icon: FileCheck2,  title: 'Financial Records',        desc: 'Tamper-evident audit-ready history for every collection.' },
-  { icon: TrendingDown, title: '90% Less Admin Work',    desc: 'Save 15+ hours weekly — focus on running your organisation.' },
-];
-
-type Tab = 'students' | 'executives';
+import { ArrowRight, Plus } from 'lucide-react';
 
 export function AudienceSection() {
-  const [tab, setTab] = useState<Tab>('students');
-  const [selectedDue, setSelectedDue] = useState(studentDues[0]);
-
   return (
-    <section id="audience" className="w-full relative overflow-hidden">
-      {/* Full-width blue banner */}
-      <div className="relative w-full bg-gradient-to-br from-[#1a5cff] via-[#124bda] to-[#0932a3] text-white px-4 sm:px-6 lg:px-12 xl:px-20 py-16 sm:py-20 md:py-24 overflow-hidden">
-        {/* Ambient flares */}
-        <div className="absolute -top-32 -right-32 w-[500px] h-[500px] bg-white/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-32 -left-32 w-[500px] h-[500px] bg-black/20 rounded-full blur-3xl pointer-events-none" />
+    <div className="w-full">
+      
+      {/* ── 10. FOR STUDENTS SECTION ── */}
+      <section id="for-students" className="border-b border-slate-200/80 bg-white py-16 dark:border-slate-800 dark:bg-[#0B1020] sm:py-24">
+        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+          
+          <div className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#2563EB] lg:text-left">
+            FOR STUDENTS
+          </div>
 
-        {/* Floating ambient icons */}
-        <GraduationCap className="absolute top-10 right-20 w-20 h-20 text-white/8 hidden lg:block animate-float-slow" />
-        <Receipt        className="absolute bottom-10 left-16 w-16 h-16 text-white/8 hidden lg:block animate-float-slow [animation-delay:2s]" />
-        <Briefcase      className="absolute top-1/2 right-8 w-14 h-14 text-white/6 hidden lg:block animate-float-slow [animation-delay:4s]" />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            {/* Left Column: Headline & Bullet points */}
+            <div className="space-y-6 text-center lg:col-span-6 lg:text-left">
+              <h2 className="text-balance text-3xl font-semibold leading-tight tracking-[-0.045em] text-[#0B1020] dark:text-white sm:text-4xl lg:text-5xl">
+                Everything you&apos;ve paid for. <br />
+                <span className="text-[#2563EB]">One place.</span>
+              </h2>
 
-        {/* Inner content wrapper */}
-        <div className="relative z-10 max-w-7xl mx-auto flex flex-col gap-10">
-
-          {/* Toggle Pill */}
-          <ScrollReveal direction="up" className="flex justify-center">
-            <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-white/15 border border-white/25 backdrop-blur-md shadow-inner">
-              <button
-                onClick={() => setTab('students')}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 cursor-pointer ${
-                  tab === 'students'
-                    ? 'bg-white text-primary shadow-md'
-                    : 'text-white/80 hover:text-white hover:bg-white/10'
-                }`}
-              >
-                <GraduationCap className="w-4 h-4" />
-                For Students
-              </button>
-              <button
-                onClick={() => setTab('executives')}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 cursor-pointer ${
-                  tab === 'executives'
-                    ? 'bg-white text-primary shadow-md'
-                    : 'text-white/80 hover:text-white hover:bg-white/10'
-                }`}
-              >
-                <Briefcase className="w-4 h-4" />
-                For Executives
-              </button>
-            </div>
-          </ScrollReveal>
-
-          {/* ── STUDENTS PANEL ── */}
-          {tab === 'students' && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
-              {/* Left: Headline + 4 cards */}
-              <ScrollReveal direction="right" className="lg:col-span-6 flex flex-col gap-6">
-                <div>
-                  <h2 className="font-display text-3xl sm:text-4xl lg:text-[2.65rem] font-extrabold tracking-tight text-white leading-[1.12]">
-                    Paying your dues should be <br className="hidden sm:inline" />
-                    the easy part.
-                  </h2>
-                  <p className="text-sm sm:text-base text-white/80 mt-3 leading-relaxed max-w-lg">
-                    View dues assigned to you, pay online, and get verified digital clearance receipts — without messaging a single executive.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  {studentPillars.map((item, idx) => {
-                    const Icon = item.icon;
-                    return (
-                      <div
-                        key={idx}
-                        className="p-4 rounded-2xl bg-white/10 hover:bg-white border border-white/15 hover:border-white text-white hover:text-primary transition-all duration-300 group shadow-sm hover:shadow-xl hover:-translate-y-1 backdrop-blur-md cursor-default"
-                      >
-                        <div className="w-9 h-9 rounded-xl bg-white text-primary flex items-center justify-center mb-2.5 shadow-sm group-hover:scale-110 transition-transform">
-                          <Icon className="w-4 h-4" />
-                        </div>
-                        <h3 className="text-sm font-bold text-white group-hover:text-foreground transition-colors mb-0.5">
-                          {item.title}
-                        </h3>
-                        <p className="text-xs text-white/70 group-hover:text-muted-foreground transition-colors leading-relaxed">
-                          {item.desc}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div>
-                  <Link
-                    href="/signup"
-                    className="inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl bg-white text-primary font-bold text-sm shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer"
-                  >
-                    Create Student Account <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
-              </ScrollReveal>
-
-              {/* Right: Interactive Receipt Card */}
-              <ScrollReveal direction="left" className="lg:col-span-6 flex justify-center">
-                <div className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-7 text-foreground shadow-2xl border border-white/30">
-                  {/* Profile bar */}
-                  <div className="flex items-center justify-between pb-4 mb-5 border-b border-border">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-primary text-white font-bold flex items-center justify-center text-xs shadow-sm">
-                        AO
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-foreground">Adaeze Okafor</h4>
-                        <p className="text-[11px] text-muted-foreground">CSC/2021/049 · Computer Science</p>
-                      </div>
-                    </div>
-                    <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
-                      100% Cleared
+              <ul className="mx-auto max-w-lg space-y-3 pt-2 text-left lg:mx-0">
+                {[
+                  'Pay dues online securely with instant feedback',
+                  'Know exactly what you owe and when it is due',
+                  'Access verified digital receipts anytime',
+                  'See your complete payment history across semesters',
+                  'Never search through WhatsApp screenshots again',
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300">
+                    <span className="w-5 h-5 rounded bg-[#2563EB]/10 text-[#2563EB] flex items-center justify-center font-bold text-xs mt-0.5 flex-shrink-0">
+                      ✓
                     </span>
-                  </div>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
 
-                  {/* Due selector */}
-                  <div className="flex flex-col gap-2 mb-5">
-                    <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Select Receipt:</span>
-                    <div className="grid grid-cols-3 gap-2">
-                      {studentDues.map((due) => (
-                        <button
-                          key={due.id}
-                          onClick={() => setSelectedDue(due)}
-                          className={`px-2.5 py-2 rounded-xl text-[11px] font-bold text-center transition-all cursor-pointer border ${
-                            selectedDue.id === due.id
-                              ? 'bg-primary text-white border-primary shadow-sm'
-                              : 'bg-muted text-muted-foreground border-border hover:bg-border/60'
-                          }`}
-                        >
-                          {due.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Receipt */}
-                  <div className="bg-muted/50 border border-border rounded-2xl p-4 relative">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full uppercase flex items-center gap-1 w-fit mb-1">
-                          <CheckCircle2 className="w-3 h-3" /> Auto-Cleared
-                        </span>
-                        <h5 className="font-bold text-foreground text-sm">{selectedDue.title}</h5>
-                        <p className="text-[11px] text-muted-foreground">{selectedDue.org}</p>
-                      </div>
-                      <div className="w-9 h-9 rounded-xl bg-white border border-border flex items-center justify-center text-primary shadow-sm">
-                        <QrCode className="w-5 h-5" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 py-2.5 my-2 border-y border-border text-xs">
-                      <div>
-                        <span className="text-[10px] text-muted-foreground block">AMOUNT</span>
-                        <span className="font-extrabold text-foreground text-base font-display">{selectedDue.amount}</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-muted-foreground block">RECEIPT ID</span>
-                        <span className="font-mono font-bold text-primary text-[11px]">#{selectedDue.receiptNo}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between text-[11px] pt-1">
-                      <span className="text-emerald-600 font-semibold flex items-center gap-1">
-                        <ShieldCheck className="w-3.5 h-3.5" /> Clearance Verified
-                      </span>
-                      <span className="text-primary font-bold hover:underline cursor-pointer">Download PDF</span>
-                    </div>
-                  </div>
-                </div>
-              </ScrollReveal>
-            </div>
-          )}
-
-          {/* ── EXECUTIVES PANEL ── */}
-          {tab === 'executives' && (
-            <div className="flex flex-col gap-10">
-              <ScrollReveal direction="up">
-                <div className="text-center max-w-2xl mx-auto">
-                  <h2 className="font-display text-3xl sm:text-4xl lg:text-[2.65rem] font-extrabold tracking-tight text-white leading-[1.12]">
-                    Your tenure shouldn't be spent <br className="hidden sm:inline" />
-                    updating spreadsheets.
-                  </h2>
-                  <p className="text-sm sm:text-base text-white/80 mt-3 leading-relaxed">
-                    Create a due once and let Heightt handle the records automatically as students pay.
-                  </p>
-                </div>
-              </ScrollReveal>
-
-              {/* 6 white hover cards in 3-col grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {execPillars.map((item, idx) => {
-                  const Icon = item.icon;
-                  return (
-                    <ScrollReveal key={idx} delay={idx * 60}>
-                      <div className="p-5 rounded-2xl bg-white/10 hover:bg-white border border-white/15 hover:border-white text-white hover:text-primary transition-all duration-300 group hover:shadow-xl hover:-translate-y-1 backdrop-blur-md cursor-default h-full">
-                        <div className="w-10 h-10 rounded-xl bg-white text-primary flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
-                          <Icon className="w-5 h-5" />
-                        </div>
-                        <h3 className="text-sm font-bold text-white group-hover:text-foreground transition-colors mb-1">
-                          {item.title}
-                        </h3>
-                        <p className="text-xs text-white/70 group-hover:text-muted-foreground transition-colors leading-relaxed">
-                          {item.desc}
-                        </p>
-                      </div>
-                    </ScrollReveal>
-                  );
-                })}
-              </div>
-
-              {/* CTA */}
-              <ScrollReveal delay={200} className="flex justify-center">
+              <div className="pt-3">
                 <Link
                   href="/signup"
-                  className="inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl bg-white text-primary font-bold text-sm shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(37,99,235,0.18)] transition-all hover:-translate-y-0.5 hover:bg-[#1D4ED8] sm:w-auto"
                 >
-                  Onboard Your Organisation <ArrowRight className="w-4 h-4" />
+                  <span>Get Started as Student</span>
+                  <ArrowRight className="w-4 h-4" />
                 </Link>
-              </ScrollReveal>
+              </div>
             </div>
-          )}
 
+            {/* Right Column: Actual Product Interface Mockup */}
+            <div className="lg:col-span-6">
+              <div className="rounded-3xl border border-slate-200/90 bg-[#F8FAFC] p-4 shadow-[0_24px_70px_-40px_rgba(15,42,100,0.35)] dark:border-slate-800 dark:bg-[#131B2E] sm:p-6">
+                
+                <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-4">
+                  <div>
+                    <h3 className="text-base font-bold text-[#0B1020] dark:text-white">Your Dues</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">2026/2027 Academic Session</p>
+                  </div>
+                  <span className="text-xs font-mono font-semibold px-2.5 py-1 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                    3 Dues Assigned
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {/* Due item 1 */}
+                  <div className="bg-white dark:bg-[#0B1020] border border-slate-200 dark:border-slate-800 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-[#0B1020] dark:text-white">Departmental Due</span>
+                        <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800">
+                          Pending
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Computer Science Department • Due Sep 30</p>
+                    </div>
+                    <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100 dark:border-slate-800">
+                      <span className="text-base font-extrabold text-[#0B1020] dark:text-white font-mono">₦5,000</span>
+                      <button type="button" className="px-3.5 py-1.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-semibold rounded-md transition-colors">
+                        Pay now
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Due item 2 */}
+                  <div className="bg-white dark:bg-[#0B1020] border border-slate-200 dark:border-slate-800 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-[#0B1020] dark:text-white">Faculty Due</span>
+                        <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                          ✓ Paid
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Faculty of Science • Paid Aug 24</p>
+                    </div>
+                    <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100 dark:border-slate-800">
+                      <span className="text-base font-extrabold text-[#0B1020] dark:text-white font-mono">₦3,000</span>
+                      <button type="button" className="px-3.5 py-1.5 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                        View receipt
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Due item 3 */}
+                  <div className="bg-white dark:bg-[#0B1020] border border-slate-200 dark:border-slate-800 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-[#0B1020] dark:text-white">Level Due</span>
+                        <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                          ✓ Paid
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">300 Level Association • Paid Aug 15</p>
+                    </div>
+                    <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100 dark:border-slate-800">
+                      <span className="text-base font-extrabold text-[#0B1020] dark:text-white font-mono">₦2,500</span>
+                      <button type="button" className="px-3.5 py-1.5 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                        View receipt
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* ── 11. FOR EXECUTIVES SECTION (Dark Navy Background, No Gradient) ── */}
+      <section id="for-executives" className="relative overflow-hidden border-b border-slate-800 bg-[#0B1020] py-16 text-white sm:py-24">
+        <div className="hero-grid pointer-events-none absolute inset-0 opacity-10" aria-hidden="true" />
+        <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+          
+          <div className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-400 lg:text-left">
+            FOR EXECUTIVES & ORGANISATIONS
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            {/* Left Column: Capabilities */}
+            <div className="space-y-6 text-center lg:col-span-5 lg:text-left">
+              <h2 className="text-balance text-3xl font-semibold leading-tight tracking-[-0.045em] text-white sm:text-4xl lg:text-5xl">
+                Less chasing payments. <br />
+                <span className="text-[#2563EB]">More visibility.</span>
+              </h2>
+
+              <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+                Heightt gives departmental associations, faculties, and clubs complete control over their dues collection.
+              </p>
+
+              <div className="grid grid-cols-2 gap-2 pt-2 text-left">
+                {[
+                  'Create dues',
+                  'Assign dues to levels',
+                  'Track live collections',
+                  'Monitor outstanding payments',
+                  'Generate audit reports',
+                  'Verify student transactions',
+                  'Export CSV records',
+                ].map((cap) => (
+                  <div key={cap} className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/60 p-2.5 text-[11px] font-medium text-slate-300 sm:text-xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB]" />
+                    <span>{cap}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-2">
+                <Link
+                  href="/signup"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-6 py-3.5 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#1D4ED8] sm:w-auto"
+                >
+                  <span>Onboard Executive Account</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Right Column: Restrained Admin Preview Mockup */}
+            <div className="lg:col-span-7">
+              <div className="rounded-3xl border border-slate-800 bg-[#131B2E] p-4 text-slate-100 shadow-2xl shadow-black/20 sm:p-6">
+                
+                {/* Admin Header */}
+                <div className="mb-4 flex flex-col gap-3 border-b border-slate-800 pb-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-slate-400">NACOS EXCO DASHBOARD</div>
+                    <div className="text-base font-bold text-white">Computer Science Department</div>
+                  </div>
+                  <div className="flex gap-2 self-start sm:self-auto">
+                    <button type="button" className="px-3 py-1.5 bg-[#2563EB] text-white text-xs font-semibold rounded flex items-center gap-1">
+                      <Plus className="w-3.5 h-3.5" /> Create Due
+                    </button>
+                  </div>
+                </div>
+
+                {/* Collections summary */}
+                <div className="mb-4 grid grid-cols-1 gap-2 min-[430px]:grid-cols-3 sm:gap-3">
+                  <div className="bg-[#0B1020] border border-slate-800 p-3 rounded-lg">
+                    <span className="text-[10px] font-semibold text-slate-400 block uppercase">Total Collected</span>
+                    <span className="block break-words font-mono text-base font-bold text-white sm:text-lg">₦2,450,000</span>
+                  </div>
+                  <div className="bg-[#0B1020] border border-slate-800 p-3 rounded-lg">
+                    <span className="text-[10px] font-semibold text-slate-400 block uppercase">Cleared Students</span>
+                    <span className="block font-mono text-base font-bold text-emerald-400 sm:text-lg">490 / 600</span>
+                  </div>
+                  <div className="bg-[#0B1020] border border-slate-800 p-3 rounded-lg">
+                    <span className="text-[10px] font-semibold text-slate-400 block uppercase">Outstanding</span>
+                    <span className="block font-mono text-base font-bold text-amber-400 sm:text-lg">₦550,000</span>
+                  </div>
+                </div>
+
+                {/* Table preview */}
+                <div className="border border-slate-800 rounded-lg overflow-hidden text-xs">
+                  <div className="bg-[#0B1020] px-4 py-2.5 font-semibold text-slate-400 flex justify-between border-b border-slate-800">
+                    <span>Recent Collections</span>
+                    <span>Status</span>
+                  </div>
+                  <div className="divide-y divide-slate-800/60 bg-[#131B2E]">
+                    <div className="flex flex-col gap-1 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+                      <div>
+                        <span className="font-semibold text-white">Ayomide Bello</span>
+                        <span className="text-slate-400 text-[11px] block">CSC/2021/049 • Departmental Due</span>
+                      </div>
+                      <span className="font-mono text-[11px] font-semibold text-emerald-400 sm:text-xs">₦5,000 (Verified)</span>
+                    </div>
+                    <div className="flex flex-col gap-1 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+                      <div>
+                        <span className="font-semibold text-white">Chidi Nnamdi</span>
+                        <span className="text-slate-400 text-[11px] block">CSC/2022/102 • Departmental Due</span>
+                      </div>
+                      <span className="font-mono text-[11px] font-semibold text-emerald-400 sm:text-xs">₦5,000 (Verified)</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+    </div>
   );
 }

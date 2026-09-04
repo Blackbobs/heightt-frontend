@@ -28,7 +28,6 @@ const PROTECTED_ROUTES = [
   "/dashboard",
   "/profile",
   "/settings",
-  "/wallet",
   "/organizations",
 ];
 
@@ -37,7 +36,6 @@ const ONBOARDING_REQUIRED_ROUTES = [
   "/dashboard",
   "/profile",
   "/settings",
-  "/wallet",
   "/organizations",
 ];
 
@@ -151,10 +149,10 @@ export function AuthGuard({ children }: AuthGuardProps) {
     );
     if (isProtectedRoute || pathname === "/onboarding") {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-[#f8faff]">
+        <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
           <div className="flex flex-col items-center gap-3">
             <HeighttLoader label="Checking your account" />
-            <span className="text-sm text-[#5b6d89] font-medium">
+            <span className="text-sm text-[#64748B] font-medium">
               Loading...
             </span>
           </div>

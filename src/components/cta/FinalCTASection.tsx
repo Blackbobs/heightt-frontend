@@ -1,10 +1,8 @@
 'use client';
 
-import Image from 'next/image';
+import React from 'react';
 import Link from 'next/link';
-import { ArrowRight, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { ScrollReveal } from '@/components/ui/ScrollReveal';
+import { ArrowRight, LockKeyhole } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 
 export function FinalCTASection() {
@@ -13,104 +11,54 @@ export function FinalCTASection() {
   const dashboardHref = needsOnboarding ? '/onboarding' : '/dashboard';
 
   return (
-    <section className="w-full relative overflow-hidden">
-      <ScrollReveal direction="up">
-        <div className="bg-white border-y border-border shadow-[0_8px_48px_rgba(0,0,0,0.06)] relative overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-12 items-stretch">
+    <section className="relative isolate overflow-hidden border-b border-slate-800 bg-[#0B1020] py-20 text-white sm:py-28">
+      <div className="hero-grid pointer-events-none absolute inset-0 -z-10 opacity-10" aria-hidden="true" />
+      <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#2563EB]/15 blur-3xl" aria-hidden="true" />
+      <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
+          <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-400">Ready when you are</div>
+          <div className="mt-4 space-y-6">
+            <h2 className="text-balance text-4xl font-semibold leading-[0.96] tracking-[-0.06em] text-white sm:text-5xl md:text-6xl">
+              Your campus payments. <br />
+              <span className="text-[#2563EB]">Finally organised.</span>
+            </h2>
 
-            {/* Left: CTA Text Content */}
-            <div className="lg:col-span-7 p-8 sm:p-14 md:p-20 lg:pl-24 xl:pl-32 flex flex-col justify-center gap-6 relative">
-              {/* Subtle ambient glow */}
-              <div className="absolute -top-20 -left-20 w-80 h-80 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+            <p className="mx-auto max-w-xl text-base leading-7 text-slate-300 sm:text-lg">
+              Keep every due, payment, and receipt in one trusted place. No chasing. No spreadsheets. No missing proof.
+            </p>
 
-              <div className="relative z-10 flex flex-col gap-5">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold w-fit">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Simple setup · No card required to start
-                </div>
-
-                <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-foreground leading-[1.1]">
-                  Still managing dues <br className="hidden sm:inline" />
-                  with spreadsheets?
-                </h2>
-
-                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-lg">
-                  There's a better way. Bring your organisation to Heightt and spend less time chasing payments, updating spreadsheets and verifying screenshots.
-                </p>
-
-                <p className="text-sm font-semibold text-foreground">
-                  Let Heightt handle the records while you focus on running your organisation.
-                </p>
-
-                {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-3 mt-1">
-                  {isAuthenticated && user ? (
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      className="font-bold rounded-2xl px-8 py-3.5 shadow-[0_10px_30px_rgba(26,92,255,0.3)] hover:shadow-[0_14px_36px_rgba(26,92,255,0.4)] hover:scale-105 transition-all duration-300 cursor-pointer"
-                      asChild
-                    >
-                      <Link href={dashboardHref}>
-                        {needsOnboarding ? 'Complete Onboarding' : 'Go to Dashboard'}
-                        <ArrowRight className="ml-2 w-4 h-4" />
-                      </Link>
-                    </Button>
-                  ) : (
-                    <>
-                      <Button
-                        variant="primary"
-                        size="lg"
-                        className="font-bold rounded-2xl px-8 py-3.5 shadow-[0_10px_30px_rgba(26,92,255,0.3)] hover:shadow-[0_14px_36px_rgba(26,92,255,0.4)] hover:scale-105 transition-all duration-300 cursor-pointer"
-                        asChild
-                      >
-                        <Link href="/signup">
-                          Get Started with Heightt
-                          <ArrowRight className="ml-2 w-4 h-4" />
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="lg"
-                        className="font-bold rounded-2xl px-8 py-3.5 cursor-pointer"
-                        asChild
-                      >
-                        <Link href="/signin">Sign In</Link>
-                      </Button>
-                    </>
-                  )}
-                </div>
-
-                {/* Reassurance pills */}
-                <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-muted-foreground">
-                  <span className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Free for students
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Instant verifiable receipts
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> 2-min onboarding
-                  </span>
-                </div>
-              </div>
+            <div className="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row">
+              {isAuthenticated && user ? (
+                <Link
+                  href={dashboardHref}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-7 py-3.5 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(37,99,235,0.25)] transition-all hover:-translate-y-0.5 hover:bg-[#1D4ED8] sm:w-auto"
+                >
+                  {needsOnboarding ? 'Complete Onboarding' : 'Go to Dashboard'}
+                  <ArrowRight className="size-4" aria-hidden="true" />
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/signup"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-7 py-3.5 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(37,99,235,0.25)] transition-all hover:-translate-y-0.5 hover:bg-[#1D4ED8] sm:w-auto"
+                  >
+                    Create your account
+                    <ArrowRight className="size-4" aria-hidden="true" />
+                  </Link>
+                  <Link
+                    href="/signin"
+                    className="inline-flex items-center gap-1 px-4 py-3 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
+                  >
+                    <span>Already have an account? Sign in</span>
+                    <span>→</span>
+                  </Link>
+                </>
+              )}
             </div>
-
-            {/* Right: 196920 (1).png image */}
-            <div className="lg:col-span-5 relative min-h-[320px] lg:min-h-0">
-              <Image
-                src="/196920 (1).png"
-                alt="Heightt Platform Preview"
-                fill
-                sizes="(max-width: 1024px) 100vw, 42vw"
-                className="object-cover object-center"
-                priority
-              />
-            </div>
-
+            <p className="flex items-center justify-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500 sm:text-[10px]"><LockKeyhole className="size-3.5 text-blue-400" aria-hidden="true" /> Secure payments. Verified receipts.</p>
           </div>
         </div>
-      </ScrollReveal>
+      </div>
     </section>
   );
 }

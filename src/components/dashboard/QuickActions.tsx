@@ -16,13 +16,13 @@ export function QuickActions() {
       {ACTIONS.map(({ label, desc, icon: Icon }) => (
         <button
           key={label}
-          className="bg-white border border-[#e8ecf1] rounded-[14px] py-3 px-2 flex flex-col items-center gap-1.5 cursor-pointer group transition-all hover:border-[#1a5cff] hover:shadow-[0_4px_12px_rgba(26,92,255,0.06)] active:scale-95"
+          className="bg-white border border-[#E2E8F0] rounded-xl py-3 px-2 flex flex-col items-center gap-1.5 cursor-pointer group transition-all hover:border-[#2563EB] hover:shadow-[0_4px_12px_rgba(26,92,255,0.06)] active:scale-95"
         >
-          <div className="w-9 h-9 rounded-[10px] bg-[#eef3ff] flex items-center justify-center text-[#1a5cff] group-hover:bg-[#dce8ff] transition-colors">
+          <div className="w-9 h-9 rounded-[10px] bg-[#EFF6FF] flex items-center justify-center text-[#2563EB] group-hover:bg-[#dce8ff] transition-colors">
             <Icon className="w-[18px] h-[18px]" />
           </div>
-          <span className="text-[0.7rem] font-semibold text-[#1a1a2e] leading-tight">{label}</span>
-          <span className="text-[0.58rem] text-[#6b7a8f] leading-tight">{desc}</span>
+          <span className="text-[0.7rem] font-semibold text-[#0B1020] leading-tight">{label}</span>
+          <span className="text-[0.58rem] text-[#64748B] leading-tight">{desc}</span>
         </button>
       ))}
     </div>

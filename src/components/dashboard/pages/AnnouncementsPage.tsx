@@ -43,8 +43,8 @@ const CAT_CONFIG: Record<
   FINANCIAL: {
     label: "Financial",
     icon: <Bell className="w-3.5 h-3.5" />,
-    color: "text-[#1a5cff]",
-    bg: "bg-[#eef3ff]",
+    color: "text-[#2563EB]",
+    bg: "bg-[#EFF6FF]",
   },
   ACADEMIC: {
     label: "Academic",
@@ -120,12 +120,12 @@ const AnnouncementItem = React.memo(
     return (
       <div
         className={cn(
-          "bg-white border rounded-[16px] overflow-hidden cursor-pointer transition-all",
-          isUnread ? "border-[#1a5cff]/30" : "border-[#e8ecf1]",
+          "bg-white border rounded-2xl overflow-hidden cursor-pointer transition-all",
+          isUnread ? "border-[#2563EB]/30" : "border-[#E2E8F0]",
         )}
         onClick={() => onToggle(announcement.id)}
       >
-        <div className="px-4 py-4 hover:bg-[#fafbff] transition-colors">
+        <div className="px-4 py-4 hover:bg-[#F8FAFC] transition-colors">
           <div className="flex items-start gap-3">
             <div
               className={cn(
@@ -140,14 +140,14 @@ const AnnouncementItem = React.memo(
               <div className="flex items-start justify-between gap-2">
                 <p
                   className={cn(
-                    "text-[0.82rem] font-semibold text-[#1a1a2e] leading-snug",
+                    "text-[0.82rem] font-semibold text-[#0B1020] leading-snug",
                     isUnread && "font-bold",
                   )}
                 >
                   {announcement.title}
                 </p>
                 {isUnread && (
-                  <span className="flex-shrink-0 w-2 h-2 rounded-full bg-[#1a5cff] mt-1.5" />
+                  <span className="flex-shrink-0 w-2 h-2 rounded-full bg-[#2563EB] mt-1.5" />
                 )}
               </div>
               <div className="flex items-center gap-1.5 mt-1">
@@ -160,7 +160,7 @@ const AnnouncementItem = React.memo(
                 >
                   {cfg.label}
                 </span>
-                <span className="text-[0.58rem] text-[#7a8ba3]">
+                <span className="text-[0.58rem] text-[#64748B]">
                   {getSourceName()}
                 </span>
               </div>
@@ -175,14 +175,14 @@ const AnnouncementItem = React.memo(
 
           <div className="flex items-center gap-1 mt-2 ml-11">
             <Clock className="w-3 h-3 text-[#b0bac8]" />
-            <span className="text-[0.58rem] text-[#7a8ba3]">
+            <span className="text-[0.58rem] text-[#64748B]">
               {formatDate(announcement.publishedAt || announcement.createdAt)}
             </span>
           </div>
         </div>
 
         {isExpanded && (
-          <div className="border-t border-[#f0f2f5] px-4 py-4 bg-[#fafbff]">
+          <div className="border-t border-[#F1F5F9] px-4 py-4 bg-[#F8FAFC]">
             <p className="text-[0.8rem] text-[#4a5568] leading-relaxed whitespace-pre-wrap">
               {announcement.content}
             </p>
@@ -243,7 +243,7 @@ export function AnnouncementsPage() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
           <HeighttLoader label="Loading announcements" />
-          <span className="text-sm text-[#5b6d89] font-medium">
+          <span className="text-sm text-[#64748B] font-medium">
             Loading announcements...
           </span>
         </div>
@@ -269,7 +269,7 @@ export function AnnouncementsPage() {
   return (
     <div className="space-y-5 pb-6">
       {/* Header */}
-      <div className="bg-gradient-to-br from-[#1a5cff] to-[#0f4ad0] rounded-[20px] px-6 py-5 text-white relative overflow-hidden">
+      <div className="bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] rounded-3xl px-6 py-5 text-white relative overflow-hidden">
         <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
         <div className="flex items-center gap-2.5 mb-2">
           <div className="w-8 h-8 rounded-[8px] bg-white/15 flex items-center justify-center">
@@ -297,8 +297,8 @@ export function AnnouncementsPage() {
             className={cn(
               "flex-shrink-0 text-[0.72rem] font-semibold px-4 py-2 rounded-full border-none cursor-pointer transition-all",
               tab === t
-                ? "bg-[#1a5cff] text-white"
-                : "bg-white border border-[#e8ecf1] text-[#6b7a8f] hover:border-[#1a5cff] hover:text-[#1a5cff]",
+                ? "bg-[#2563EB] text-white"
+                : "bg-white border border-[#E2E8F0] text-[#64748B] hover:border-[#2563EB] hover:text-[#2563EB]",
             )}
           >
             {TAB_LABELS[t] || t}
@@ -309,9 +309,9 @@ export function AnnouncementsPage() {
       {/* Announcement List */}
       <div className="space-y-2.5">
         {filtered.length === 0 ? (
-          <div className="bg-white border border-[#e8ecf1] rounded-[16px] p-10 text-center">
+          <div className="bg-white border border-[#E2E8F0] rounded-2xl p-10 text-center">
             <Bell className="w-8 h-8 text-[#c8d0db] mx-auto mb-2" />
-            <p className="text-[0.82rem] font-medium text-[#6b7a8f]">
+            <p className="text-[0.82rem] font-medium text-[#64748B]">
               No announcements found
             </p>
           </div>

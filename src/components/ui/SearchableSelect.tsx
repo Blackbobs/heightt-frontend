@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Search, ChevronDown, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
@@ -9,7 +9,7 @@ export interface SelectOption {
   id: string;
   label: string;
   value: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface SearchableSelectProps {
@@ -45,7 +45,6 @@ export function SearchableSelect({
 }: SearchableSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredOptions, setFilteredOptions] = useState<SelectOption[]>(options);
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -53,17 +52,15 @@ export function SearchableSelect({
   const selectedOption = options.find((opt) => opt.id === value);
 
   useEffect(() => {
-    if (debouncedSearchQuery.trim() && onSearch) {
-      onSearch(debouncedSearchQuery);
-    } else if (debouncedSearchQuery.trim()) {
-      const filtered = options.filter((opt) =>
-        opt.label.toLowerCase().includes(debouncedSearchQuery.toLowerCase()),
-      );
-      setFilteredOptions(filtered);
-    } else {
-      setFilteredOptions(options);
-    }
-  }, [debouncedSearchQuery, options, onSearch]);
+    if (debouncedSearchQuery.trim() && onSearch) onSearch(debouncedSearchQuery);
+  }, [debouncedSearchQuery, onSearch]);
+
+  const filteredOptions = useMemo(() => {
+    if (!debouncedSearchQuery.trim() || onSearch) return options;
+    return options.filter((option) =>
+      option.label.toLowerCase().includes(debouncedSearchQuery.toLowerCase()),
+    );
+  }, [debouncedSearchQuery, onSearch, options]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -92,7 +89,7 @@ export function SearchableSelect({
   return (
     <div ref={containerRef} className={cn('relative w-full', className)}>
       {label && (
-        <label className="text-xs font-semibold uppercase text-[#1f2a44] opacity-70 tracking-wider block mb-1.5">
+        <label className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-600">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -107,21 +104,21 @@ export function SearchableSelect({
       >
         <div
           className={cn(
-            'flex items-center justify-between w-full px-4 py-3 rounded-xl border-[1.5px] bg-[#f8faff] transition-all duration-150 min-h-[52px]',
+            'flex min-h-12 w-full items-center justify-between rounded-xl border bg-[#F8FAFC] px-4 py-3 transition-all duration-150',
             error
               ? 'border-red-500 bg-red-50/30'
               : isOpen
-                ? 'border-[#1a5cff] bg-white ring-4 ring-[#1a5cff]/10'
+                ? 'border-[#2563EB] bg-white ring-4 ring-[#2563EB]/10'
                 : 'border-slate-200 hover:border-slate-300',
             disabled && 'bg-slate-50 cursor-not-allowed',
           )}
         >
           {selectedOption ? (
-            <span className="text-[0.95rem] font-medium text-[#0b1a33] truncate">
+            <span className="truncate text-sm font-medium text-[#0B1020]">
               {selectedOption.label}
             </span>
           ) : (
-            <span className="text-[0.95rem] font-medium text-[#9aabbf]">
+            <span className="truncate pr-2 text-sm font-medium text-[#9aabbf]">
               {placeholder}
             </span>
           )}
@@ -159,7 +156,7 @@ export function SearchableSelect({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={searchPlaceholder}
-              className="w-full pl-9 pr-3 py-2 text-sm bg-[#f8faff] rounded-lg border border-slate-200 focus:border-[#1a5cff] focus:outline-none focus:ring-2 focus:ring-[#1a5cff]/10"
+              className="w-full pl-9 pr-3 py-2 text-sm bg-[#F8FAFC] rounded-lg border border-slate-200 focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/10"
               onClick={(e) => e.stopPropagation()}
             />
           </div>
@@ -168,7 +165,7 @@ export function SearchableSelect({
           <div className="max-h-60 overflow-y-auto">
             {isLoading ? (
               <div className="flex items-center justify-center py-6">
-                <div className="w-5 h-5 border-2 border-[#1a5cff] border-t-transparent rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-[#2563EB] border-t-transparent rounded-full animate-spin" />
                 <span className="ml-2 text-sm text-slate-500">Loading...</span>
               </div>
             ) : filteredOptions.length === 0 ? (
@@ -182,7 +179,7 @@ export function SearchableSelect({
                   onClick={() => handleSelect(option)}
                   className={cn(
                     'px-4 py-2.5 text-sm cursor-pointer transition-colors hover:bg-[#f0f4ff]',
-                    option.id === value && 'bg-[#eef4ff] text-[#1a5cff] font-medium',
+                    option.id === value && 'bg-[#EFF6FF] text-[#2563EB] font-medium',
                   )}
                 >
                   {option.label}

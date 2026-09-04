@@ -1,8 +1,7 @@
-'use client';
-
 import Link from 'next/link';
 import Image from 'next/image';
 import { HEIGHTT_LOGO_URL } from '@/lib/assets';
+import { cn } from '@/lib/utils';
 
 interface LogoProps {
   className?: string;
@@ -12,13 +11,18 @@ interface LogoProps {
 
 export function Logo({ className = '', variant = 'default' }: LogoProps) {
   return (
-    <Link href="/" className={`flex items-center flex-shrink-0 ${className}`}>
+    <Link href="/" className={cn('flex items-center flex-shrink-0', className)}>
       <Image
         src={HEIGHTT_LOGO_URL}
         alt="Heightt"
         width={220}
         height={66}
-        className={`h-16 w-auto object-contain ${variant === 'light' ? 'brightness-0 invert' : ''}`}
+        className={cn(
+          'h-16 w-auto object-contain transition-all',
+          variant === 'light'
+            ? 'brightness-0 invert'
+            : 'dark:brightness-0 dark:invert'
+        )}
         priority
       />
     </Link>

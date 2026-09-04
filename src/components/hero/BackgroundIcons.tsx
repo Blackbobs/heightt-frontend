@@ -1,11 +1,8 @@
 'use client';
 
 import {
-  Wallet,
   CreditCard,
   Coins,
-  PiggyBank,
-  Landmark,
   TrendingUp,
   Receipt,
   GraduationCap,
@@ -24,7 +21,6 @@ import {
 
 const icons = [
   // Left side cluster
-  { Icon: Wallet, size: 38, position: 'top-[6%] left-[3%]', delay: '0s', rotation: 'rotate-12', opacity: 'text-primary/25' },
   { Icon: GraduationCap, size: 44, position: 'top-[16%] left-[10%]', delay: '1.2s', rotation: '-rotate-6', opacity: 'text-primary/30' },
   { Icon: Receipt, size: 34, position: 'top-[30%] left-[4%]', delay: '2.5s', rotation: 'rotate-8', opacity: 'text-primary/22' },
   { Icon: QrCode, size: 30, position: 'top-[44%] left-[12%]', delay: '0.8s', rotation: '-rotate-12', opacity: 'text-primary/28' },
@@ -36,7 +32,6 @@ const icons = [
   { Icon: CreditCard, size: 40, position: 'top-[8%] right-[4%]', delay: '0.5s', rotation: '-rotate-12', opacity: 'text-primary/25' },
   { Icon: Coins, size: 38, position: 'top-[20%] right-[12%]', delay: '2.0s', rotation: 'rotate-6', opacity: 'text-primary/30' },
   { Icon: Users, size: 36, position: 'top-[34%] right-[5%]', delay: '1.5s', rotation: '-rotate-6', opacity: 'text-primary/22' },
-  { Icon: PiggyBank, size: 34, position: 'top-[48%] right-[13%]', delay: '3.4s', rotation: 'rotate-12', opacity: 'text-primary/28' },
   { Icon: TrendingUp, size: 38, position: 'top-[62%] right-[6%]', delay: '0.9s', rotation: '-rotate-10', opacity: 'text-primary/25' },
   { Icon: FileCheck2, size: 32, position: 'top-[76%] right-[11%]', delay: '2.7s', rotation: 'rotate-8', opacity: 'text-primary/30' },
   { Icon: Award, size: 34, position: 'top-[90%] right-[5%]', delay: '1.4s', rotation: '-rotate-6', opacity: 'text-primary/22' },
@@ -50,7 +45,7 @@ const icons = [
 
 export function BackgroundIcons() {
   return (
-    <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+    <div className="absolute inset-0 pointer-events-none z-0 hidden md:block overflow-hidden opacity-55 dark:opacity-35" aria-hidden="true">
       {icons.map(({ Icon, size, position, delay, rotation, opacity }, index) => (
         <div
           key={index}
