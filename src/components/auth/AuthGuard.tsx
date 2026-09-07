@@ -21,6 +21,9 @@ const PUBLIC_ROUTES = [
   "/payment/callback",
   "/payment/success",
   "/payment/cancelled",
+  "/payments/guest",
+  "/payments/guest/callback",
+  "/payments/guest/cancelled",
 ];
 
 // Routes that require authentication

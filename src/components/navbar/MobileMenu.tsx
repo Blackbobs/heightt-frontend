@@ -82,6 +82,13 @@ export function MobileMenu({ isOpen, onToggle }: MobileMenuProps) {
             onClick={onToggle}
           />
           <div className="flex flex-col gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+            <Link
+              href="/payments/guest"
+              onClick={onToggle}
+              className="w-full py-2.5 text-center text-sm font-semibold border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+            >
+              Pay a due as a guest
+            </Link>
             {isAuthenticated && user ? (
               <Button variant="primary" size="default" className="w-full justify-center" asChild onClick={onToggle}>
                 <Link href={dashboardHref}>

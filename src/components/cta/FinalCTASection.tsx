@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ArrowRight, LockKeyhole } from 'lucide-react';
+import { ArrowRight, LockKeyhole, CreditCard } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 
 export function FinalCTASection() {
@@ -55,6 +55,13 @@ export function FinalCTASection() {
                 </>
               )}
             </div>
+            <Link
+              href="/payments/guest"
+              className="mt-1 inline-flex items-center gap-1.5 px-2 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
+            >
+              <CreditCard className="size-4" aria-hidden="true" />
+              Pay a due as a guest — no account needed
+            </Link>
             <p className="flex items-center justify-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-slate-500 sm:text-[10px]"><LockKeyhole className="size-3.5 text-blue-400" aria-hidden="true" /> Secure payments. Verified receipts.</p>
           </div>
         </div>

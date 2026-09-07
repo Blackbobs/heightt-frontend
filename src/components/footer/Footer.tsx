@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
@@ -24,6 +25,7 @@ export function Footer() {
           <div className="space-y-3 text-left">
             <h4 className="text-xs font-bold text-white uppercase tracking-wider">Product</h4>
             <ul className="space-y-2 text-xs text-slate-400 list-none p-0">
+              <li><Link href="/payments/guest" className="hover:text-white transition-colors">Pay a Due as a Guest</Link></li>
               <li><a href="#for-students" className="hover:text-white transition-colors">For Students</a></li>
               <li><a href="#for-executives" className="hover:text-white transition-colors">For Executives</a></li>
               <li><a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a></li>
