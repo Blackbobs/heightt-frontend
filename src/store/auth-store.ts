@@ -218,7 +218,7 @@ export const useAuthStore = create<AuthState>()(
           await getCsrfToken();
           const response = await axiosConfig.post("/auth/register", {
             email: data.email,
-            username: data.username,
+            username: data.username.trim().toLowerCase(),
             password: data.password,
           });
 
