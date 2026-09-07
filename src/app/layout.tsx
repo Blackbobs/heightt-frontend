@@ -9,6 +9,7 @@ import { QueryProvider } from "@/providers/QueryProvider";
 import { AcademicNotificationListener } from "@/components/notifications/AcademicNotificationListener";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL, SOCIAL_IMAGE } from "@/lib/seo";
 import { Toaster } from "sonner";
+import { CookieNotice } from "@/components/cookies/CookieNotice";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -96,6 +97,7 @@ export default function RootLayout({
         </ThemeProvider>
         <RegisterSW />
         <PWAInstallPrompt />
+        <CookieNotice />
         <Toaster position="top-center" richColors closeButton />
       </body>
     </html>

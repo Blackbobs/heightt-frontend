@@ -311,6 +311,37 @@
   animation: spin-slow 20s linear infinite;
 }
 
+.legal-copy > * + * {
+  margin-top: 1rem;
+}
+
+.legal-copy ul {
+  display: grid;
+  gap: 0.65rem;
+  padding-left: 1.25rem;
+  list-style: disc;
+}
+
+.legal-copy li {
+  padding-left: 0.25rem;
+}
+
+.legal-copy strong {
+  color: #1e293b;
+  font-weight: 700;
+}
+
+.legal-copy a {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.dark .legal-copy strong {
+  color: #f8fafc;
+}
+
 @keyframes sweep-light {
   0% { transform: translateX(-150%) rotate(20deg); }
   50%, 100% { transform: translateX(350%) rotate(20deg); }
