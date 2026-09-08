@@ -21,10 +21,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     pathname.startsWith("/notifications") ||
     pathname.startsWith("/dashboard");
 
-  // Legal pages provide their own header, main content, and footer.
-  const isLegalPage = pathname === "/privacy" || pathname === "/terms";
-
-  if (isAppPage || isLegalPage) {
+  if (isAppPage) {
     return <>{children}</>;
   }
 
