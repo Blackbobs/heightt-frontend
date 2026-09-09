@@ -30,15 +30,8 @@ export function DashboardHeader({
 }: DashboardHeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const PRIMARY_5_NAV_PATHS = [
-    '/dashboard',
-    '/dashboard/payments',
-    '/dashboard/organizations',
-    '/dashboard/receipts',
-    '/dashboard/notifications',
-  ];
-
-  const isPrimaryNavPage = PRIMARY_5_NAV_PATHS.includes(pathname);
+  const normalizedPath = (pathname || '').replace(/\/$/, '');
+  const isMainDashboard = normalizedPath === '/dashboard';
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -101,14 +94,22 @@ export function DashboardHeader({
 
   const displayName = getDisplayName();
 
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/dashboard');
+    }
+  };
+
   return (
-    <header className="px-4 sm:px-6 py-3.5 bg-white dark:bg-[#0B1020] border-b border-[#E2E8F0] dark:border-slate-800 flex-shrink-0 sticky top-0 z-20 transition-colors">
-      {isPrimaryNavPage ? (
+    <header className="px-4 sm:px-6 py-2.5 bg-white dark:bg-[#0B1020] border-b border-[#E2E8F0] dark:border-slate-800 flex-shrink-0 sticky top-0 z-20 transition-colors">
+      {isMainDashboard ? (
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {/* On Mobile: Show Logo */}
+            {/* On Mobile: Show Compact Logo */}
             <div className="lg:hidden">
-              <Logo />
+              <Logo imgClassName="h-7 sm:h-8" />
             </div>
             {/* On Desktop: Show Page Title */}
             <h1 className="hidden lg:block text-base sm:text-lg font-bold text-[#0B1020] dark:text-white">
@@ -116,7 +117,7 @@ export function DashboardHeader({
             </h1>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
             <ThemeToggle />
 
             {/* Notification button */}
@@ -188,31 +189,22 @@ export function DashboardHeader({
           </div>
         </div>
       ) : (
-        /* Subpages header with Back button & Title & ThemeToggle */
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => {
-                if (typeof window !== 'undefined' && window.history.length > 1) {
-                  router.back();
-                } else {
-                  router.push('/dashboard');
-                }
-              }}
-              className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              aria-label="Go back"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </button>
-            <h1 className="text-base font-bold text-[#0B1020] dark:text-white">
-              {pageTitle}
-            </h1>
-          </div>
+        /* Subpages header: Only Back icon on left & Page title centered */
+        <div className="relative flex items-center justify-between min-h-[36px]">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors z-10"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
 
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-          </div>
+          <h1 className="absolute left-1/2 -translate-x-1/2 text-sm sm:text-base font-bold text-[#0B1020] dark:text-white truncate max-w-[65%] text-center">
+            {pageTitle}
+          </h1>
+
+          <div className="w-8 sm:w-9 h-8 sm:h-9 shrink-0" aria-hidden="true" />
         </div>
       )}
     </header>
