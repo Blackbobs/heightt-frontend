@@ -31,7 +31,7 @@ function normaliseList<T>(value: unknown): T[] {
 }
 
 export function ProfilePage() {
-  const { data: user, isLoading, isError, refetch, isFetching } = useCurrentUser();
+  const { data: user, isLoading, isError, refetch } = useCurrentUser();
 
   const student = user?.studentProfile;
   const institutionId = student?.institutionId || '';
@@ -71,10 +71,7 @@ export function ProfilePage() {
   }, [user]);
 
   const academicLevelValue = student?.currentAcademicLevelId;
-  const academicLevel = student?.currentAcademicLevel?.name ||
-    (academicLevelValue && /^\d{3}$/.test(academicLevelValue)
-      ? `${academicLevelValue} Level`
-      : '300 Level');
+  const academicLevel = student?.currentAcademicLevel?.name || academicLevelValue;
 
   const isVerified = user?.emailVerified || user?.profile?.verificationStatus === 'VERIFIED';
 
@@ -104,7 +101,7 @@ export function ProfilePage() {
         <div className="text-center sm:text-left min-w-0 flex-1">
           <h1 className="text-xl font-extrabold tracking-tight">{fullName}</h1>
           <p className="text-xs text-slate-400 mt-0.5 font-mono">
-            {[academicLevel, department?.name || 'Computer Science'].filter(Boolean).join(' • ')}
+            {[academicLevel, department?.name].filter(Boolean).join(' • ')}
           </p>
           {student?.matricNumber && (
             <p className="text-[11px] text-slate-400 font-mono mt-0.5">
@@ -113,8 +110,12 @@ export function ProfilePage() {
           )}
         </div>
         <div className="flex-shrink-0">
-          <span className="text-xs font-bold text-emerald-400 bg-emerald-950/60 px-3 py-1 rounded border border-emerald-800 flex items-center gap-1.5">
-            <CheckCircle2 className="w-3.5 h-3.5" /> Verified Student
+          <span className={`text-xs font-bold px-3 py-1 rounded border flex items-center gap-1.5 ${
+            isVerified
+              ? 'text-emerald-400 bg-emerald-950/60 border-emerald-800'
+              : 'text-amber-300 bg-amber-950/60 border-amber-800'
+          }`}>
+            <CheckCircle2 className="w-3.5 h-3.5" /> {isVerified ? 'Verified Student' : 'Verification Pending'}
           </span>
         </div>
       </div>
@@ -132,11 +133,11 @@ export function ProfilePage() {
       <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-xl p-5">
         <h2 className="text-sm font-bold text-[#0B1020] dark:text-white mb-3">Academic Information</h2>
         <div className="divide-y divide-slate-100 dark:divide-slate-800">
-          <InfoRow icon={School} label="Institution" value={institution?.name || 'University'} />
-          <InfoRow icon={GraduationCap} label="Faculty" value={faculty?.name || 'Faculty of Science'} />
-          <InfoRow icon={GraduationCap} label="Department" value={department?.name || 'Computer Science'} />
+          <InfoRow icon={School} label="Institution" value={institution?.name} />
+          <InfoRow icon={GraduationCap} label="Faculty" value={faculty?.name} />
+          <InfoRow icon={GraduationCap} label="Department" value={department?.name} />
           <InfoRow icon={GraduationCap} label="Academic Level" value={academicLevel} />
-          <InfoRow icon={UserIcon} label="Matric Number" value={student?.matricNumber || 'CSC/2021/049'} />
+          <InfoRow icon={UserIcon} label="Matric Number" value={student?.matricNumber} />
         </div>
       </div>
     </div>
