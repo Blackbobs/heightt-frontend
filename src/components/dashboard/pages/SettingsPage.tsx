@@ -4,9 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   User,
-  Smartphone,
   LogOut,
-  HelpCircle,
   Loader2,
   Shield,
   Moon,
@@ -14,7 +12,6 @@ import {
 
 import { useAuthStore } from '@/store/auth-store';
 import { useCurrentUser, useUpdateProfile } from '@/hooks/queries/useUser';
-import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { toast } from 'sonner';
 import { HeighttLoader } from '@/components/ui/HeighttLoader';
@@ -63,8 +60,6 @@ export function SettingsPage() {
   const [lastName, setLastName] = useState('');
   const [username, setUsername] = useState('');
   const [usernameError, setUsernameError] = useState('');
-  const [country, setCountry] = useState('');
-  const [gender, setGender] = useState('');
   const normalizedUsername = normalizeUsername(username);
   const savedUsername = normalizeUsername(user?.username || '');
   const usernameChanged = normalizedUsername !== savedUsername;
@@ -78,8 +73,6 @@ export function SettingsPage() {
     setFirstName(user.profile?.firstName || '');
     setLastName(user.profile?.lastName || '');
     setUsername(user.username || '');
-    setCountry(user.profile?.country || '');
-    setGender(user.profile?.gender || '');
   }, [user]);
 
   const getInitials = () => {
@@ -111,10 +104,6 @@ export function SettingsPage() {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         ...(usernameChanged ? { username: normalizedUsername } : {}),
-        country: country.trim() || undefined,
-        gender: gender
-          ? (gender as 'MALE' | 'FEMALE' | 'OTHER' | 'PREFER_NOT_TO_SAY')
-          : undefined,
       });
       toast.success('Profile updated successfully.');
     } catch (updateError: unknown) {
@@ -256,23 +245,6 @@ export function SettingsPage() {
               )}
           </div>
           <Field label="Email Address" value={user?.email || ''} onChange={() => {}} disabled />
-          <Field label="Country" value={country} onChange={setCountry} placeholder="Country" />
-          <div className="px-4 py-3">
-            <label className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider block mb-1">
-              Gender
-            </label>
-            <select
-              value={gender}
-              onChange={(e) => setGender(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-[#0B1020] border border-slate-200 dark:border-slate-800 rounded px-3 py-2 text-xs font-semibold text-[#0B1020] dark:text-white outline-none focus:border-[#2563EB]"
-            >
-              <option value="">Not specified</option>
-              <option value="MALE">Male</option>
-              <option value="FEMALE">Female</option>
-              <option value="OTHER">Other</option>
-              <option value="PREFER_NOT_TO_SAY">Prefer not to say</option>
-            </select>
-          </div>
         </div>
 
         <div className="px-4 pt-3">

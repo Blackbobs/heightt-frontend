@@ -30,6 +30,15 @@ export interface Department {
   code: string;
   facultyId: string;
   status: string;
+  academicLevels?: AcademicLevel[];
+}
+
+export interface AcademicLevel {
+  id: string;
+  name: string;
+  numericLevel: number;
+  order: number;
+  departmentId: string;
 }
 
 export interface Organization {
@@ -73,6 +82,28 @@ export const institutionsApi = {
   getDepartmentsByFaculty: async (facultyId: string) => {
     const response = await axiosConfig.get(
       `/institutions/faculties/${facultyId}/departments`,
+    );
+    return response.data;
+  },
+
+  getAcademicLevelsByDepartment: async (departmentId: string) => {
+    const response = await axiosConfig.get(
+      `/institutions/departments/${departmentId}/academic-levels`,
+    );
+    return response.data;
+  },
+
+  createDepartment: async (payload: {
+    name: string;
+    code: string;
+    facultyId: string;
+    promotionType?: "AUTOMATIC" | "MANUAL";
+    numberOfLevels: 4 | 5 | 6 | 7;
+    customLevelNames?: string[];
+  }) => {
+    const response = await axiosConfig.post(
+      "/institutions/departments",
+      payload,
     );
     return response.data;
   },
