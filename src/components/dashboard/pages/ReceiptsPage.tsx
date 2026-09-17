@@ -108,13 +108,13 @@ function ReceiptModal({
             <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800/80">
               <span className="text-slate-500">Student Name</span>
               <span className="font-bold text-slate-900 dark:text-white">
-                {receipt.payerName || 'Ayomide Bello'}
+                {receipt.payerName || 'Not provided'}
               </span>
             </div>
             <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800/80">
               <span className="text-slate-500">Matric Number</span>
               <span className="font-bold text-slate-900 dark:text-white">
-                {receipt.matricNo || 'CSC/2021/049'}
+                {receipt.matricNo || 'Not provided'}
               </span>
             </div>
             <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800/80">
@@ -126,7 +126,7 @@ function ReceiptModal({
             <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800/80">
               <span className="text-slate-500">Academic Session</span>
               <span className="font-bold text-slate-900 dark:text-white">
-                {receipt.academicSession || '2026/2027'}
+                {receipt.academicSession || 'Not provided'}
               </span>
             </div>
             <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800/80">
@@ -200,12 +200,12 @@ export function ReceiptsPage() {
         id: r.id,
         ref: r.receiptNumber || r.reference || `HTT-${r.id.slice(0, 8).toUpperCase()}`,
         title: r.description || 'Departmental Due',
-        org: r.organizationName || r.payerName || 'Computer Science Department',
+        org: r.organizationName || r.payerName || 'Organization not provided',
         amount,
         amountFormatted: formatNaira(amount),
         date: r.paymentDate
           ? new Date(r.paymentDate).toLocaleDateString('en-GB', { month: 'short', day: '2-digit', year: 'numeric' })
-          : '03 Sep 2026',
+          : 'Date not provided',
         rawDate: r.paymentDate || '',
         payerName: r.payerName,
         status: 'verified',

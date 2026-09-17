@@ -42,6 +42,12 @@ export function Navbar() {
           {/* Right Actions */}
           <div className="hidden lg:flex items-center gap-4 flex-shrink-0">
             <ThemeToggle />
+            <Link
+              href="/payments/guest"
+              className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-[#2563EB] transition-colors whitespace-nowrap"
+            >
+              Pay a due
+            </Link>
             {isAuthenticated && user ? (
               <Button variant="primary" size="sm" asChild>
                 <Link href={dashboardHref}>

@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import {
   Home,
   CreditCard,
@@ -17,6 +18,8 @@ import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth-store';
 import { useCurrentUser } from '@/hooks/queries/useUser';
 import { Logo } from '@/components/ui/Logo';
+import { institutionsApi, type AcademicLevel, type Department } from '@/lib/api/institutions';
+import { queryKeys } from '@/lib/api/keys';
 
 const NAV_ITEMS = [
   { label: 'Home', href: '/dashboard', icon: Home, exact: true },
@@ -37,7 +40,34 @@ export function Sidebar() {
   const { user, logout } = useAuthStore();
   const { data: userData } = useCurrentUser();
 
-  const currentUser = user || userData;
+  const currentUser = userData || user;
+  const student = currentUser?.studentProfile;
+
+  const { data: departmentsResponse } = useQuery({
+    queryKey: queryKeys.institutions.departments(student?.facultyId || ''),
+    queryFn: () => institutionsApi.getDepartmentsByFaculty(student?.facultyId || ''),
+    enabled: Boolean(student?.facultyId && student.departmentId),
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const departments = Array.isArray(departmentsResponse)
+    ? departmentsResponse as Department[]
+    : ((departmentsResponse as { data?: Department[] } | undefined)?.data || []);
+  const department = departments.find((item) => item.id === student?.departmentId);
+
+  const { data: academicLevelsResponse } = useQuery({
+    queryKey: ['institutions', 'departments', student?.departmentId, 'academic-levels'],
+    queryFn: () => institutionsApi.getAcademicLevelsByDepartment(student?.departmentId || ''),
+    enabled: Boolean(student?.departmentId && !student.currentAcademicLevel),
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const academicLevels = Array.isArray(academicLevelsResponse)
+    ? academicLevelsResponse as AcademicLevel[]
+    : ((academicLevelsResponse as { data?: AcademicLevel[] } | undefined)?.data || []);
+  const academicLevel = student?.currentAcademicLevel || academicLevels.find(
+    (level) => level.id === student?.currentAcademicLevelId,
+  );
 
   const getDisplayName = () => {
     if (!currentUser?.profile) return 'Student User';
@@ -49,9 +79,8 @@ export function Sidebar() {
   };
 
   const getAcademicInfo = () => {
-    const student = currentUser?.studentProfile;
-    const level = student?.currentAcademicLevel?.name || '300 Level';
-    return `Computer Science • ${level}`;
+    const details = [department?.name, academicLevel?.name].filter(Boolean);
+    return details.length ? details.join(' • ') : 'Academic profile incomplete';
   };
 
   const handleLogout = async () => {

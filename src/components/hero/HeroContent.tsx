@@ -5,6 +5,7 @@ import {
   ArrowRight,
   ShieldCheck,
   CheckCircle2,
+  CreditCard,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/auth-store';
@@ -27,6 +28,26 @@ export function HeroContent({
 
   const needsOnboarding = user ? !user.profile?.onboardingCompleted : false;
   const dashboardHref = needsOnboarding ? '/onboarding' : '/dashboard';
+
+  const animateCounter = (element: HTMLElement, target: number) => {
+    let current = 0;
+    const increment = Math.ceil(target / 40);
+    const duration = 1600;
+    const stepTime = Math.floor(duration / 40);
+
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= target) {
+        current = target;
+        clearInterval(timer);
+      }
+      if (target >= 1000) {
+        element.textContent = current.toLocaleString() + '+';
+      } else {
+        element.textContent = current + '+';
+      }
+    }, stepTime);
+  };
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -51,26 +72,6 @@ export function HeroContent({
 
     return () => observer.disconnect();
   }, []);
-
-  const animateCounter = (element: HTMLElement, target: number) => {
-    let current = 0;
-    const increment = Math.ceil(target / 40);
-    const duration = 1600;
-    const stepTime = Math.floor(duration / 40);
-
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= target) {
-        current = target;
-        clearInterval(timer);
-      }
-      if (target >= 1000) {
-        element.textContent = current.toLocaleString() + '+';
-      } else {
-        element.textContent = current + '+';
-      }
-    }, stepTime);
-  };
 
   return (
     <div className="flex flex-col items-center text-center gap-7 lg:gap-8 max-w-4xl mx-auto">
@@ -133,6 +134,15 @@ export function HeroContent({
           </>
         )}
       </div>
+
+      {/* Guest checkout tertiary CTA */}
+      <Link
+        href="/payments/guest"
+        className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline -mt-1"
+      >
+        <CreditCard className="w-4 h-4" />
+        Pay a due as a guest — no account needed
+      </Link>
 
       {/* Hero Stats Bento Highlights */}
       <div

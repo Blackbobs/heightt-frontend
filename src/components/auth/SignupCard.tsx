@@ -5,13 +5,15 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Eye, EyeOff, Check, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Check, Loader2, Sparkles } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth-store";
+import { useUsernameAvailability } from "@/hooks/queries/useUsernameAvailability";
+import { USERNAME_PATTERN } from "@/lib/api/users";
 
 const signupSchema = z.object({
   email: z
@@ -23,8 +25,8 @@ const signupSchema = z.object({
     .min(3, "Username must be at least 3 characters")
     .max(30, "Username must be at most 30 characters")
     .regex(
-      /^[a-zA-Z0-9_.-]+$/,
-      "Username can only contain letters, numbers, underscores, dots, and hyphens",
+      USERNAME_PATTERN,
+      "Use 3–30 letters, numbers, or underscores",
     ),
   password: z
     .string()
@@ -49,6 +51,10 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
 
   const {
     register,
+    control,
+    setValue,
+    setError: setFieldError,
+    clearErrors,
     handleSubmit,
     formState: { errors },
   } = useForm<SignupFormData>({
@@ -59,13 +65,28 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
       password: "",
     },
   });
+  const username = useWatch({ control, name: "username" });
+  const usernameAvailability = useUsernameAvailability(username);
+  const usernameSuggestions = usernameAvailability.data?.suggestions ?? [];
 
   const onSubmit = async (data: SignupFormData) => {
     setError(null);
+    if (
+      usernameAvailability.isChecking ||
+      usernameAvailability.data?.username !== usernameAvailability.normalized ||
+      !usernameAvailability.data.available
+    ) {
+      setFieldError("username", {
+        message:
+          usernameAvailability.data?.message ||
+          "Confirm that this username is available.",
+      });
+      return;
+    }
     try {
       await registerUser({
         email: data.email,
-        username: data.username,
+        username: usernameAvailability.normalized,
         password: data.password,
       });
 
@@ -75,8 +96,20 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
           `/verify-email-sent?email=${encodeURIComponent(data.email)}`,
         );
       }, 1200);
-    } catch {
-      setError('Registration failed. Please try again.');
+    } catch (registrationError: unknown) {
+      const response = registrationError as {
+        statusCode?: number;
+        message?: string;
+      };
+      if (
+        response.statusCode === 409 &&
+        response.message?.toLowerCase().includes("username")
+      ) {
+        setFieldError("username", { message: response.message });
+        void usernameAvailability.refetch();
+      } else {
+        setError(response.message || "Registration failed. Please try again.");
+      }
     }
   };
 
@@ -155,15 +188,27 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
             >
               Username
             </label>
-            <input
-              {...register("username")}
-              type="text"
-              id="signupUsername"
-              placeholder="Choose a username"
-              autoComplete="username"
-              className={cn(
-                "bg-white sm:bg-[#F8FAFC] border-[1.5px] border-[#cbd5e1] rounded-xl px-3.5 py-3 text-[0.95rem] font-medium text-[#0B1020] transition-all duration-150 w-full placeholder:text-[#9aabbf] focus:outline-none focus:border-[#2563EB] focus:bg-white focus:ring-4 focus:ring-[#2563EB]/10 shadow-xs",
-                errors.username && "border-[#e53e3e] bg-[#fff8f8]",
+            <Controller
+              name="username"
+              control={control}
+              render={({ field }) => (
+                <input
+                  {...field}
+                  type="text"
+                  id="signupUsername"
+                  placeholder="Choose a username"
+                  autoComplete="username"
+                  onChange={(event) => {
+                    field.onChange(event.target.value.toLowerCase());
+                    clearErrors("username");
+                  }}
+                  className={cn(
+                    "bg-white sm:bg-[#F8FAFC] border-[1.5px] border-[#cbd5e1] rounded-xl px-3.5 py-3 text-[0.95rem] font-medium text-[#0B1020] transition-all duration-150 w-full placeholder:text-[#9aabbf] focus:outline-none focus:border-[#2563EB] focus:bg-white focus:ring-4 focus:ring-[#2563EB]/10 shadow-xs",
+                    errors.username && "border-[#e53e3e] bg-[#fff8f8]",
+                    usernameAvailability.data?.available &&
+                      "border-emerald-500",
+                  )}
+                />
               )}
             />
             {errors.username && (
@@ -171,6 +216,63 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
                 {errors.username.message}
               </span>
             )}
+            {!errors.username && username && !usernameAvailability.isValid && (
+              <span className="text-[0.7rem] text-[#e53e3e] pl-1">
+                Use 3–30 letters, numbers, or underscores.
+              </span>
+            )}
+            {!errors.username && usernameAvailability.isChecking && (
+              <span className="flex items-center gap-1 text-[0.7rem] text-slate-500 pl-1">
+                <Loader2 className="h-3 w-3 animate-spin" /> Checking username…
+              </span>
+            )}
+            {!errors.username && usernameAvailability.isError && (
+              <span className="text-[0.7rem] text-[#e53e3e] pl-1">
+                Could not check username right now.{" "}
+                <button
+                  type="button"
+                  className="underline"
+                  onClick={() => void usernameAvailability.refetch()}
+                >
+                  Retry
+                </button>
+              </span>
+            )}
+            {!errors.username &&
+              !usernameAvailability.isChecking &&
+              usernameAvailability.data && (
+                <span
+                  className={cn(
+                    "text-[0.7rem] pl-1",
+                    usernameAvailability.data.available
+                      ? "text-emerald-600"
+                      : "text-[#e53e3e]",
+                  )}
+                >
+                  {usernameAvailability.data.message}
+                </span>
+              )}
+            {!usernameAvailability.data?.available &&
+              usernameSuggestions.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pl-1">
+                  {usernameSuggestions.map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      type="button"
+                      onClick={() => {
+                        setValue("username", suggestion.toLowerCase(), {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        });
+                        clearErrors("username");
+                      }}
+                      className="rounded-full border border-blue-200 bg-blue-50 px-2 py-1 text-[0.68rem] font-semibold text-[#2563EB] hover:bg-blue-100"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              )}
           </div>
 
           {/* Password */}
@@ -217,13 +319,16 @@ export function SignupCard({ borderless = false, className }: SignupCardProps) {
           <button
             type="submit"
             id="signupSubmit"
-            disabled={isLoading}
+            disabled={
+              isLoading ||
+              usernameAvailability.isChecking ||
+              !usernameAvailability.data?.available
+            }
             className={cn(
-              "mt-2 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-none px-5 py-3.5 text-base font-semibold tracking-tight text-white shadow-[0_8px_24px_rgba(26,92,255,0.25)] transition-all duration-200 active:scale-[0.98] sm:py-4",
+              "mt-2 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-none px-5 py-3.5 text-base font-semibold tracking-tight text-white shadow-[0_8px_24px_rgba(26,92,255,0.25)] transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 sm:py-4",
               isSubmitted
                 ? "bg-[#0f7b4a] shadow-[0_8px_24px_rgba(15,123,74,0.25)]"
                 : "bg-[#2563EB] hover:bg-[#1D4ED8] hover:shadow-[0_12px_28px_rgba(26,92,255,0.3)]",
-              isLoading && "opacity-70 cursor-not-allowed",
             )}
           >
             {isLoading ? (

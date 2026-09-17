@@ -146,6 +146,13 @@ export function ForStudentsSection() {
                     <ArrowRight className="ml-2 w-4 h-4" />
                   </Link>
                 </Button>
+                <Link
+                  href="/payments/guest"
+                  className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-primary/90 hover:text-primary hover:underline"
+                >
+                  <CreditCard className="w-3.5 h-3.5" />
+                  No account? Pay a due as a guest
+                </Link>
               </div>
             </div>
 

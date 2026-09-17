@@ -71,7 +71,36 @@ export interface UpdateProfilePayload {
   country?: string;
 }
 
+export const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,30}$/;
+
+export interface UsernameAvailability {
+  available: boolean;
+  username?: string;
+  message: string;
+  suggestions: string[];
+}
+
+export function normalizeUsername(username: string): string {
+  return username.trim().toLowerCase();
+}
+
 export const usersApi = {
+  checkUsername: async (
+    rawUsername: string,
+    signal?: AbortSignal,
+  ): Promise<UsernameAvailability> => {
+    const username = normalizeUsername(rawUsername);
+    const query = new URLSearchParams({ username });
+    const response = await axiosConfig.get<UsernameAvailability>(
+      `/users/check-username?${query.toString()}`,
+      { signal },
+    );
+    return {
+      ...response.data,
+      suggestions: response.data.suggestions ?? [],
+    };
+  },
+
   // Get current user profile
   getCurrentUser: async (): Promise<User> => {
     try {

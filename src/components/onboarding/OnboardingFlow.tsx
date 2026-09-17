@@ -1,16 +1,15 @@
-// src/components/onboarding/OnboardingFlow.tsx
-
 "use client";
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/auth-store";
 import {
-  institutionsApi,
-  Institution,
-  Faculty,
+  AcademicLevel,
   Department,
+  Faculty,
+  Institution,
+  institutionsApi,
 } from "@/lib/api/institutions";
 import {
   SearchableSelect,
@@ -19,84 +18,56 @@ import {
 import { queryKeys } from "@/lib/api/keys";
 import { axiosConfig } from "@/utils/axios-config";
 import {
-  GraduationCap,
-  Ticket,
-  ShieldCheck,
-  ArrowRight,
+  AlertCircle,
   ArrowLeft,
+  ArrowRight,
   Check,
-  Rocket,
+  GraduationCap,
   Info,
   Loader2,
-  User,
-  Globe,
-  AlertCircle,
+  Rocket,
+  ShieldCheck,
+  Ticket,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const STEP_LABELS = [
   "Welcome",
-  "Personal Info",
+  "Your name",
   "Institution",
-  "Department",
+  "Academic details",
   "Finish",
 ];
 
-// Types
-interface AcademicSession {
-  id: string;
-  name: string;
-  startDate: string;
-  endDate: string;
-  status: string;
-  isCurrent: boolean;
-  scope: "INSTITUTION" | "FACULTY" | "DEPARTMENT" | "LEVEL";
-}
-
-type Gender = "MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY";
-
-interface OnboardingPersonalInfo {
-  firstName: string;
-  lastName: string;
-  middleName?: string;
-  gender: Gender;
-  country?: string;
-}
-
-interface CompleteOnboardingPayload {
-  firstName?: string;
-  lastName?: string;
-  studentId?: string;
-  gender?: Gender;
-  country?: string;
-  institution?: string;
-  faculty?: string;
-  department?: string;
-  academicLevelId?: string;
-  sessionId?: string;
-}
-
 function retryTransientRequest(failureCount: number, error: unknown) {
-  const status = (error as { response?: { status?: number } })?.response?.status;
-  return failureCount < 5 && (!status || status >= 500 || status === 408 || status === 429);
+  const status = (error as { response?: { status?: number } })?.response
+    ?.status;
+  return (
+    failureCount < 5 &&
+    (!status || status >= 500 || status === 408 || status === 429)
+  );
 }
 
 const retryDelay = (attempt: number) => Math.min(1_000 * 2 ** attempt, 8_000);
 
-// Query hooks
-function useInstitutions(search?: string) {
+function asList<T>(value: unknown): T[] {
+  if (Array.isArray(value)) return value as T[];
+  if (value && typeof value === "object") {
+    const record = value as { data?: unknown; academicLevels?: unknown };
+    if (Array.isArray(record.data)) return record.data as T[];
+    if (Array.isArray(record.academicLevels))
+      return record.academicLevels as T[];
+  }
+  return [];
+}
+
+function useInstitutions() {
   return useQuery({
-    queryKey: queryKeys.institutions.all({
-      search,
-      status: "ACTIVE",
-      limit: 100,
-    }),
+    queryKey: queryKeys.institutions.all({ status: "ACTIVE", limit: 100 }),
     queryFn: () =>
-      institutionsApi.getInstitutions({ search, status: "ACTIVE", limit: 100 }),
+      institutionsApi.getInstitutions({ status: "ACTIVE", limit: 100 }),
     retry: retryTransientRequest,
     retryDelay,
-    refetchOnReconnect: true,
-    refetchOnWindowFocus: true,
     staleTime: 10 * 60 * 1000,
   });
 }
@@ -105,11 +76,9 @@ function useFaculties(institutionId: string) {
   return useQuery({
     queryKey: queryKeys.institutions.faculties(institutionId),
     queryFn: () => institutionsApi.getFacultiesByInstitution(institutionId),
-    enabled: !!institutionId,
+    enabled: Boolean(institutionId),
     retry: retryTransientRequest,
     retryDelay,
-    refetchOnReconnect: true,
-    refetchOnWindowFocus: true,
     staleTime: 10 * 60 * 1000,
   });
 }
@@ -118,36 +87,32 @@ function useDepartments(facultyId: string) {
   return useQuery({
     queryKey: queryKeys.institutions.departments(facultyId),
     queryFn: () => institutionsApi.getDepartmentsByFaculty(facultyId),
-    enabled: !!facultyId,
+    enabled: Boolean(facultyId),
     retry: retryTransientRequest,
     retryDelay,
-    refetchOnReconnect: true,
-    refetchOnWindowFocus: true,
     staleTime: 10 * 60 * 1000,
   });
 }
 
-function useAcademicSessions(institutionId: string) {
+function useAcademicLevels(department: Department | null) {
   return useQuery({
-    queryKey: ["academic-sessions", institutionId],
+    queryKey: [
+      "institutions",
+      "departments",
+      department?.id,
+      "academic-levels",
+    ],
     queryFn: async () => {
-      if (!institutionId) return [];
-      const response = await axiosConfig.get(
-        `/institutions/${institutionId}/academic-sessions`
-      );
-      const sessions = response.data || [];
-      return sessions.filter(
-        (session: AcademicSession) =>
-          session.scope === "INSTITUTION" &&
-          (session.status === "ACTIVE" || session.status === "UPCOMING"),
+      if (!department) return [];
+      if (department.academicLevels?.length) return department.academicLevels;
+      return asList<AcademicLevel>(
+        await institutionsApi.getAcademicLevelsByDepartment(department.id),
       );
     },
-    enabled: !!institutionId,
+    enabled: Boolean(department?.id),
     retry: retryTransientRequest,
     retryDelay,
-    refetchOnReconnect: true,
-    refetchOnWindowFocus: true,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
   });
 }
 
@@ -155,265 +120,156 @@ export function OnboardingFlow() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user, updateUserOnboardingStatus } = useAuthStore();
-
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-
-  // ============================================
-  // STEP 1: PERSONAL INFO
-  // ============================================
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [middleName, setMiddleName] = useState("");
-  const [studentId, setStudentId] = useState("");
-  const [gender, setGender] = useState("");
-  const [country, setCountry] = useState("");
-
-  // ============================================
-  // STEP 2 & 3: INSTITUTION
-  // ============================================
+  const [matricNumber, setMatricNumber] = useState("");
+  const [isFresher, setIsFresher] = useState<"true" | "false" | "">("");
   const [selectedInstitutionId, setSelectedInstitutionId] = useState("");
   const [selectedFacultyId, setSelectedFacultyId] = useState("");
   const [selectedDepartmentId, setSelectedDepartmentId] = useState("");
   const [selectedAcademicLevelId, setSelectedAcademicLevelId] = useState("");
-  const [selectedSessionId, setSelectedSessionId] = useState("");
-
   const [selectedInstitution, setSelectedInstitution] =
     useState<Institution | null>(null);
   const [selectedFaculty, setSelectedFaculty] = useState<Faculty | null>(null);
   const [selectedDepartment, setSelectedDepartment] =
     useState<Department | null>(null);
+  const [error, setError] = useState("");
 
-  // ============================================
-  // ERROR STATES
-  // ============================================
-  const [firstNameError, setFirstNameError] = useState("");
-  const [lastNameError, setLastNameError] = useState("");
-  const [genderError, setGenderError] = useState("");
-  const [instError, setInstError] = useState("");
-  const [deptError, setDeptError] = useState("");
-  const [levelError, setLevelError] = useState("");
-  const [sessionError, setSessionError] = useState("");
+  const institutionsQuery = useInstitutions();
+  const facultiesQuery = useFaculties(selectedInstitutionId);
+  const departmentsQuery = useDepartments(selectedFacultyId);
+  const levelsQuery = useAcademicLevels(selectedDepartment);
+  const institutions = asList<Institution>(institutionsQuery.data);
+  const faculties = asList<Faculty>(facultiesQuery.data);
+  const departments = asList<Department>(departmentsQuery.data);
+  const levels = (levelsQuery.data ?? [])
+    .slice()
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
-  // ============================================
-  // QUERIES
-  // ============================================
-  const { data: institutionsData, isLoading: isLoadingInstitutions } =
-    useInstitutions();
-  const { data: facultiesData, isLoading: isLoadingFaculties } = useFaculties(
-    selectedInstitutionId,
-  );
-  const { data: departmentsData, isLoading: isLoadingDepartments } =
-    useDepartments(selectedFacultyId);
-  const { data: sessionsData, isLoading: isLoadingSessions } = useAcademicSessions(
-    selectedInstitutionId,
-  );
-
-  const totalSteps = 5;
-
-  // ============================================
-  // MUTATIONS
-  // ============================================
   const completeOnboardingMutation = useMutation({
-    mutationFn: async ({
-      personalInfo,
-      completion,
-    }: {
-      personalInfo: OnboardingPersonalInfo;
-      completion: CompleteOnboardingPayload;
-    }) => {
-      await axiosConfig.patch("/onboarding/personal-info", personalInfo);
-      return axiosConfig.post("/onboarding/complete", completion);
+    mutationFn: async () => {
+      await axiosConfig.patch("/onboarding/personal-info", {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+      });
+      return axiosConfig.patch("/onboarding/institution", {
+        institutionId: selectedInstitutionId,
+        facultyId: selectedFacultyId,
+        departmentId: selectedDepartmentId,
+        levelId: selectedAcademicLevelId,
+        matricNumber: matricNumber.trim(),
+        isFresher: isFresher === "true",
+      });
     },
     onSuccess: () => {
       updateUserOnboardingStatus(true, "COMPLETED");
-      queryClient.invalidateQueries({ queryKey: queryKeys.user.current });
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({ queryKey: queryKeys.user.current });
+      void queryClient.invalidateQueries({
         queryKey: queryKeys.onboarding.status(user?.id ?? ""),
       });
-      setIsSubmitting(false);
-      setSubmitError(null);
       router.replace("/dashboard");
     },
-    onError: (error: unknown) => {
-      console.error("Failed to complete onboarding:", error);
+    onError: (requestError: unknown) => {
+      console.error("Failed to complete onboarding:", requestError);
       setIsSubmitting(false);
-      setSubmitError('Failed to complete onboarding. Please try again.');
+      setSubmitError(
+        "Failed to complete onboarding. Please check your details and try again.",
+      );
     },
   });
 
-  // ============================================
-  // NAVIGATION
-  // ============================================
   const goToStep = (step: number) => {
-    if (step >= 0 && step < totalSteps) {
-      setCurrentStep(step);
-    }
+    if (step >= 0 && step < STEP_LABELS.length) setCurrentStep(step);
   };
-
-  const nextStep = () => goToStep(currentStep + 1);
-  const prevStep = () => goToStep(currentStep - 1);
-
-  // ============================================
-  // VALIDATION
-  // ============================================
-  const validateStep1 = () => {
-    let valid = true;
-
-    if (!firstName.trim()) {
-      setFirstNameError("First name is required");
-      valid = false;
-    } else {
-      setFirstNameError("");
-    }
-
-    if (!lastName.trim()) {
-      setLastNameError("Last name is required");
-      valid = false;
-    } else {
-      setLastNameError("");
-    }
-
-    if (!gender) {
-      setGenderError("Please select your gender");
-      valid = false;
-    } else {
-      setGenderError("");
-    }
-
-    if (valid) nextStep();
+  const validateName = () => {
+    if (!firstName.trim() || !lastName.trim())
+      return setError("First name and last name are required.");
+    setError("");
+    goToStep(2);
   };
-
-  const validateStep2 = () => {
-    if (!selectedInstitutionId) {
-      setInstError("Please select your institution");
-    } else {
-      setInstError("");
-      nextStep();
-    }
+  const validateInstitution = () => {
+    if (!selectedInstitutionId)
+      return setError("Please select your institution.");
+    setError("");
+    goToStep(3);
   };
-
-  const validateStep3 = () => {
-    let valid = true;
-
-    if (!selectedDepartmentId) {
-      setDeptError("Please select your department");
-      valid = false;
-    } else {
-      setDeptError("");
-    }
-
-    if (!selectedAcademicLevelId) {
-      setLevelError("Please select your academic level");
-      valid = false;
-    } else {
-      setLevelError("");
-    }
-
-    if (!selectedSessionId) {
-      setSessionError("Please select your academic session");
-      valid = false;
-    } else {
-      setSessionError("");
-    }
-
-    if (valid) nextStep();
+  const selectedLevel = levels.find(
+    (level) => level.id === selectedAcademicLevelId,
+  );
+  const numericLevel =
+    selectedLevel?.numericLevel ??
+    Number.parseInt(selectedLevel?.name ?? "", 10);
+  const validateAcademicDetails = () => {
+    if (
+      !selectedFacultyId ||
+      !selectedDepartmentId ||
+      !selectedAcademicLevelId ||
+      !matricNumber.trim() ||
+      !isFresher
+    )
+      return setError(
+        "Faculty, department, academic level, matric number, and student category are required.",
+      );
+    if (
+      (isFresher === "true" && numericLevel !== 100) ||
+      (isFresher === "false" && numericLevel < 200)
+    )
+      return setError(
+        isFresher === "true"
+          ? "Fresher students must select 100 Level."
+          : "Staylite students must select 200 Level or higher.",
+      );
+    setError("");
+    goToStep(4);
   };
-
-  // ============================================
-  // FINISH ONBOARDING
-  // ============================================
   const finishOnboarding = () => {
     setSubmitError(null);
     setIsSubmitting(true);
-
-    const selectedInstitutionObj = institutionsData?.data?.find(
-      (inst: Institution) => inst.id === selectedInstitutionId,
-    );
-    const selectedFacultyObj = facultiesData?.find(
-      (fac: Faculty) => fac.id === selectedFacultyId,
-    );
-    const selectedDepartmentObj = departmentsData?.find(
-      (dept: Department) => dept.id === selectedDepartmentId,
-    );
-
-    const personalInfo: OnboardingPersonalInfo = {
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      ...(middleName.trim() ? { middleName: middleName.trim() } : {}),
-      gender: gender as Gender,
-      ...(country.trim() ? { country: country.trim() } : {}),
-    };
-    const completion: CompleteOnboardingPayload = {
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      ...(studentId.trim() ? { studentId: studentId.trim() } : {}),
-      gender: gender as Gender,
-      ...(country.trim() ? { country: country.trim() } : {}),
-      institution: selectedInstitutionObj?.name || "",
-      faculty: selectedFacultyObj?.name || "",
-      department: selectedDepartmentObj?.name || "",
-      academicLevelId: selectedAcademicLevelId,
-      sessionId: selectedSessionId,
-    };
-
-    completeOnboardingMutation.mutate({ personalInfo, completion });
+    completeOnboardingMutation.mutate();
   };
 
-  // ============================================
-  // HELPERS
-  // ============================================
-  const progressPercent = (currentStep / (totalSteps - 1)) * 100;
-
-  const institutionOptions: SelectOption[] = (institutionsData?.data || []).map(
-    (inst: Institution) => ({
-      ...inst,
-      id: inst.id,
-      label: `${inst.name} (${inst.shortName || inst.code})`,
-      value: inst.id,
+  const institutionOptions: SelectOption[] = institutions.map(
+    (institution) => ({
+      ...institution,
+      id: institution.id,
+      value: institution.id,
+      label: `${institution.name} (${institution.shortName || institution.code})`,
     }),
   );
+  const facultyOptions: SelectOption[] = faculties.map((faculty) => ({
+    ...faculty,
+    id: faculty.id,
+    value: faculty.id,
+    label: faculty.name,
+  }));
+  const departmentOptions: SelectOption[] = departments.map((department) => ({
+    ...department,
+    id: department.id,
+    value: department.id,
+    label: department.name,
+  }));
+  const progressPercent = (currentStep / (STEP_LABELS.length - 1)) * 100;
 
-  const facultyOptions: SelectOption[] = (facultiesData || []).map(
-    (fac: Faculty) => ({
-      ...fac,
-      id: fac.id,
-      label: fac.name,
-      value: fac.id,
-    }),
-  );
-
-  const departmentOptions: SelectOption[] = (departmentsData || []).map(
-    (dept: Department) => ({
-      ...dept,
-      id: dept.id,
-      label: dept.name,
-      value: dept.id,
-    }),
-  );
-
-  // ============================================
-  // RENDER
-  // ============================================
   return (
-    <div className="onboarding-flow min-h-[100dvh] w-full overflow-hidden bg-white transition-all sm:min-h-0 sm:max-w-[640px] sm:rounded-3xl sm:border sm:border-slate-200/80 sm:shadow-[0_24px_70px_rgba(15,42,100,0.10)]">
-      {/* Progress Bar */}
+    <div className="onboarding-flow min-h-[100dvh] w-full overflow-hidden bg-white sm:min-h-0 sm:max-w-[640px] sm:rounded-3xl sm:border sm:border-slate-200/80 sm:shadow-[0_24px_70px_rgba(15,42,100,0.10)]">
       <div className="px-5 pb-2 pt-5 sm:px-8 sm:pt-7">
-        <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
           <div
-            className="h-full rounded-full bg-[#2563EB] transition-all duration-500 ease-out"
+            className="h-full rounded-full bg-[#2563EB] transition-all duration-500"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
         <div className="mt-3 flex justify-between gap-2 text-[10px] font-medium text-slate-400">
-          {STEP_LABELS.map((label, idx) => (
+          {STEP_LABELS.map((label, index) => (
             <span
-              key={idx}
+              key={label}
               className={cn(
-                "min-w-0 flex-1 truncate text-center transition-colors first:text-left last:text-right",
-                idx === currentStep && "text-[#2563EB] font-semibold",
-                idx < currentStep && "text-[#0f7b4a] font-medium",
+                "min-w-0 flex-1 truncate text-center",
+                index === currentStep && "font-semibold text-[#2563EB]",
+                index < currentStep && "text-[#0f7b4a]",
               )}
             >
               {label}
@@ -421,234 +277,85 @@ export function OnboardingFlow() {
           ))}
         </div>
       </div>
-
-      {/* Content Area */}
       <div className="px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-3 sm:px-8 sm:pb-8 sm:pt-4">
-        {/* Step Header */}
         <div className="mb-5 flex items-center justify-between border-b border-slate-100 pb-4">
           <div className="flex items-center gap-3">
-            <span className="flex size-8 items-center justify-center rounded-lg bg-[#2563EB] font-mono text-xs font-bold text-white shadow-sm">
+            <span className="flex size-8 items-center justify-center rounded-lg bg-[#2563EB] font-mono text-xs font-bold text-white">
               {currentStep + 1}
             </span>
-            <span className="text-lg font-semibold tracking-[-0.025em] text-[#0B1020]">
+            <span className="text-lg font-semibold text-[#0B1020]">
               {STEP_LABELS[currentStep]}
             </span>
           </div>
-          <span className="rounded-full bg-slate-100 px-2.5 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.08em] text-slate-400">
-            {currentStep + 1} of {totalSteps}
+          <span className="rounded-full bg-slate-100 px-2.5 py-1 font-mono text-[9px] font-semibold text-slate-400">
+            {currentStep + 1} of {STEP_LABELS.length}
           </span>
         </div>
-
-        {/* STEP 0: WELCOME */}
         {currentStep === 0 && (
-          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="text-center py-4">
-              <div className="mx-auto mb-5 flex size-16 items-center justify-center rounded-2xl border border-[#2563EB]/15 bg-[#2563EB]/8 text-[#2563EB]">
-                <GraduationCap className="w-9 h-9" />
-              </div>
-              <h2 className="text-2xl font-extrabold text-[#0B1020] mb-2 tracking-tight">
+          <div className="animate-in fade-in space-y-6 py-4 text-center">
+            <div className="mx-auto flex size-16 items-center justify-center rounded-2xl border border-[#2563EB]/15 bg-[#2563EB]/8 text-[#2563EB]">
+              <GraduationCap className="size-9" />
+            </div>
+            <div>
+              <h2 className="mb-2 text-2xl font-extrabold text-[#0B1020]">
                 Welcome to Heightt
               </h2>
-              <p className="text-sm text-[#64748B] leading-relaxed max-w-sm mx-auto mb-6">
-                Your financial companion for campus life. Let&apos;s get you set up
-                in just a few minutes.
+              <p className="mx-auto max-w-sm text-sm leading-relaxed text-[#64748B]">
+                Set up your student profile with the academic details your
+                institution uses.
               </p>
-
-              <div className="grid grid-cols-2 gap-3 text-left mb-6">
-                <div className="flex items-center gap-2.5 p-3 rounded-xl bg-[#F8FAFC] border border-slate-100 text-xs font-semibold text-[#0B1020]">
-                  <Ticket className="w-4 h-4 text-[#2563EB] shrink-0" />
-                  Event Tickets
-                </div>
-                <div className="flex items-center gap-2.5 p-3 rounded-xl bg-[#F8FAFC] border border-slate-100 text-xs font-semibold text-[#0B1020]">
-                  <ShieldCheck className="w-4 h-4 text-[#2563EB] shrink-0" />
-                  Refund Protection
-                </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 text-left">
+              <div className="flex items-center gap-2.5 rounded-xl border border-slate-100 bg-[#F8FAFC] p-3 text-xs font-semibold text-[#0B1020]">
+                <Ticket className="size-4 text-[#2563EB]" /> Campus dues
+              </div>
+              <div className="flex items-center gap-2.5 rounded-xl border border-slate-100 bg-[#F8FAFC] p-3 text-xs font-semibold text-[#0B1020]">
+                <ShieldCheck className="size-4 text-[#2563EB]" /> Verified
+                profile
               </div>
             </div>
-
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={nextStep}
-                className="w-full py-3.5 px-6 rounded-2xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-[0_8px_24px_rgba(26,92,255,0.25)] active:scale-[0.98]"
-              >
-                <span>Get Started</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => goToStep(1)}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#2563EB] px-6 py-3.5 text-sm font-semibold text-white"
+            >
+              <span>Get Started</span>
+              <ArrowRight className="size-4" />
+            </button>
           </div>
         )}
-
-        {/* STEP 1: PERSONAL INFORMATION */}
         {currentStep === 1 && (
-          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 space-y-4">
-            <p className="text-sm text-[#64748B] leading-relaxed mb-4">
-              Enter your personal information to complete your profile.
+          <div className="animate-in fade-in space-y-4">
+            <p className="text-sm leading-relaxed text-[#64748B]">
+              Use your name as it should appear on your student profile.
             </p>
-
-            {/* First Name */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase text-[#1f2a44] opacity-70 tracking-wider">
-                First Name <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => {
-                    setFirstName(e.target.value);
-                    setFirstNameError("");
-                  }}
-                  placeholder="e.g. John"
-                  className={cn(
-                    "w-full pl-10 pr-4 py-3 rounded-xl border-[1.5px] border-slate-200 text-sm font-medium text-[#0B1020] bg-[#F8FAFC] outline-none transition-all focus:border-[#2563EB] focus:bg-white focus:ring-4 focus:ring-[#2563EB]/10",
-                    firstNameError && "border-red-500 bg-red-50/30",
-                  )}
-                  required
-                />
-              </div>
-              {firstNameError && (
-                <p className="text-xs text-red-500 pl-1">{firstNameError}</p>
-              )}
-            </div>
-
-            {/* Last Name */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase text-[#1f2a44] opacity-70 tracking-wider">
-                Last Name <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => {
-                    setLastName(e.target.value);
-                    setLastNameError("");
-                  }}
-                  placeholder="e.g. Doe"
-                  className={cn(
-                    "w-full pl-10 pr-4 py-3 rounded-xl border-[1.5px] border-slate-200 text-sm font-medium text-[#0B1020] bg-[#F8FAFC] outline-none transition-all focus:border-[#2563EB] focus:bg-white focus:ring-4 focus:ring-[#2563EB]/10",
-                    lastNameError && "border-red-500 bg-red-50/30",
-                  )}
-                  required
-                />
-              </div>
-              {lastNameError && (
-                <p className="text-xs text-red-500 pl-1">{lastNameError}</p>
-              )}
-            </div>
-
-            {/* Middle Name */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase text-[#1f2a44] opacity-70 tracking-wider">
-                Middle Name (Optional)
-              </label>
-              <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  value={middleName}
-                  onChange={(e) => setMiddleName(e.target.value)}
-                  placeholder="e.g. Chidi"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border-[1.5px] border-slate-200 text-sm font-medium text-[#0B1020] bg-[#F8FAFC] outline-none transition-all focus:border-[#2563EB] focus:bg-white focus:ring-4 focus:ring-[#2563EB]/10"
-                />
-              </div>
-            </div>
-
-            {/* Gender */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase text-[#1f2a44] opacity-70 tracking-wider">
-                Gender <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={gender}
-                onChange={(e) => {
-                  setGender(e.target.value);
-                  setGenderError("");
-                }}
-                className={cn(
-                  "w-full px-4 py-3 rounded-xl border-[1.5px] border-slate-200 text-sm font-medium text-[#0B1020] bg-[#F8FAFC] outline-none transition-all focus:border-[#2563EB] focus:bg-white focus:ring-4 focus:ring-[#2563EB]/10",
-                  genderError && "border-red-500 bg-red-50/30",
-                )}
-                required
-              >
-                <option value="">Select your gender</option>
-                <option value="MALE">Male</option>
-                <option value="FEMALE">Female</option>
-                <option value="OTHER">Other</option>
-                <option value="PREFER_NOT_TO_SAY">Prefer not to say</option>
-              </select>
-              {genderError && (
-                <p className="text-xs text-red-500 pl-1">{genderError}</p>
-              )}
-            </div>
-
-            {/* Country */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase text-[#1f2a44] opacity-70 tracking-wider">
-                Country
-              </label>
-              <div className="relative">
-                <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <select
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border-[1.5px] border-slate-200 text-sm font-medium text-[#0B1020] bg-[#F8FAFC] outline-none transition-all focus:border-[#2563EB] focus:bg-white focus:ring-4 focus:ring-[#2563EB]/10"
-                >
-                  <option value="">Select country (optional)</option>
-                  <option value="Nigeria">Nigeria</option>
-                  <option value="Ghana">Ghana</option>
-                  <option value="Kenya">Kenya</option>
-                  <option value="South Africa">South Africa</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Student ID (Optional) */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase text-[#1f2a44] opacity-70 tracking-wider">
-                Student ID (Optional)
-              </label>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[#1f2a44]">
+              First Name <span className="text-red-500">*</span>
               <input
-                type="text"
-                value={studentId}
-                onChange={(e) => setStudentId(e.target.value)}
-                placeholder="e.g. 2024/12345"
-                className="w-full px-4 py-3 rounded-xl border-[1.5px] border-slate-200 text-sm font-medium text-[#0B1020] bg-[#F8FAFC] outline-none transition-all focus:border-[#2563EB] focus:bg-white focus:ring-4 focus:ring-[#2563EB]/10"
+                value={firstName}
+                onChange={(event) => setFirstName(event.target.value)}
+                className="mt-1.5 w-full rounded-xl border-[1.5px] border-slate-200 bg-[#F8FAFC] px-4 py-3 text-sm font-medium outline-none focus:border-[#2563EB]"
+                placeholder="e.g. Ada"
               />
-            </div>
-
-            <div className="flex gap-3 pt-4 border-t border-slate-100 mt-6">
-              <button
-                type="button"
-                onClick={prevStep}
-                className="px-5 py-3 rounded-xl border-2 border-slate-200 hover:border-[#2563EB] text-slate-600 hover:text-[#2563EB] font-semibold text-sm flex items-center justify-center gap-1.5 transition-all"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back</span>
-              </button>
-              <button
-                type="button"
-                onClick={validateStep1}
-                className="flex-1 py-3 px-6 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-[0_8px_24px_rgba(26,92,255,0.25)] active:scale-[0.98]"
-              >
-                <span>Continue</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
+            </label>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[#1f2a44]">
+              Last Name <span className="text-red-500">*</span>
+              <input
+                value={lastName}
+                onChange={(event) => setLastName(event.target.value)}
+                className="mt-1.5 w-full rounded-xl border-[1.5px] border-slate-200 bg-[#F8FAFC] px-4 py-3 text-sm font-medium outline-none focus:border-[#2563EB]"
+                placeholder="e.g. Lovelace"
+              />
+            </label>
+            {error && <p className="text-xs text-red-600">{error}</p>}
+            <Navigation onBack={() => goToStep(0)} onNext={validateName} />
           </div>
         )}
-
-        {/* STEP 2: INSTITUTION */}
         {currentStep === 2 && (
-          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 space-y-4">
-            <p className="text-sm text-[#64748B] leading-relaxed mb-4">
-              Select your institution from the list below.
+          <div className="animate-in fade-in space-y-4">
+            <p className="text-sm leading-relaxed text-[#64748B]">
+              Select the institution where you study.
             </p>
-
             <SearchableSelect
               options={institutionOptions}
               value={selectedInstitutionId}
@@ -657,86 +364,54 @@ export function OnboardingFlow() {
                 setSelectedInstitution(
                   (option as unknown as Institution) || null,
                 );
-                setInstError("");
-                // Reset dependent fields when institution changes
                 setSelectedFacultyId("");
                 setSelectedFaculty(null);
                 setSelectedDepartmentId("");
                 setSelectedDepartment(null);
                 setSelectedAcademicLevelId("");
-                setSelectedSessionId("");
               }}
               label="Institution"
               required
-              error={instError}
-              isLoading={isLoadingInstitutions}
+              isLoading={institutionsQuery.isLoading}
+              error={error}
               placeholder="Search and select your institution..."
               searchPlaceholder="Search institutions..."
-              noOptionsMessage="No institutions found. Please try a different search."
+              noOptionsMessage="No institutions found."
             />
             {selectedInstitution && (
-              <div className="p-3 rounded-xl bg-[#EFF6FF] border border-[#2563EB]/20 text-sm text-[#2563EB]">
+              <p className="rounded-xl border border-[#2563EB]/20 bg-[#EFF6FF] p-3 text-sm text-[#2563EB]">
                 Selected: <strong>{selectedInstitution.name}</strong>
-                {selectedInstitution.shortName &&
-                  ` (${selectedInstitution.shortName})`}
-              </div>
+              </p>
             )}
-
-            <div className="flex gap-3 pt-4 border-t border-slate-100 mt-6">
-              <button
-                type="button"
-                onClick={prevStep}
-                className="px-5 py-3 rounded-xl border-2 border-slate-200 hover:border-[#2563EB] text-slate-600 hover:text-[#2563EB] font-semibold text-sm flex items-center justify-center gap-1.5 transition-all"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back</span>
-              </button>
-              <button
-                type="button"
-                onClick={validateStep2}
-                className="flex-1 py-3 px-6 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-[0_8px_24px_rgba(26,92,255,0.25)] active:scale-[0.98]"
-              >
-                <span>Continue</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
+            <Navigation
+              onBack={() => goToStep(1)}
+              onNext={validateInstitution}
+            />
           </div>
         )}
-
-        {/* STEP 3: FACULTY, DEPARTMENT, LEVEL & SESSION */}
         {currentStep === 3 && (
-          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 space-y-4">
-            <p className="text-sm text-[#64748B] leading-relaxed mb-4">
-              Tell us your faculty and department so we can connect you with the
-              right community.
+          <div className="animate-in fade-in space-y-4">
+            <p className="text-sm leading-relaxed text-[#64748B]">
+              Choose the academic details that match your student record.
             </p>
-
             <SearchableSelect
               options={facultyOptions}
               value={selectedFacultyId}
               onChange={(id, option) => {
                 setSelectedFacultyId(id);
-                setSelectedFaculty(
-                  (option as unknown as Faculty) || null,
-                );
-                // Reset department when faculty changes
+                setSelectedFaculty((option as unknown as Faculty) || null);
                 setSelectedDepartmentId("");
                 setSelectedDepartment(null);
+                setSelectedAcademicLevelId("");
               }}
               label="Faculty"
               required
+              isLoading={facultiesQuery.isLoading}
+              disabled={!selectedInstitutionId}
               placeholder="Select your faculty..."
               searchPlaceholder="Search faculties..."
-              noOptionsMessage="No faculties found for this institution"
-              isLoading={isLoadingFaculties}
-              disabled={!selectedInstitutionId}
+              noOptionsMessage="No faculties found."
             />
-            {selectedFaculty && (
-              <div className="p-3 rounded-xl bg-[#EFF6FF] border border-[#2563EB]/20 text-sm text-[#2563EB]">
-                Selected Faculty: <strong>{selectedFaculty.name}</strong>
-              </div>
-            )}
-
             <SearchableSelect
               options={departmentOptions}
               value={selectedDepartmentId}
@@ -745,197 +420,165 @@ export function OnboardingFlow() {
                 setSelectedDepartment(
                   (option as unknown as Department) || null,
                 );
-                setDeptError("");
+                setSelectedAcademicLevelId("");
               }}
               label="Department"
               required
-              error={deptError}
+              isLoading={departmentsQuery.isLoading}
+              disabled={!selectedFacultyId}
               placeholder="Select your department..."
               searchPlaceholder="Search departments..."
-              noOptionsMessage="No departments found for this faculty"
-              isLoading={isLoadingDepartments}
-              disabled={!selectedFacultyId}
+              noOptionsMessage="No departments found."
             />
-            {selectedDepartment && (
-              <div className="p-3 rounded-xl bg-[#EFF6FF] border border-[#2563EB]/20 text-sm text-[#2563EB]">
-                Selected Department: <strong>{selectedDepartment.name}</strong>
-              </div>
-            )}
-
-            {/* Academic Level */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase text-[#1f2a44] opacity-70 tracking-wider">
-                Academic Level <span className="text-red-500">*</span>
-              </label>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[#1f2a44]">
+              Academic Level <span className="text-red-500">*</span>
               <select
                 value={selectedAcademicLevelId}
-                onChange={(e) => {
-                  setSelectedAcademicLevelId(e.target.value);
-                  setLevelError("");
-                }}
-                className={cn(
-                  "w-full px-4 py-3 rounded-xl border-[1.5px] border-slate-200 text-sm font-medium text-[#0B1020] bg-[#F8FAFC] outline-none transition-all focus:border-[#2563EB] focus:bg-white focus:ring-4 focus:ring-[#2563EB]/10",
-                  levelError && "border-red-500 bg-red-50/30",
-                )}
-                required
-              >
-                <option value="">Select your academic level</option>
-                <option value="100">100 Level</option>
-                <option value="200">200 Level</option>
-                <option value="300">300 Level</option>
-                <option value="400">400 Level</option>
-                <option value="500">500 Level</option>
-                <option value="600">600 Level</option>
-              </select>
-              {levelError && (
-                <p className="text-xs text-red-500 pl-1">{levelError}</p>
-              )}
-            </div>
-
-            {/* Academic Session */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase text-[#1f2a44] opacity-70 tracking-wider">
-                Academic Session <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={selectedSessionId}
-                onChange={(e) => {
-                  setSelectedSessionId(e.target.value);
-                  setSessionError("");
-                }}
-                className={cn(
-                  "w-full px-4 py-3 rounded-xl border-[1.5px] border-slate-200 text-sm font-medium text-[#0B1020] bg-[#F8FAFC] outline-none transition-all focus:border-[#2563EB] focus:bg-white focus:ring-4 focus:ring-[#2563EB]/10",
-                  sessionError && "border-red-500 bg-red-50/30",
-                  !selectedInstitutionId && "opacity-50 cursor-not-allowed",
-                )}
-                required
-                disabled={!selectedInstitutionId || isLoadingSessions}
+                onChange={(event) =>
+                  setSelectedAcademicLevelId(event.target.value)
+                }
+                disabled={!selectedDepartmentId || levelsQuery.isLoading}
+                className="mt-1.5 w-full rounded-xl border-[1.5px] border-slate-200 bg-[#F8FAFC] px-4 py-3 text-sm font-medium outline-none focus:border-[#2563EB]"
               >
                 <option value="">
-                  {!selectedInstitutionId
-                    ? "Please select an institution first"
-                    : isLoadingSessions
-                      ? "Loading sessions..."
-                      : "Select your academic session"}
+                  {levelsQuery.isLoading
+                    ? "Loading levels..."
+                    : "Select your academic level"}
                 </option>
-                {(sessionsData || []).map((session: AcademicSession) => (
-                  <option key={session.id} value={session.id}>
-                    {session.name} {session.isCurrent ? "(Current)" : ""}
+                {levels.map((level) => (
+                  <option key={level.id} value={level.id}>
+                    {level.name}
                   </option>
                 ))}
               </select>
-              {sessionError && (
-                <p className="text-xs text-red-500 pl-1">{sessionError}</p>
-              )}
-              {sessionsData?.length === 0 &&
-                selectedInstitutionId &&
-                !isLoadingSessions &&
-                (
-                  <p className="text-xs text-amber-500 pl-1">
-                    No active sessions found for this institution. Please
-                    contact your administrator.
-                  </p>
-                )}
-            </div>
-
-            <div className="flex gap-3 pt-4 border-t border-slate-100 mt-6">
-              <button
-                type="button"
-                onClick={prevStep}
-                className="px-5 py-3 rounded-xl border-2 border-slate-200 hover:border-[#2563EB] text-slate-600 hover:text-[#2563EB] font-semibold text-sm flex items-center justify-center gap-1.5 transition-all"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back</span>
-              </button>
-              <button
-                type="button"
-                onClick={validateStep3}
-                className="flex-1 py-3 px-6 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-[0_8px_24px_rgba(26,92,255,0.25)] active:scale-[0.98]"
-              >
-                <span>Continue</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
+            </label>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-[#1f2a44]">
+              Matric Number <span className="text-red-500">*</span>
+              <input
+                value={matricNumber}
+                onChange={(event) => setMatricNumber(event.target.value)}
+                className="mt-1.5 w-full rounded-xl border-[1.5px] border-slate-200 bg-[#F8FAFC] px-4 py-3 text-sm font-medium outline-none focus:border-[#2563EB]"
+                placeholder="e.g. MAT/2024/001"
+              />
+            </label>
+            <fieldset>
+              <legend className="text-xs font-semibold uppercase tracking-wider text-[#1f2a44]">
+                Student Category <span className="text-red-500">*</span>
+              </legend>
+              <div className="mt-1.5 grid grid-cols-2 gap-3">
+                {[
+                  { label: "Fresher", value: "true", description: "100 Level" },
+                  {
+                    label: "Staylite",
+                    value: "false",
+                    description: "200 Level and above",
+                  },
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() =>
+                      setIsFresher(option.value as "true" | "false")
+                    }
+                    className={cn(
+                      "rounded-xl border p-3 text-left",
+                      isFresher === option.value
+                        ? "border-[#2563EB] bg-[#EFF6FF]"
+                        : "border-slate-200 bg-[#F8FAFC]",
+                    )}
+                  >
+                    <span className="block text-sm font-semibold text-[#0B1020]">
+                      {option.label}
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      {option.description}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+            {error && <p className="text-xs text-red-600">{error}</p>}
+            <Navigation
+              onBack={() => goToStep(2)}
+              onNext={validateAcademicDetails}
+            />
           </div>
         )}
-
-        {/* STEP 4: FINISH */}
         {currentStep === 4 && (
-          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="text-center py-4">
+          <div className="animate-in fade-in space-y-5 py-4">
+            <div className="text-center">
               <div className="mx-auto mb-4 flex size-20 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-600">
-                <Check className="w-10 h-10" />
+                <Check className="size-10" />
               </div>
-              <h2 className="text-2xl font-extrabold text-[#0B1020] mb-2 tracking-tight">
-                You&apos;re all set!
+              <h2 className="mb-2 text-2xl font-extrabold text-[#0B1020]">
+                You&apos;re all set
               </h2>
-              <p className="text-sm text-[#64748B] leading-relaxed max-w-sm mx-auto mb-6">
-                Your account is ready. Here&apos;s what you can do next:
+              <p className="text-sm leading-relaxed text-[#64748B]">
+                Your name and academic profile are ready to be connected to
+                Heightt.
               </p>
-
-              <div className="space-y-3 text-left bg-[#F8FAFC] p-4 rounded-2xl border border-slate-100 mb-6">
-                <div className="flex items-center gap-3 text-xs font-semibold text-[#0B1020]">
-                  <span className="w-6 h-6 rounded-full bg-white text-[#2563EB] font-bold flex items-center justify-center shrink-0 border border-slate-200">
-                    1
-                  </span>
-                  <span>Check out your organization&apos;s dues and events</span>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-xl border border-blue-200 text-xs text-blue-700">
-                <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-                <p>
-                  You can join organizations and connect with your campus
-                  community from your dashboard after onboarding.
-                </p>
-              </div>
             </div>
-
-            {/* Error Message */}
+            <div className="flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs text-blue-700">
+              <Info className="mt-0.5 size-4 shrink-0 text-blue-500" />
+              <p>
+                We&apos;ll add you to the matching campus communities
+                automatically.
+              </p>
+            </div>
             {submitError && (
-              <div className="mt-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-semibold">Something went wrong</p>
-                  <p className="text-red-600">{submitError}</p>
-                  <button
-                    onClick={() => setSubmitError(null)}
-                    className="mt-2 text-sm font-semibold text-red-600 hover:text-red-800 underline"
-                  >
-                    Dismiss
-                  </button>
-                </div>
+              <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                <AlertCircle className="mt-0.5 size-5 shrink-0 text-red-500" />
+                <p>{submitError}</p>
               </div>
             )}
-
-            <div className="pt-4">
-              <button
-                type="button"
-                onClick={finishOnboarding}
-                disabled={isSubmitting}
-                className={cn(
-                  "w-full py-3.5 px-6 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-[0_8px_24px_rgba(26,92,255,0.25)] active:scale-[0.98]",
-                  isSubmitting
-                    ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                    : "bg-[#2563EB] hover:bg-[#1D4ED8] text-white",
-                )}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Completing...</span>
-                  </>
-                ) : (
-                  <>
-                    <Rocket className="w-4 h-4" />
-                    <span>Go to Dashboard</span>
-                  </>
-                )}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={finishOnboarding}
+              disabled={isSubmitting}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#2563EB] px-6 py-3.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" /> Completing...
+                </>
+              ) : (
+                <>
+                  <Rocket className="size-4" /> Go to Dashboard
+                </>
+              )}
+            </button>
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function Navigation({
+  onBack,
+  onNext,
+}: {
+  onBack: () => void;
+  onNext: () => void;
+}) {
+  return (
+    <div className="flex gap-3 border-t border-slate-100 pt-4">
+      <button
+        type="button"
+        onClick={onBack}
+        className="flex items-center justify-center gap-1.5 rounded-xl border-2 border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600"
+      >
+        <ArrowLeft className="size-4" />
+        <span>Back</span>
+      </button>
+      <button
+        type="button"
+        onClick={onNext}
+        className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-6 py-3 text-sm font-semibold text-white"
+      >
+        <span>Continue</span>
+        <ArrowRight className="size-4" />
+      </button>
     </div>
   );
 }

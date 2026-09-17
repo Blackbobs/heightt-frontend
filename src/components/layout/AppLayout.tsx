@@ -16,6 +16,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     pathname === "/verify-email-sent" ||
     pathname === "/onboarding" ||
     pathname.startsWith("/payment") ||
+    pathname.startsWith("/payments/guest/callback") ||
+    pathname.startsWith("/payments/guest/cancelled") ||
     pathname.startsWith("/notifications") ||
     pathname.startsWith("/dashboard");
 

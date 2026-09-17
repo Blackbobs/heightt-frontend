@@ -18,6 +18,7 @@ export interface DueItem {
   sessionId?: string;
   lateFee?: number;
   isRequired?: boolean;
+  isFresher: boolean;
   createdAt: string;
   updatedAt: string;
 }

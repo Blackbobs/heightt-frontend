@@ -29,6 +29,8 @@ import {
   normalisePaymentConflict,
 } from '@/lib/api/finance';
 import { HeighttLoader } from '@/components/ui/HeighttLoader';
+import { GuestClaimCard } from '@/components/payments/guest/GuestClaimCard';
+import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 
 type Tab = 'all' | 'unpaid' | 'paid';
@@ -43,6 +45,10 @@ function formatNaira(amount: number) {
 
 export function PaymentsPage() {
   const searchParams = useSearchParams();
+  const fetchCurrentUser = useAuthStore((state) => state.fetchCurrentUser);
+  const currentAcademicLevelId = useAuthStore(
+    (state) => state.user?.studentProfile?.currentAcademicLevelId,
+  );
   const highlightDueId = searchParams.get('dueId');
   const paymentStatus = searchParams.get('status');
 
@@ -166,7 +172,14 @@ export function PaymentsPage() {
         (typeof responseData?.message === 'string' && responseData.message) ||
         'Failed to initiate payment. Please try again.';
 
-      if (response?.status === 400 && message === 'This due has already been paid') {
+      if (
+        response?.status === 403 &&
+        message === 'This due is not available for your academic level'
+      ) {
+        setSelectedDue(null);
+        setStatusBanner(message);
+        await Promise.all([refetch(), fetchCurrentUser()]);
+      } else if (response?.status === 400 && message === 'This due has already been paid') {
         setSelectedDue(null);
         setStatusBanner('This due has already been paid. Your records have been refreshed.');
         await Promise.all([refetch(), refetchPaymentHistory()]);
@@ -280,7 +293,9 @@ export function PaymentsPage() {
       {/* Dues List */}
       {filtered.length === 0 ? (
         <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-lg p-8 text-center text-xs text-slate-500 dark:text-slate-400">
-          No dues found matching your selection.
+          {currentAcademicLevelId
+            ? "No dues available for your level."
+            : "Complete your academic profile to see dues available for your level."}
         </div>
       ) : (
         <div className="space-y-3">
@@ -340,6 +355,8 @@ export function PaymentsPage() {
           })}
         </div>
       )}
+
+      <GuestClaimCard />
 
       {/* Pay Confirmation Modal */}
       {selectedDue && (

@@ -25,15 +25,17 @@ export function MainDashboardView() {
 
   const studentName = useMemo(() => {
     const user = data?.user;
-    if (!user) return 'Stephen';
+    if (!user) return 'there';
     const firstName = user.profile?.firstName;
-    return firstName || user.username || user.email?.split('@')[0] || 'Stephen';
+    return firstName || user.username || user.email?.split('@')[0] || 'there';
   }, [data?.user]);
 
   const academicInfo = useMemo(() => {
     const student = data?.user?.studentProfile;
-    const level = student?.currentAcademicLevel?.name || '300 Level';
-    return `Computer Science • ${level} • 2026/2027 Session`;
+    const details = [
+      student?.currentAcademicLevel?.name,
+    ].filter(Boolean);
+    return details.length ? details.join(' • ') : 'Complete your academic profile';
   }, [data?.user]);
 
   const dues = useMemo(() => data?.dues || [], [data?.dues]);
