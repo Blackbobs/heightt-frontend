@@ -169,6 +169,13 @@ export function VerificationSentCard({
           <ArrowRight className="w-4 h-4" />
         </button>
 
+        <Link
+          href="/signin"
+          className="w-full rounded-xl border border-[#d6e2f0] bg-[#f0f4fc] px-5 py-3.5 text-center text-[0.95rem] font-semibold text-[#2563EB] transition-all duration-200 hover:bg-[#e2eaf6]"
+        >
+          Go to sign in
+        </Link>
+
         {/* <button
           onClick={handleContinueToVerification}
           className="w-full rounded-xl px-5 py-3.5 bg-[#f0f4fc] text-[#2563EB] font-semibold text-[0.95rem] flex items-center justify-center gap-2 transition-all duration-200 hover:bg-[#e2eaf6] active:scale-[0.98] border border-[#d6e2f0]"

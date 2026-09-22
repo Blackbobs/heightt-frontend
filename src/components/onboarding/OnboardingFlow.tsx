@@ -254,7 +254,7 @@ export function OnboardingFlow() {
   const progressPercent = (currentStep / (STEP_LABELS.length - 1)) * 100;
 
   return (
-    <div className="onboarding-flow min-h-[100dvh] w-full overflow-hidden bg-white sm:min-h-0 sm:max-w-[640px] sm:rounded-3xl sm:border sm:border-slate-200/80 sm:shadow-[0_24px_70px_rgba(15,42,100,0.10)]">
+    <div className="onboarding-flow min-h-[100dvh] w-full overflow-visible bg-white sm:min-h-0 sm:max-w-[640px] sm:rounded-3xl sm:border sm:border-slate-200/80 sm:shadow-[0_24px_70px_rgba(15,42,100,0.10)]">
       <div className="px-5 pb-2 pt-5 sm:px-8 sm:pt-7">
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
           <div

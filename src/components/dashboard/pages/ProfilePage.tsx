@@ -2,8 +2,8 @@
 
 import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { AlertCircle, CheckCircle2, GraduationCap, Mail, School, User as UserIcon } from 'lucide-react';
-import { institutionsApi, type AcademicLevel, type Department, type Faculty, type Institution } from '@/lib/api/institutions';
+import { AlertCircle, CheckCircle2, GraduationCap, Mail, RefreshCw, School, User as UserIcon } from 'lucide-react';
+import { institutionsApi, type Department, type Faculty, type Institution } from '@/lib/api/institutions';
 import { queryKeys } from '@/lib/api/keys';
 import { useCurrentUser } from '@/hooks/queries/useUser';
 import { HeighttLoader } from '@/components/ui/HeighttLoader';
@@ -59,20 +59,6 @@ export function ProfilePage() {
   const faculty = normaliseList<Faculty>(facultiesResponse).find((item) => item.id === facultyId);
   const department = normaliseList<Department>(departmentsResponse).find((item) => item.id === student?.departmentId);
 
-  const { data: academicLevelsResponse } = useQuery({
-    queryKey: ['institutions', 'departments', student?.departmentId, 'academic-levels'],
-    queryFn: async () => {
-      if (department?.academicLevels?.length) return department.academicLevels;
-      return institutionsApi.getAcademicLevelsByDepartment(student?.departmentId || '');
-    },
-    enabled: Boolean(student?.departmentId),
-    staleTime: 10 * 60 * 1000,
-  });
-  const academicLevels = normaliseList<AcademicLevel>(academicLevelsResponse);
-  const academicLevel = student?.currentAcademicLevel?.name || academicLevels.find(
-    (level) => level.id === student?.currentAcademicLevelId,
-  )?.name;
-
   const fullName = useMemo(() => {
     if (!user) return '';
     return [user.profile?.firstName, user.profile?.middleName, user.profile?.lastName].filter(Boolean).join(' ') || user.username;
@@ -83,6 +69,9 @@ export function ProfilePage() {
     const last = user?.profile?.lastName?.[0] || '';
     return `${first}${last}`.toUpperCase() || 'U';
   }, [user]);
+
+  const academicLevelValue = student?.currentAcademicLevelId;
+  const academicLevel = student?.currentAcademicLevel?.name || academicLevelValue;
 
   const isVerified = user?.emailVerified || user?.profile?.verificationStatus === 'VERIFIED';
 

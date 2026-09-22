@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
+import React, { useState, useMemo, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   CreditCard,
   AlertCircle,
@@ -14,31 +14,31 @@ import {
   ShieldCheck,
   ArrowRight,
   FileText,
-} from 'lucide-react';
-import { cn, koboToNaira } from '@/lib/utils';
-import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+} from "lucide-react";
+import { cn, koboToNaira } from "@/lib/utils";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import {
   useMyDues,
   useMakePayment,
   usePaymentHistory,
-} from '@/hooks/queries/usePayments';
+} from "@/hooks/queries/usePayments";
 import {
   DueAssignment,
   PaymentHistoryRecord,
   groupStudentDues,
   normalisePaymentConflict,
-} from '@/lib/api/finance';
-import { HeighttLoader } from '@/components/ui/HeighttLoader';
-import { GuestClaimCard } from '@/components/payments/guest/GuestClaimCard';
-import { useAuthStore } from '@/store/auth-store';
-import { toast } from 'sonner';
+} from "@/lib/api/finance";
+import { HeighttLoader } from "@/components/ui/HeighttLoader";
+import { GuestClaimCard } from "@/components/payments/guest/GuestClaimCard";
+import { useAuthStore } from "@/store/auth-store";
+import { toast } from "sonner";
 
-type Tab = 'all' | 'unpaid' | 'paid';
+type Tab = "all" | "unpaid" | "paid";
 
 function formatNaira(amount: number) {
-  return new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
     minimumFractionDigits: 2,
   }).format(amount);
 }
@@ -49,16 +49,16 @@ export function PaymentsPage() {
   const currentAcademicLevelId = useAuthStore(
     (state) => state.user?.studentProfile?.currentAcademicLevelId,
   );
-  const highlightDueId = searchParams.get('dueId');
-  const paymentStatus = searchParams.get('status');
+  const highlightDueId = searchParams.get("dueId");
+  const paymentStatus = searchParams.get("status");
 
   const { data: dues, isLoading, isError, error, refetch } = useMyDues();
   const makePayment = useMakePayment();
   const { data: paymentHistory, refetch: refetchPaymentHistory } =
     usePaymentHistory({ page: 1, limit: 20 });
 
-  const [tab, setTab] = useState<Tab>('all');
-  const [search, setSearch] = useState('');
+  const [tab, setTab] = useState<Tab>("all");
+  const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, 300);
   const [payingId, setPayingId] = useState<string | null>(null);
   const [selectedDue, setSelectedDue] = useState<DueAssignment | null>(null);
@@ -66,19 +66,19 @@ export function PaymentsPage() {
   const paymentInitiationLock = useRef(false);
 
   useEffect(() => {
-    if (paymentStatus === 'success') {
+    if (paymentStatus === "success") {
       setStatusBanner(
-        'Payment initiated successfully. Your official receipt will appear shortly.'
+        "Payment initiated successfully. Your official receipt will appear shortly.",
       );
-    } else if (paymentStatus === 'cancelled') {
-      setStatusBanner('Payment was cancelled.');
+    } else if (paymentStatus === "cancelled") {
+      setStatusBanner("Payment was cancelled.");
     }
   }, [paymentStatus]);
 
   useEffect(() => {
     if (highlightDueId && dues?.length) {
       const due = dues.find(
-        (d) => d.id === highlightDueId || d.dueId === highlightDueId
+        (d) => d.id === highlightDueId || d.dueId === highlightDueId,
       );
       if (due && !due.isPaid && due.canPay) setSelectedDue(due);
     }
@@ -88,9 +88,9 @@ export function PaymentsPage() {
     if (!dues) return [];
     return dues.filter((d) => {
       const tabMatch =
-        tab === 'all' ||
-        (tab === 'unpaid' && !d.isPaid) ||
-        (tab === 'paid' && d.isPaid);
+        tab === "all" ||
+        (tab === "unpaid" && !d.isPaid) ||
+        (tab === "paid" && d.isPaid);
       const q = debouncedSearch.toLowerCase();
       const searchMatch =
         !q ||
@@ -124,7 +124,7 @@ export function PaymentsPage() {
     }
 
     if (!due.due?.organizationId) {
-      toast.error('Organization information is missing for this due.');
+      toast.error("Organization information is missing for this due.");
       return;
     }
 
@@ -134,9 +134,9 @@ export function PaymentsPage() {
 
     try {
       const origin =
-        typeof window !== 'undefined'
+        typeof window !== "undefined"
           ? window.location.origin
-          : 'https://www.heightt.app';
+          : "https://www.heightt.app";
 
       const paymentInput = due.isAutoAssigned
         ? { dueId: due.dueId }
@@ -144,9 +144,9 @@ export function PaymentsPage() {
       const payload = {
         amount: due.amount,
         organizationId: due.due.organization.id,
-        paymentMethod: 'CARD' as const,
+        paymentMethod: "CARD" as const,
         ...paymentInput,
-        description: `Payment for ${due.due?.name || 'Student Due'}`,
+        description: `Payment for ${due.due?.name || "Student Due"}`,
         successUrl: `${origin}/payment/callback`,
         cancelUrl: `${origin}/payment/cancelled`,
       };
@@ -155,50 +155,68 @@ export function PaymentsPage() {
       const { checkoutUrl, pendingPaymentId } = response.data;
 
       sessionStorage.setItem(
-        'heightt.pendingPayment',
-        JSON.stringify({ pendingPaymentId, dueId: dueIdParam, dueAssignmentId: due.id, startedAt: Date.now() })
+        "heightt.pendingPayment",
+        JSON.stringify({
+          pendingPaymentId,
+          dueId: dueIdParam,
+          dueAssignmentId: due.id,
+          startedAt: Date.now(),
+        }),
       );
-      sessionStorage.setItem(
-        `heightt:due-payment:${due.id}`,
-        pendingPaymentId
-      );
+      sessionStorage.setItem(`heightt:due-payment:${due.id}`, pendingPaymentId);
       window.location.assign(checkoutUrl);
     } catch (err: unknown) {
-      const response = (err as {
-        response?: { status?: number; data?: Record<string, unknown> };
-      })?.response;
+      const response = (
+        err as {
+          response?: { status?: number; data?: Record<string, unknown> };
+        }
+      )?.response;
       const responseData = response?.data;
       const message =
-        (typeof responseData?.message === 'string' && responseData.message) ||
-        'Failed to initiate payment. Please try again.';
+        (typeof responseData?.message === "string" && responseData.message) ||
+        "Failed to initiate payment. Please try again.";
 
       if (
         response?.status === 403 &&
-        message === 'This due is not available for your academic level'
+        message === "This due is not available for your academic level"
       ) {
         setSelectedDue(null);
         setStatusBanner(message);
         await Promise.all([refetch(), fetchCurrentUser()]);
-      } else if (response?.status === 400 && message === 'This due has already been paid') {
+      } else if (
+        response?.status === 400 &&
+        message === "This due has already been paid"
+      ) {
         setSelectedDue(null);
-        setStatusBanner('This due has already been paid. Your records have been refreshed.');
+        setStatusBanner(
+          "This due has already been paid. Your records have been refreshed.",
+        );
         await Promise.all([refetch(), refetchPaymentHistory()]);
       } else {
         const conflict = normalisePaymentConflict(err);
         if (conflict?.pendingPaymentId) {
           sessionStorage.setItem(
-            'heightt.pendingPayment',
-            JSON.stringify({ pendingPaymentId: conflict.pendingPaymentId, dueId: dueIdParam, dueAssignmentId: due.id, startedAt: Date.now() })
+            "heightt.pendingPayment",
+            JSON.stringify({
+              pendingPaymentId: conflict.pendingPaymentId,
+              dueId: dueIdParam,
+              dueAssignmentId: due.id,
+              startedAt: Date.now(),
+            }),
           );
-          window.location.assign(`/payment/callback?payment=${encodeURIComponent(conflict.pendingPaymentId)}`);
+          window.location.assign(
+            `/payment/callback?payment=${encodeURIComponent(conflict.pendingPaymentId)}`,
+          );
           return;
         }
         if (conflict) {
           setSelectedDue(null);
-          setStatusBanner('The previous payment attempt has been refreshed. You can try again.');
+          setStatusBanner(
+            "The previous payment attempt has been refreshed. You can try again.",
+          );
           await refetch();
         } else {
-          toast.error('Payment failed. Please try again.');
+          toast.error("Payment failed. Please try again.");
         }
       }
     } finally {
@@ -237,7 +255,11 @@ export function PaymentsPage() {
       {statusBanner && (
         <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 text-emerald-800 dark:text-emerald-300 text-xs font-medium flex items-center justify-between">
           <span>{statusBanner}</span>
-          <button type="button" onClick={() => setStatusBanner(null)} className="text-emerald-600">
+          <button
+            type="button"
+            onClick={() => setStatusBanner(null)}
+            className="text-emerald-600"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -246,7 +268,9 @@ export function PaymentsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-[#0B1020] dark:text-white">Your Dues</h1>
+          <h1 className="text-xl font-bold text-[#0B1020] dark:text-white">
+            Your Dues
+          </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Manage assigned departmental, faculty, and level dues
           </p>
@@ -256,9 +280,9 @@ export function PaymentsPage() {
         <div className="flex items-center gap-1 bg-[#F8FAFC] dark:bg-[#131B2E] p-1 border border-slate-200 dark:border-slate-800 rounded-lg">
           {(
             [
-              { key: 'all', label: 'All Dues' },
-              { key: 'unpaid', label: 'Unpaid' },
-              { key: 'paid', label: 'Paid' },
+              { key: "all", label: "All Dues" },
+              { key: "unpaid", label: "Unpaid" },
+              { key: "paid", label: "Paid" },
             ] as const
           ).map(({ key, label }) => (
             <button
@@ -266,10 +290,10 @@ export function PaymentsPage() {
               type="button"
               onClick={() => setTab(key)}
               className={cn(
-                'text-xs font-semibold px-3 py-1.5 rounded transition-colors',
+                "text-xs font-semibold px-3 py-1.5 rounded transition-colors",
                 tab === key
-                  ? 'bg-[#2563EB] text-white'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-[#0B1020] dark:hover:text-white'
+                  ? "bg-[#2563EB] text-white"
+                  : "text-slate-600 dark:text-slate-400 hover:text-[#0B1020] dark:hover:text-white",
               )}
             >
               {label}
@@ -342,7 +366,7 @@ export function PaymentsPage() {
                       disabled={isPaying}
                       className="px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-semibold rounded transition-colors"
                     >
-                      {isPaying ? 'Processing...' : 'Pay now'}
+                      {isPaying ? "Processing..." : "Pay now"}
                     </button>
                   ) : (
                     <span className="text-xs text-slate-400 font-semibold">
@@ -356,7 +380,8 @@ export function PaymentsPage() {
         </div>
       )}
 
-      <GuestClaimCard />
+      {/* Guest claim flow temporarily hidden for now. */}
+      {/* <GuestClaimCard /> */}
 
       {/* Pay Confirmation Modal */}
       {selectedDue && (
