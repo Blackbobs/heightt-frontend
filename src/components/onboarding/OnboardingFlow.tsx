@@ -127,6 +127,7 @@ export function OnboardingFlow() {
   const [lastName, setLastName] = useState("");
   const [matricNumber, setMatricNumber] = useState("");
   const [isFresher, setIsFresher] = useState<"true" | "false" | "">("");
+  const [isDirectEntry, setIsDirectEntry] = useState(false);
   const [selectedInstitutionId, setSelectedInstitutionId] = useState("");
   const [selectedFacultyId, setSelectedFacultyId] = useState("");
   const [selectedDepartmentId, setSelectedDepartmentId] = useState("");
@@ -162,6 +163,7 @@ export function OnboardingFlow() {
         levelId: selectedAcademicLevelId,
         matricNumber: matricNumber.trim(),
         isFresher: isFresher === "true",
+        isDirectEntry,
       });
     },
     onSuccess: () => {
@@ -434,9 +436,18 @@ export function OnboardingFlow() {
               Academic Level <span className="text-red-500">*</span>
               <select
                 value={selectedAcademicLevelId}
-                onChange={(event) =>
-                  setSelectedAcademicLevelId(event.target.value)
-                }
+                onChange={(event) => {
+                  const levelId = event.target.value;
+                  const level = levels.find((item) => item.id === levelId);
+                  const levelNumber =
+                    level?.numericLevel ??
+                    Number.parseInt(level?.name ?? "", 10);
+
+                  setSelectedAcademicLevelId(levelId);
+                  if (!Number.isFinite(levelNumber) || levelNumber < 200) {
+                    setIsDirectEntry(false);
+                  }
+                }}
                 disabled={!selectedDepartmentId || levelsQuery.isLoading}
                 className="mt-1.5 w-full rounded-xl border-[1.5px] border-slate-200 bg-[#F8FAFC] px-4 py-3 text-sm font-medium outline-none focus:border-[#2563EB]"
               >
@@ -497,6 +508,24 @@ export function OnboardingFlow() {
                 ))}
               </div>
             </fieldset>
+            {numericLevel >= 200 && (
+              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-[#F8FAFC] p-3">
+                <input
+                  type="checkbox"
+                  checked={isDirectEntry}
+                  onChange={(event) => setIsDirectEntry(event.target.checked)}
+                  className="mt-0.5 size-4 accent-[#2563EB]"
+                />
+                <span>
+                  <span className="block text-sm font-semibold text-[#0B1020]">
+                    I am a direct entry student
+                  </span>
+                  <span className="mt-0.5 block text-xs text-slate-500">
+                    Select this if you joined at 200 Level or above.
+                  </span>
+                </span>
+              </label>
+            )}
             {error && <p className="text-xs text-red-600">{error}</p>}
             <Navigation
               onBack={() => goToStep(2)}

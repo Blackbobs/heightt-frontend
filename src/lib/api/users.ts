@@ -23,6 +23,7 @@ export interface StudentProfile {
   currentAcademicLevelId?: string;
   currentAcademicLevel?: { id: string; name: string } | null;
   matricNumber?: string;
+  isDirectEntry: boolean;
   academicStatus: string;
   onboardingCompleted: boolean;
   verificationStatus: string;

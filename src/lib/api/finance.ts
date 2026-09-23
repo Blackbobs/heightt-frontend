@@ -19,6 +19,7 @@ export interface DueItem {
   lateFee?: number;
   isRequired?: boolean;
   isFresher: boolean;
+  isDirectEntryEligible: boolean;
   createdAt: string;
   updatedAt: string;
 }
