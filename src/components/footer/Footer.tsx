@@ -34,14 +34,14 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Company & Support */}
+          {/* Contact */}
           <div className="space-y-3 text-left">
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider">Company & Support</h4>
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider">Contact</h4>
             <ul className="space-y-2 text-xs text-slate-400 list-none p-0">
-              <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Help Centre</a></li>
+              <li><a href="mailto:heightt.finance@gmail.com" className="hover:text-white transition-colors">heightt.finance@gmail.com</a></li>
+              <li><a href="https://x.com/heightt_finance" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Follow Heightt on X</a></li>
               <li><a href="#faq" className="hover:text-white transition-colors">FAQ</a></li>
+              <li><Link href="/organizations/create" className="hover:text-white transition-colors">Create an organization</Link></li>
             </ul>
           </div>
 

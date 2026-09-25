@@ -2,7 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ArrowRight, Plus } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import { CreateOrganizationSection } from '@/components/organizations/CreateOrganizationSection';
 
 export function AudienceSection() {
   return (
@@ -133,119 +134,7 @@ export function AudienceSection() {
         </div>
       </section>
 
-      {/* ── 11. FOR EXECUTIVES SECTION (Dark Navy Background, No Gradient) ── */}
-      <section id="for-executives" className="relative overflow-hidden border-b border-slate-800 bg-[#0B1020] py-16 text-white sm:py-24">
-        <div className="hero-grid pointer-events-none absolute inset-0 opacity-10" aria-hidden="true" />
-        <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-          
-          <div className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-400 lg:text-left">
-            FOR EXECUTIVES & ORGANISATIONS
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            
-            {/* Left Column: Capabilities */}
-            <div className="space-y-6 text-center lg:col-span-5 lg:text-left">
-              <h2 className="text-balance text-3xl font-semibold leading-tight tracking-[-0.045em] text-white sm:text-4xl lg:text-5xl">
-                Less chasing payments. <br />
-                <span className="text-[#2563EB]">More visibility.</span>
-              </h2>
-
-              <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-                Heightt gives departmental associations, faculties, and clubs complete control over their dues collection.
-              </p>
-
-              <div className="grid grid-cols-2 gap-2 pt-2 text-left">
-                {[
-                  'Create dues',
-                  'Assign dues to levels',
-                  'Track live collections',
-                  'Monitor outstanding payments',
-                  'Generate audit reports',
-                  'Verify student transactions',
-                  'Export CSV records',
-                ].map((cap) => (
-                  <div key={cap} className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/60 p-2.5 text-[11px] font-medium text-slate-300 sm:text-xs">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB]" />
-                    <span>{cap}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="pt-2">
-                <Link
-                  href="/signup"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-6 py-3.5 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#1D4ED8] sm:w-auto"
-                >
-                  <span>Onboard Executive Account</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </div>
-
-            {/* Right Column: Restrained Admin Preview Mockup */}
-            <div className="lg:col-span-7">
-              <div className="rounded-3xl border border-slate-800 bg-[#131B2E] p-4 text-slate-100 shadow-2xl shadow-black/20 sm:p-6">
-                
-                {/* Admin Header */}
-                <div className="mb-4 flex flex-col gap-3 border-b border-slate-800 pb-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <div className="text-xs font-bold text-slate-400">NACOS EXCO DASHBOARD</div>
-                    <div className="text-base font-bold text-white">Computer Science Department</div>
-                  </div>
-                  <div className="flex gap-2 self-start sm:self-auto">
-                    <button type="button" className="px-3 py-1.5 bg-[#2563EB] text-white text-xs font-semibold rounded flex items-center gap-1">
-                      <Plus className="w-3.5 h-3.5" /> Create Due
-                    </button>
-                  </div>
-                </div>
-
-                {/* Collections summary */}
-                <div className="mb-4 grid grid-cols-1 gap-2 min-[430px]:grid-cols-3 sm:gap-3">
-                  <div className="bg-[#0B1020] border border-slate-800 p-3 rounded-lg">
-                    <span className="text-[10px] font-semibold text-slate-400 block uppercase">Total Collected</span>
-                    <span className="block break-words font-mono text-base font-bold text-white sm:text-lg">₦2,450,000</span>
-                  </div>
-                  <div className="bg-[#0B1020] border border-slate-800 p-3 rounded-lg">
-                    <span className="text-[10px] font-semibold text-slate-400 block uppercase">Cleared Students</span>
-                    <span className="block font-mono text-base font-bold text-emerald-400 sm:text-lg">490 / 600</span>
-                  </div>
-                  <div className="bg-[#0B1020] border border-slate-800 p-3 rounded-lg">
-                    <span className="text-[10px] font-semibold text-slate-400 block uppercase">Outstanding</span>
-                    <span className="block font-mono text-base font-bold text-amber-400 sm:text-lg">₦550,000</span>
-                  </div>
-                </div>
-
-                {/* Table preview */}
-                <div className="border border-slate-800 rounded-lg overflow-hidden text-xs">
-                  <div className="bg-[#0B1020] px-4 py-2.5 font-semibold text-slate-400 flex justify-between border-b border-slate-800">
-                    <span>Recent Collections</span>
-                    <span>Status</span>
-                  </div>
-                  <div className="divide-y divide-slate-800/60 bg-[#131B2E]">
-                    <div className="flex flex-col gap-1 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
-                      <div>
-                        <span className="font-semibold text-white">Ayomide Bello</span>
-                        <span className="text-slate-400 text-[11px] block">CSC/2021/049 • Departmental Due</span>
-                      </div>
-                      <span className="font-mono text-[11px] font-semibold text-emerald-400 sm:text-xs">₦5,000 (Verified)</span>
-                    </div>
-                    <div className="flex flex-col gap-1 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
-                      <div>
-                        <span className="font-semibold text-white">Chidi Nnamdi</span>
-                        <span className="text-slate-400 text-[11px] block">CSC/2022/102 • Departmental Due</span>
-                      </div>
-                      <span className="font-mono text-[11px] font-semibold text-emerald-400 sm:text-xs">₦5,000 (Verified)</span>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
+      <CreateOrganizationSection />
 
     </div>
   );

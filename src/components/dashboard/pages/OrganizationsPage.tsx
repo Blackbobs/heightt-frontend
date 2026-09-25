@@ -3,6 +3,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import Link from "next/link";
 import {
   Building2,
   Search,
@@ -231,21 +232,27 @@ export function OrganizationsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1.5">
-        {(["browse", "joined"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={cn(
-              "text-[0.72rem] font-semibold px-4 py-2 rounded-full border-none cursor-pointer transition-all capitalize",
-              tab === t
-                ? "bg-[#2563EB] text-white"
-                : "border border-slate-200 bg-white text-slate-600 hover:border-[#2563EB] hover:text-[#2563EB] dark:border-slate-800 dark:bg-[#131B2E] dark:text-slate-300",
-            )}
-          >
-            {t === "browse" ? "Browse" : "My Organizations"}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex gap-1.5">
+          {(["browse", "joined"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={cn(
+                "text-[0.72rem] font-semibold px-4 py-2 rounded-full border-none cursor-pointer transition-all capitalize",
+                tab === t
+                  ? "bg-[#2563EB] text-white"
+                  : "border border-slate-200 bg-white text-slate-600 hover:border-[#2563EB] hover:text-[#2563EB] dark:border-slate-800 dark:bg-[#131B2E] dark:text-slate-300",
+              )}
+            >
+              {t === "browse" ? "Browse" : "My Organizations"}
+            </button>
+          ))}
+        </div>
+        <Link href="/organizations/create" className="inline-flex items-center gap-1.5 rounded-lg bg-[#2563EB] px-3.5 py-2 text-[0.72rem] font-semibold text-white hover:bg-[#1D4ED8]">
+          <Plus className="size-3.5" aria-hidden="true" />
+          Create organization
+        </Link>
       </div>
 
       {/* Organization list */}

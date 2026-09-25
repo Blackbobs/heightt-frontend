@@ -12,7 +12,7 @@ export interface NavItem {
 
 export const navItems: NavItem[] = [
   { label: 'For Students', href: '#for-students' },
-  { label: 'For Executives', href: '#for-executives' },
+  { label: 'Create Organization', href: '#for-executives' },
   { label: 'How It Works', href: '#how-it-works' },
   { label: 'Why Heightt', href: '#why-heightt' },
   { label: 'FAQ', href: '#faq' },

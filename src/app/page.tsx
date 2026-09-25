@@ -97,7 +97,7 @@ export default function Home() {
       {/* 3. THE PROBLEM */}
       <ProblemSection />
 
-      {/* 4. FOR STUDENTS & FOR EXECUTIVES */}
+      {/* 4. FOR STUDENTS & CREATE AN ORGANIZATION */}
       <AudienceSection />
 
       {/* 5. HOW IT WORKS */}
