@@ -77,8 +77,30 @@ export function SigninCard({ borderless = false, className }: SigninCardProps) {
           router.replace("/dashboard");
         }
       }, 800);
-    } catch {
-      setError('Invalid credentials. Please try again.');
+    } catch (requestError: unknown) {
+      const message =
+        requestError &&
+        typeof requestError === "object" &&
+        "message" in requestError &&
+        typeof requestError.message === "string"
+          ? requestError.message
+          : "Invalid credentials. Please try again.";
+
+      const verificationEmail =
+        requestError &&
+        typeof requestError === "object" &&
+        "email" in requestError &&
+        typeof requestError.email === "string"
+          ? requestError.email
+          : data.identifier;
+
+      if (message === "Email verification required") {
+        router.replace(
+          `/verify-email-sent?email=${encodeURIComponent(verificationEmail)}`,
+        );
+        return;
+      }
+      setError(message);
       setIsSubmitted(false);
     }
   };

@@ -35,6 +35,30 @@ import { toast } from "sonner";
 
 type Tab = "all" | "unpaid" | "paid";
 
+function storePendingPayment(
+  pendingPaymentId: string,
+  dueId: string,
+  dueAssignmentId: string,
+) {
+  try {
+    sessionStorage.setItem(
+      "heightt.pendingPayment",
+      JSON.stringify({
+        pendingPaymentId,
+        dueId,
+        dueAssignmentId,
+        startedAt: Date.now(),
+      }),
+    );
+    sessionStorage.setItem(
+      `heightt:due-payment:${dueAssignmentId}`,
+      pendingPaymentId,
+    );
+  } catch (error) {
+    console.warn("Unable to store payment recovery details:", error);
+  }
+}
+
 function formatNaira(amount: number) {
   return new Intl.NumberFormat("en-NG", {
     style: "currency",
@@ -154,16 +178,7 @@ export function PaymentsPage() {
       const response = await makePayment.mutateAsync(payload);
       const { checkoutUrl, pendingPaymentId } = response.data;
 
-      sessionStorage.setItem(
-        "heightt.pendingPayment",
-        JSON.stringify({
-          pendingPaymentId,
-          dueId: dueIdParam,
-          dueAssignmentId: due.id,
-          startedAt: Date.now(),
-        }),
-      );
-      sessionStorage.setItem(`heightt:due-payment:${due.id}`, pendingPaymentId);
+      storePendingPayment(pendingPaymentId, dueIdParam, due.id);
       window.location.assign(checkoutUrl);
     } catch (err: unknown) {
       const response = (
@@ -195,15 +210,7 @@ export function PaymentsPage() {
       } else {
         const conflict = normalisePaymentConflict(err);
         if (conflict?.pendingPaymentId) {
-          sessionStorage.setItem(
-            "heightt.pendingPayment",
-            JSON.stringify({
-              pendingPaymentId: conflict.pendingPaymentId,
-              dueId: dueIdParam,
-              dueAssignmentId: due.id,
-              startedAt: Date.now(),
-            }),
-          );
+          storePendingPayment(conflict.pendingPaymentId, dueIdParam, due.id);
           window.location.assign(
             `/payment/callback?payment=${encodeURIComponent(conflict.pendingPaymentId)}`,
           );
@@ -216,7 +223,7 @@ export function PaymentsPage() {
           );
           await refetch();
         } else {
-          toast.error("Payment failed. Please try again.");
+          toast.error(message);
         }
       }
     } finally {
