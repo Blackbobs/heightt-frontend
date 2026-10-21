@@ -129,9 +129,24 @@ export interface PaymentRequest {
   paymentMethod: "CARD" | "BANK_TRANSFER" | "USSD" | "QR_CODE";
   dueAssignmentId?: string;
   dueId?: string;
+  paymentOfferingId?: string;
   description?: string;
   successUrl: string;
   cancelUrl: string;
+}
+
+export interface StudentPaymentOffering {
+  id: string;
+  organizationId: string;
+  sessionId?: string | null;
+  name: string;
+  description?: string | null;
+  amount: number;
+  status: "ACTIVE" | "INACTIVE" | "COMPLETED" | "CANCELLED";
+  isPaid: boolean;
+  isPending: boolean;
+  organization: { id: string; name: string; slug: string };
+  session?: { id: string; name: string } | null;
 }
 
 export interface InitiatePaymentResponse {
@@ -252,6 +267,13 @@ export const financeApi = {
   // Get dues for the authenticated user - updated to use the correct endpoint
   getMyDues: async (): Promise<StudentDueItem[]> => {
     const response = await axiosConfig.get("/finance/dues/student");
+    return response.data || [];
+  },
+
+  getMyPaymentOfferings: async (): Promise<StudentPaymentOffering[]> => {
+    const response = await axiosConfig.get(
+      "/finance/payment-offerings/student",
+    );
     return response.data || [];
   },
 

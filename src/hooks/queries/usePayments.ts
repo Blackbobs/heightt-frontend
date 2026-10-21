@@ -6,6 +6,7 @@ import {
   DueItem,
   PaymentHistoryParams,
   PaymentRequest,
+  StudentPaymentOffering,
 } from "@/lib/api/finance";
 import { queryKeys } from "@/lib/api/keys";
 import { useAuthStore } from "@/store/auth-store";
@@ -19,6 +20,17 @@ export function useMyDues() {
     enabled: isAuthenticated && !!user?.id,
     staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
+  });
+}
+
+export function useMyPaymentOfferings() {
+  const { isAuthenticated, user } = useAuthStore();
+  return useQuery({
+    queryKey: ["finance", "payment-offerings", user?.id],
+    queryFn: () => financeApi.getMyPaymentOfferings(),
+    enabled: isAuthenticated && !!user?.id,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -69,3 +81,4 @@ export function useMakePayment() {
 }
 
 export type { DueItem };
+export type { StudentPaymentOffering };

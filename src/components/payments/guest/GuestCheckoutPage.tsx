@@ -103,6 +103,7 @@ export function GuestCheckoutPage() {
   const [phone, setPhone] = useState("");
   const [matricNumber, setMatricNumber] = useState("");
   const [academicLevelId, setAcademicLevelId] = useState("");
+  const [isDirectEntry, setIsDirectEntry] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const institutionsQuery = useQuery({
@@ -148,6 +149,9 @@ export function GuestCheckoutPage() {
     retry: 1,
   });
   const academicLevels = academicLevelsQuery.data ?? [];
+  const selectedAcademicLevel = academicLevels.find(
+    (level) => level.id === academicLevelId,
+  );
 
   const duesQuery = useQuery({
     queryKey: [
@@ -158,6 +162,7 @@ export function GuestCheckoutPage() {
       selectedFacultyId,
       selectedDepartmentId,
       academicLevelId,
+      isDirectEntry,
     ],
     queryFn: () =>
       getGuestDues({
@@ -165,6 +170,7 @@ export function GuestCheckoutPage() {
         facultyId: selectedFacultyId || undefined,
         departmentId: selectedDepartmentId || undefined,
         academicLevelId,
+        isDirectEntry,
       }),
     enabled: !!selectedInstitutionId && !!academicLevelId,
     staleTime: 2 * 60 * 1000,
@@ -321,6 +327,7 @@ export function GuestCheckoutPage() {
         facultyId: selectedFacultyId || undefined,
         departmentId: selectedDepartmentId || undefined,
         academicLevelId,
+        isDirectEntry,
         dueId: selectedDue.id,
         paymentMethod: "CARD",
         successUrl: `${origin}/payments/guest/callback`,
@@ -566,6 +573,7 @@ export function GuestCheckoutPage() {
                 }
                 onChange={(event) => {
                   setAcademicLevelId(event.target.value);
+                  setIsDirectEntry(false);
                   setSelectedDueId("");
                   setError("");
                   setFieldErrors({ ...fieldErrors, academicLevelId: "" });
@@ -612,6 +620,30 @@ export function GuestCheckoutPage() {
               )}
             </div>
 
+            {selectedAcademicLevel?.numericLevel != null &&
+              selectedAcademicLevel.numericLevel >= 200 && (
+              <label className="mb-5 flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/60">
+                <input
+                  type="checkbox"
+                  checked={isDirectEntry}
+                  onChange={(event) => {
+                    setIsDirectEntry(event.target.checked);
+                    setSelectedDueId("");
+                  }}
+                  className="mt-0.5 h-4 w-4 accent-[#2563EB]"
+                />
+                <span>
+                  <span className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    I am a direct-entry student
+                  </span>
+                  <span className="mt-1 block text-xs leading-5 text-slate-500 dark:text-slate-400">
+                    This shows 100 level dues that the organization opened to
+                    direct-entry students, plus your current-level dues.
+                  </span>
+                </span>
+              </label>
+            )}
+
             {!academicLevelId ? (
               <StepEmpty message="Select your academic level to see the dues available to you." />
             ) : duesQuery.isLoading ? (
@@ -637,7 +669,9 @@ export function GuestCheckoutPage() {
                         due.organization?.name,
                         due.session?.name || due.sessionName,
                         due.isFresher
-                          ? "100 level students"
+                          ? due.isDirectEntryEligible
+                            ? "100 level and eligible direct-entry students"
+                            : "100 level students"
                           : "200 level and above",
                         formatNaira(due.amount),
                       ]

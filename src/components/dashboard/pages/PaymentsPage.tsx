@@ -19,6 +19,7 @@ import { cn, koboToNaira } from "@/lib/utils";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import {
   useMyDues,
+  useMyPaymentOfferings,
   useMakePayment,
   usePaymentHistory,
 } from "@/hooks/queries/usePayments";
@@ -77,6 +78,11 @@ export function PaymentsPage() {
   const paymentStatus = searchParams.get("status");
 
   const { data: dues, isLoading, isError, error, refetch } = useMyDues();
+  const {
+    data: paymentOfferings,
+    isError: paymentOfferingsError,
+    refetch: refetchPaymentOfferings,
+  } = useMyPaymentOfferings();
   const makePayment = useMakePayment();
   const { data: paymentHistory, refetch: refetchPaymentHistory } =
     usePaymentHistory({ page: 1, limit: 20 });
@@ -85,6 +91,7 @@ export function PaymentsPage() {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, 300);
   const [payingId, setPayingId] = useState<string | null>(null);
+  const [payingOfferingId, setPayingOfferingId] = useState<string | null>(null);
   const [selectedDue, setSelectedDue] = useState<DueAssignment | null>(null);
   const [statusBanner, setStatusBanner] = useState<string | null>(null);
   const paymentInitiationLock = useRef(false);
@@ -232,6 +239,52 @@ export function PaymentsPage() {
     }
   };
 
+  const handlePayOffering = async (
+    offering: NonNullable<typeof paymentOfferings>[number],
+  ) => {
+    if (
+      offering.isPaid ||
+      paymentInitiationLock.current ||
+      payingId ||
+      payingOfferingId
+    ) {
+      return;
+    }
+
+    paymentInitiationLock.current = true;
+    setPayingOfferingId(offering.id);
+    try {
+      const origin =
+        typeof window !== "undefined"
+          ? window.location.origin
+          : "https://www.heightt.app";
+      const response = await makePayment.mutateAsync({
+        amount: offering.amount,
+        organizationId: offering.organizationId,
+        paymentMethod: "CARD",
+        paymentOfferingId: offering.id,
+        description: offering.name,
+        successUrl: `${origin}/payment/callback`,
+        cancelUrl: `${origin}/payment/cancelled`,
+      });
+      window.location.assign(response.data.checkoutUrl);
+    } catch (err) {
+      const response = (
+        err as {
+          response?: { data?: Record<string, unknown> };
+        }
+      )?.response;
+      const message =
+        (typeof response?.data?.message === "string" &&
+          response.data.message) ||
+        "Failed to start payment. Please try again.";
+      toast.error(message);
+    } finally {
+      paymentInitiationLock.current = false;
+      setPayingOfferingId(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -276,10 +329,10 @@ export function PaymentsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-[#0B1020] dark:text-white">
-            Your Dues
+            Payments and dues
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Manage assigned departmental, faculty, and level dues
+            Pay current dues and other organization payments
           </p>
         </div>
 
@@ -320,6 +373,92 @@ export function PaymentsPage() {
           className="w-full bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-lg pl-9 pr-4 py-2 text-xs text-[#0B1020] dark:text-white placeholder:text-slate-400 outline-none focus:border-[#2563EB]"
         />
       </div>
+
+      {paymentOfferingsError && (
+        <div
+          role="alert"
+          className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700"
+        >
+          <span>Could not load other organization payments.</span>
+          <button
+            type="button"
+            onClick={() => void refetchPaymentOfferings()}
+            className="font-semibold underline"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {!!paymentOfferings?.length && (
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-sm font-bold text-[#0B1020] dark:text-white">
+              Other organization payments
+            </h2>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              These payments are separate from dues. Heightt adds a 3% fee at checkout.
+            </p>
+          </div>
+          {paymentOfferings.map((offering) => {
+            const fee = Math.round(offering.amount * 0.03);
+            const isPaying = payingOfferingId === offering.id;
+            return (
+              <div
+                key={offering.id}
+                className="flex flex-col justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-[#131B2E] sm:flex-row sm:items-center"
+              >
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-[#0B1020] dark:text-white">
+                      {offering.name}
+                    </span>
+                    {offering.isPaid && (
+                      <span className="rounded border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                        Paid
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                    {offering.organization.name}
+                    {offering.session?.name ? ` · ${offering.session.name}` : ""}
+                  </p>
+                  {offering.description && (
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      {offering.description}
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center justify-between gap-4 sm:justify-end">
+                  <div className="text-right">
+                    <div className="text-sm font-bold text-[#0B1020] dark:text-white">
+                      {formatNaira(koboToNaira(offering.amount))}
+                    </div>
+                    <div className="text-[10px] text-slate-500">
+                      + {formatNaira(koboToNaira(fee))} fee · total{" "}
+                      {formatNaira(koboToNaira(offering.amount + fee))}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void handlePayOffering(offering)}
+                    disabled={offering.isPaid || isPaying || !!payingId}
+                    className="rounded bg-[#2563EB] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#1D4ED8] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {offering.isPaid
+                      ? "Paid"
+                      : isPaying
+                        ? "Processing..."
+                        : offering.isPending
+                          ? "Continue payment"
+                          : "Pay now"}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </section>
+      )}
 
       {/* Dues List */}
       {filtered.length === 0 ? (
@@ -421,9 +560,21 @@ export function PaymentsPage() {
                 </span>
               </div>
               <div className="flex justify-between pt-2 border-t border-slate-200 dark:border-slate-800">
-                <span>Due Amount</span>
+                <span>Due amount</span>
                 <span className="font-bold text-slate-900 dark:text-white">
                   {formatNaira(koboToNaira(selectedDue.amount))}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Fixed Heightt fee</span>
+                <span className="font-bold text-slate-900 dark:text-white">
+                  {formatNaira(100)}
+                </span>
+              </div>
+              <div className="flex justify-between border-t border-slate-200 pt-2 dark:border-slate-800">
+                <span>Total before gateway fees</span>
+                <span className="font-bold text-slate-900 dark:text-white">
+                  {formatNaira(koboToNaira(selectedDue.amount + 10_000))}
                 </span>
               </div>
             </div>

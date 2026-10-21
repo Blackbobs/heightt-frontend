@@ -35,6 +35,7 @@ export interface GuestDepartment {
 export interface GuestAcademicLevel {
   id: string;
   name: string;
+  numericLevel: number;
   department: { id: string; name: string };
 }
 
@@ -46,6 +47,7 @@ export interface GuestDue {
   dueDate?: string | null;
   isRequired?: boolean;
   isFresher: boolean;
+  isDirectEntryEligible: boolean;
   organization?: {
     id: string;
     name: string;
@@ -72,6 +74,7 @@ export interface GuestCheckoutPayload {
   departmentId?: string;
   /** Academic level record ID (UUID/Cuid), not a numeric level label. */
   academicLevelId?: string;
+  isDirectEntry?: boolean;
   dueId: string;
   paymentMethod: "CARD";
   successUrl: string;
@@ -264,6 +267,7 @@ export async function getGuestDues(params: {
   facultyId?: string;
   departmentId?: string;
   academicLevelId: string;
+  isDirectEntry?: boolean;
 }): Promise<GuestDue[]> {
   const response = await axiosConfig.get("/guest-payments/options/dues", {
     params: {
@@ -271,6 +275,7 @@ export async function getGuestDues(params: {
       ...(params.facultyId ? { facultyId: params.facultyId } : {}),
       ...(params.departmentId ? { departmentId: params.departmentId } : {}),
       academicLevelId: params.academicLevelId,
+      isDirectEntry: params.isDirectEntry || undefined,
     },
   });
   return unwrapList<GuestDue>(response);
