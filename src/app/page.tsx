@@ -1,12 +1,4 @@
-import { HeroSection } from '@/components/hero/HeroSection';
-import { TrustStrip } from '@/components/trust/TrustStrip';
-import { ProblemSection } from '@/components/problem/ProblemSection';
-import { AudienceSection } from '@/components/audience/AudienceSection';
-import { HowItWorksSection } from '@/components/how-it-works/HowItWorksSection';
-import { ReceiptsSection } from '@/components/receipts/ReceiptsSection';
-import { RoadmapSection } from '@/components/roadmap/RoadmapSection';
-import { FAQSection } from '@/components/faq/FAQSection';
-import { FinalCTASection } from '@/components/cta/FinalCTASection';
+import { LandingPage } from '@/components/landing/LandingPage';
 import { faqs } from '@/lib/faq';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL, SOCIAL_IMAGE, SUPPORT_EMAIL } from '@/lib/seo';
 import type { Metadata } from 'next';
@@ -81,39 +73,14 @@ export default function Home() {
   };
 
   return (
-    <main className="flex flex-col min-h-screen">
+    <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
         }}
       />
-      {/* 1. HERO */}
-      <HeroSection />
-
-      {/* 2. TRUST STRIP */}
-      <TrustStrip />
-
-      {/* 3. THE PROBLEM */}
-      <ProblemSection />
-
-      {/* 4. FOR STUDENTS & CREATE AN ORGANIZATION */}
-      <AudienceSection />
-
-      {/* 5. HOW IT WORKS */}
-      <HowItWorksSection />
-
-      {/* 6. RECEIPTS */}
-      <ReceiptsSection />
-
-      {/* 7. COMING SOON / ROADMAP */}
-      <RoadmapSection />
-
-      {/* 8. FAQ */}
-      <FAQSection />
-
-      {/* 9. FINAL CTA */}
-      <FinalCTASection />
-    </main>
+      <LandingPage />
+    </>
   );
 }
