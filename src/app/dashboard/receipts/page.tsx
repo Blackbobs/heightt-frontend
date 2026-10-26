@@ -3,7 +3,7 @@ import { DashboardPageShell } from '@/components/dashboard/DashboardPageShell';
 import { ReceiptsPage } from '@/components/dashboard/pages/ReceiptsPage';
 
 export const metadata: Metadata = {
-  title: 'Receipts — Heightt',
+  title: 'Receipts | Heightt',
   description: 'View and download your payment receipts and transaction history on Heightt.',
 };
 

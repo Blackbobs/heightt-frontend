@@ -16,7 +16,7 @@ export function QuickActions() {
       {ACTIONS.map(({ label, desc, icon: Icon }) => (
         <button
           key={label}
-          className="bg-white border border-[#E2E8F0] rounded-xl py-3 px-2 flex flex-col items-center gap-1.5 cursor-pointer group transition-all hover:border-[#2563EB] hover:shadow-[0_4px_12px_rgba(26,92,255,0.06)] active:scale-95"
+          className="group flex cursor-pointer flex-col items-center gap-1.5 rounded-xl border border-[#E2E8F0] bg-white px-2 py-3 transition-colors hover:border-[#2563EB] active:scale-95 dark:border-[#30343A] dark:bg-[#191B1E]"
         >
           <div className="w-9 h-9 rounded-[10px] bg-[#EFF6FF] flex items-center justify-center text-[#2563EB] group-hover:bg-[#dce8ff] transition-colors">
             <Icon className="w-[18px] h-[18px]" />

@@ -5,7 +5,7 @@ import { PaymentCancelledView } from "@/components/payments/PaymentCancelledView
 import { HeighttLoader } from "@/components/ui/HeighttLoader";
 
 export const metadata: Metadata = {
-  title: "Payment Cancelled — Heightt",
+  title: "Payment Cancelled | Heightt",
   description: "Your payment session was cancelled.",
 };
 

@@ -9,7 +9,7 @@ interface Announcement {
 
 const ANNOUNCEMENTS: Announcement[] = [
   { title: 'Mid-semester Test Schedule',     source: 'Comp. Sci. Dept' },
-  { title: 'Faculty Week 2025 — Save Date',  source: 'Faculty of Science' },
+  { title: 'Faculty Week 2025: Save Date', source: 'Faculty of Science' },
   { title: 'SUG Election Timetable',         source: 'Student Union' },
 ];
 

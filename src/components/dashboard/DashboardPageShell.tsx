@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { BottomNav } from "@/components/dashboard/BottomNav";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import "./dashboard.css";
 
 interface DashboardPageShellProps {
   pageTitle: string;
@@ -18,7 +19,7 @@ export function DashboardPageShell({
   const router = useRouter();
 
   return (
-    <div className="dashboard-shell flex h-screen overflow-hidden bg-[#F8FAFC] text-[#0B1020] transition-colors dark:bg-[#0B1020] dark:text-[#F8FAFC]">
+    <div className="dashboard-shell flex h-screen overflow-hidden bg-[#F6F7F9] text-[#0B1020] transition-colors dark:bg-[#111315] dark:text-[#F8FAFC]">
       <Sidebar />
       <div className="flex flex-col flex-1 min-w-0 h-full">
         <DashboardHeader
@@ -28,7 +29,7 @@ export function DashboardPageShell({
           }}
         />
         <main className="flex-1 overflow-y-auto pb-20 lg:pb-0">
-          <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+          <div className="dashboard-content mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-8">
             {children}
           </div>
         </main>

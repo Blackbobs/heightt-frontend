@@ -5,14 +5,14 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import {
-  Home,
-  CreditCard,
-  Building2,
-  Receipt,
+  CircleUserRound,
   Bell,
-  User,
+  LayoutDashboard,
+  ReceiptText,
   Settings,
   LogOut,
+  UsersRound,
+  WalletCards,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth-store';
@@ -22,15 +22,15 @@ import { institutionsApi, type AcademicLevel, type Department } from '@/lib/api/
 import { queryKeys } from '@/lib/api/keys';
 
 const NAV_ITEMS = [
-  { label: 'Home', href: '/dashboard', icon: Home, exact: true },
-  { label: 'Dues', href: '/dashboard/payments', icon: CreditCard },
-  { label: 'Organizations', href: '/dashboard/organizations', icon: Building2 },
-  { label: 'Receipts', href: '/dashboard/receipts', icon: Receipt },
+  { label: 'Overview', href: '/dashboard', icon: LayoutDashboard, exact: true },
+  { label: 'Payments', href: '/dashboard/payments', icon: WalletCards },
+  { label: 'Organizations', href: '/dashboard/organizations', icon: UsersRound },
+  { label: 'Receipts', href: '/dashboard/receipts', icon: ReceiptText },
   { label: 'Notifications', href: '/dashboard/notifications', icon: Bell },
 ];
 
 const BOTTOM_NAV_ITEMS = [
-  { label: 'Profile', href: '/dashboard/profile', icon: User },
+  { label: 'Profile', href: '/dashboard/profile', icon: CircleUserRound },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
@@ -93,14 +93,14 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="hidden lg:flex flex-col w-[220px] flex-shrink-0 bg-white dark:bg-[#0B1020] border-r border-[#E2E8F0] dark:border-slate-800 h-screen sticky top-0 font-sans transition-colors">
+    <aside className="hidden lg:flex h-screen w-[248px] flex-shrink-0 flex-col border-r border-slate-200 bg-white font-sans transition-colors dark:border-[#30343A] dark:bg-[#181A1D]">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-[#E2E8F0] dark:border-slate-800">
+      <div className="flex h-[72px] items-center border-b border-slate-200 px-6 dark:border-[#30343A]">
         <Logo />
       </div>
 
       {/* Main Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-5">
         {NAV_ITEMS.map(({ label, href, icon: Icon, exact }) => {
           const active = exact
             ? pathname === href
@@ -110,13 +110,13 @@ export function Sidebar() {
               key={href}
               href={href}
               className={cn(
-                'flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold transition-colors no-underline',
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors no-underline',
                 active
-                  ? 'bg-[#2563EB] text-white'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0B1020] dark:hover:text-white'
+                  ? 'bg-blue-50 text-[#1D4ED8] dark:bg-[#1D2941] dark:text-blue-300'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-[#0B1020] dark:text-slate-400 dark:hover:bg-[#23262B] dark:hover:text-white'
               )}
             >
-              <Icon className={cn('w-4 h-4 flex-shrink-0', active ? 'text-white' : 'text-slate-400')} />
+              <Icon className={cn('h-[18px] w-[18px] flex-shrink-0', active ? 'text-[#2563EB]' : 'text-slate-400')} />
               <span>{label}</span>
             </Link>
           );
@@ -124,7 +124,7 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom Section */}
-      <div className="p-3 border-t border-[#E2E8F0] dark:border-slate-800 space-y-1">
+      <div className="space-y-1 border-t border-slate-200 p-3 dark:border-[#30343A]">
         {BOTTOM_NAV_ITEMS.map(({ label, href, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(`${href}/`);
           return (
@@ -132,20 +132,20 @@ export function Sidebar() {
               key={href}
               href={href}
               className={cn(
-                'flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold transition-colors no-underline',
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors no-underline',
                 active
-                  ? 'bg-[#2563EB] text-white'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0B1020] dark:hover:text-white'
+                  ? 'bg-blue-50 text-[#1D4ED8] dark:bg-[#1D2941] dark:text-blue-300'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-[#0B1020] dark:text-slate-400 dark:hover:bg-[#23262B] dark:hover:text-white'
               )}
             >
-              <Icon className={cn('w-4 h-4 flex-shrink-0', active ? 'text-white' : 'text-slate-400')} />
+              <Icon className={cn('h-[18px] w-[18px] flex-shrink-0', active ? 'text-[#2563EB]' : 'text-slate-400')} />
               <span>{label}</span>
             </Link>
           );
         })}
 
         {/* Student info box */}
-        <div className="mt-3 p-3 rounded-lg bg-[#F8FAFC] dark:bg-[#131B2E] border border-[#E2E8F0] dark:border-slate-800 text-xs">
+        <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs dark:border-[#30343A] dark:bg-[#202328]">
           <p className="font-bold text-[#0B1020] dark:text-white truncate">
             {getDisplayName()}
           </p>

@@ -31,6 +31,11 @@ const nextConfig: NextConfig = {
         pathname: "/dbcgdaigj/image/upload/**",
         search: "",
       },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        pathname: "/**",
+      },
     ],
   },
 };

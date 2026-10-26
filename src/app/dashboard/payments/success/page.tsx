@@ -5,7 +5,7 @@ import { PaymentSuccessView } from "@/components/payments/PaymentSuccessView";
 import { HeighttLoader } from "@/components/ui/HeighttLoader";
 
 export const metadata: Metadata = {
-  title: "Payment Successful — Heightt",
+  title: "Payment Successful | Heightt",
   description: "Your payment was successfully processed and recorded.",
 };
 

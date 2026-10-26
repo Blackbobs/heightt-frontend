@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { AlertCircle, CheckCircle2, GraduationCap, Mail, RefreshCw, School, User as UserIcon } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock3, GraduationCap, Mail, School, User as UserIcon } from 'lucide-react';
 import { institutionsApi, type Department, type Faculty, type Institution } from '@/lib/api/institutions';
 import { queryKeys } from '@/lib/api/keys';
 import { useCurrentUser } from '@/hooks/queries/useUser';
@@ -93,32 +93,32 @@ export function ProfilePage() {
 
   return (
     <div className="space-y-6 w-full">
-      {/* Header Banner - Solid Navy Branded Box */}
-      <div className="bg-[#0B1020] rounded-xl p-6 text-white border border-slate-800 flex flex-col sm:flex-row items-center gap-5">
-        <div className="w-16 h-16 rounded-xl bg-[#2563EB] text-white font-extrabold text-xl flex items-center justify-center flex-shrink-0">
-          {initials}
-        </div>
-        <div className="text-center sm:text-left min-w-0 flex-1">
-          <h1 className="text-xl font-extrabold tracking-tight">{fullName}</h1>
-          <p className="text-xs text-slate-400 mt-0.5 font-mono">
-            {[academicLevel, department?.name].filter(Boolean).join(' • ')}
-          </p>
-          {student?.matricNumber && (
-            <p className="text-[11px] text-slate-400 font-mono mt-0.5">
-              Matric: {student.matricNumber}
+      <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-[#30343A] dark:bg-[#191B1E] sm:p-6">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-xl bg-blue-50 text-xl font-extrabold text-[#2563EB] dark:bg-blue-950/40 dark:text-blue-300">
+            {initials}
+          </div>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl font-extrabold tracking-tight text-[#0B1020] dark:text-white">{fullName}</h1>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              {[academicLevel, department?.name].filter(Boolean).join(' • ')}
             </p>
-          )}
+            {student?.matricNumber && (
+              <p className="mt-1 text-[11px] font-mono text-slate-500 dark:text-slate-400">
+                Matric: {student.matricNumber}
+              </p>
+            )}
+          </div>
+          <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold ${
+              isVerified
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300'
+                : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300'
+            }`}>
+            {isVerified ? <CheckCircle2 className="h-4 w-4" /> : <Clock3 className="h-4 w-4" />}
+            {isVerified ? 'Verified student' : 'Verification pending'}
+          </div>
         </div>
-        <div className="flex-shrink-0">
-          <span className={`text-xs font-bold px-3 py-1 rounded border flex items-center gap-1.5 ${
-            isVerified
-              ? 'text-emerald-400 bg-emerald-950/60 border-emerald-800'
-              : 'text-amber-300 bg-amber-950/60 border-amber-800'
-          }`}>
-            <CheckCircle2 className="w-3.5 h-3.5" /> {isVerified ? 'Verified Student' : 'Verification Pending'}
-          </span>
-        </div>
-      </div>
+      </section>
 
       {/* Personal Info */}
       <div className="bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-xl p-5">

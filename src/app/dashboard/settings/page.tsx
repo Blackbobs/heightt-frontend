@@ -3,7 +3,7 @@ import { DashboardPageShell } from '@/components/dashboard/DashboardPageShell';
 import { SettingsPage } from '@/components/dashboard/pages/SettingsPage';
 
 export const metadata: Metadata = {
-  title: 'Settings — Heightt',
+  title: 'Settings | Heightt',
   description: 'Manage your Heightt account settings, notifications, and security.',
 };
 

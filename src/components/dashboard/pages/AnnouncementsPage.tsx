@@ -1,331 +1,139 @@
-"use client";
+'use client';
 
-import React, { useState, useMemo, useCallback } from "react";
-import {
-  Bell,
-  BookOpen,
-  Users,
-  Megaphone,
-  ChevronRight,
-  Clock,
-  AlertCircle,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import {
-  useAnnouncements,
-  useMarkAnnouncementAsRead,
-} from "@/hooks/queries/useCommunication";
-import { Announcement } from "@/lib/api/communication";
-import { HeighttLoader } from "@/components/ui/HeighttLoader";
+import { useMemo, useState } from 'react';
+import { AlertCircle, Bell, ChevronRight, Clock } from 'lucide-react';
+import { HeighttLoader } from '@/components/ui/HeighttLoader';
+import { useAnnouncements, useMarkAnnouncementAsRead } from '@/hooks/queries/useCommunication';
+import type { Announcement } from '@/lib/api/communication';
+import { cn } from '@/lib/utils';
 
-const CAT_CONFIG: Record<
-  string,
-  { label: string; icon: React.ReactNode; color: string; bg: string }
-> = {
-  GENERAL: {
-    label: "General",
-    icon: <Bell className="w-3.5 h-3.5" />,
-    color: "text-[#0f7b4a]",
-    bg: "bg-[#e6f7f0]",
-  },
-  IMPORTANT: {
-    label: "Important",
-    icon: <AlertCircle className="w-3.5 h-3.5" />,
-    color: "text-amber-600",
-    bg: "bg-amber-50",
-  },
-  URGENT: {
-    label: "Urgent",
-    icon: <Megaphone className="w-3.5 h-3.5" />,
-    color: "text-red-600",
-    bg: "bg-red-50",
-  },
-  FINANCIAL: {
-    label: "Financial",
-    icon: <Bell className="w-3.5 h-3.5" />,
-    color: "text-[#2563EB]",
-    bg: "bg-[#EFF6FF]",
-  },
-  ACADEMIC: {
-    label: "Academic",
-    icon: <BookOpen className="w-3.5 h-3.5" />,
-    color: "text-violet-600",
-    bg: "bg-violet-50",
-  },
-  EVENT: {
-    label: "Event",
-    icon: <Users className="w-3.5 h-3.5" />,
-    color: "text-emerald-600",
-    bg: "bg-emerald-50",
-  },
+const FILTERS = ['All', 'GENERAL', 'IMPORTANT', 'URGENT', 'FINANCIAL', 'ACADEMIC', 'EVENT'];
+
+const labelFor = (type: string) => type.charAt(0) + type.slice(1).toLowerCase();
+
+const toneFor = (type: string) => {
+  if (type === 'URGENT') return 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-300';
+  if (type === 'IMPORTANT') return 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300';
+  if (type === 'FINANCIAL') return 'bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300';
+  return 'bg-slate-100 text-slate-600 dark:bg-[#292C31] dark:text-slate-300';
 };
 
-const TABS = [
-  "All",
-  "GENERAL",
-  "IMPORTANT",
-  "URGENT",
-  "FINANCIAL",
-  "ACADEMIC",
-  "EVENT",
-];
-const TAB_LABELS: Record<string, string> = {
-  All: "All",
-  GENERAL: "General",
-  IMPORTANT: "Important",
-  URGENT: "Urgent",
-  FINANCIAL: "Financial",
-  ACADEMIC: "Academic",
-  EVENT: "Event",
-};
+function sourceFor(announcement: Announcement) {
+  if (announcement.organization?.name) return announcement.organization.name;
+  const profile = announcement.author?.profile;
+  if (profile) return `${profile.firstName} ${profile.lastName}`.trim() || announcement.author?.username;
+  return 'Heightt';
+}
 
-// Extracted Announcement Item Component for better performance
-const AnnouncementItem = React.memo(
-  ({
-    announcement,
-    isExpanded,
-    isUnread,
-    onToggle,
-  }: {
-    announcement: Announcement;
-    isExpanded: boolean;
-    isUnread: boolean;
-    onToggle: (id: string) => void;
-  }) => {
-    const cfg = CAT_CONFIG[announcement.type] || CAT_CONFIG.GENERAL;
-
-    const formatDate = (dateString?: string) => {
-      if (!dateString) return "N/A";
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-    };
-
-    const getSourceName = () => {
-      if (announcement.organization?.name) {
-        return announcement.organization.name;
-      }
-      if (announcement.author?.profile) {
-        const { firstName, lastName } = announcement.author.profile;
-        return (
-          `${firstName} ${lastName}`.trim() || announcement.author.username
-        );
-      }
-      return "Unknown";
-    };
-
-    return (
-      <div
-        className={cn(
-          "bg-white border rounded-2xl overflow-hidden cursor-pointer transition-all",
-          isUnread ? "border-[#2563EB]/30" : "border-[#E2E8F0]",
-        )}
-        onClick={() => onToggle(announcement.id)}
-      >
-        <div className="px-4 py-4 hover:bg-[#F8FAFC] transition-colors">
-          <div className="flex items-start gap-3">
-            <div
-              className={cn(
-                "w-8 h-8 rounded-[8px] flex items-center justify-center flex-shrink-0 mt-0.5",
-                cfg.bg,
-                cfg.color,
-              )}
-            >
-              {cfg.icon}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2">
-                <p
-                  className={cn(
-                    "text-[0.82rem] font-semibold text-[#0B1020] leading-snug",
-                    isUnread && "font-bold",
-                  )}
-                >
-                  {announcement.title}
-                </p>
-                {isUnread && (
-                  <span className="flex-shrink-0 w-2 h-2 rounded-full bg-[#2563EB] mt-1.5" />
-                )}
-              </div>
-              <div className="flex items-center gap-1.5 mt-1">
-                <span
-                  className={cn(
-                    "text-[0.58rem] font-semibold px-2 py-0.5 rounded-full",
-                    cfg.bg,
-                    cfg.color,
-                  )}
-                >
-                  {cfg.label}
-                </span>
-                <span className="text-[0.58rem] text-[#64748B]">
-                  {getSourceName()}
-                </span>
-              </div>
-            </div>
-            <ChevronRight
-              className={cn(
-                "w-4 h-4 text-[#c8d0db] flex-shrink-0 mt-0.5 transition-transform",
-                isExpanded && "rotate-90",
-              )}
-            />
-          </div>
-
-          <div className="flex items-center gap-1 mt-2 ml-11">
-            <Clock className="w-3 h-3 text-[#b0bac8]" />
-            <span className="text-[0.58rem] text-[#64748B]">
-              {formatDate(announcement.publishedAt || announcement.createdAt)}
-            </span>
-          </div>
-        </div>
-
-        {isExpanded && (
-          <div className="border-t border-[#F1F5F9] px-4 py-4 bg-[#F8FAFC]">
-            <p className="text-[0.8rem] text-[#4a5568] leading-relaxed whitespace-pre-wrap">
-              {announcement.content}
-            </p>
-          </div>
-        )}
-      </div>
-    );
-  },
-);
-
-AnnouncementItem.displayName = "AnnouncementItem";
+function dateFor(announcement: Announcement) {
+  const value = announcement.publishedAt || announcement.createdAt;
+  return value ? new Date(value).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Date unavailable';
+}
 
 export function AnnouncementsPage() {
-  const {
-    data: announcements,
-    isLoading,
-    isError,
-    error,
-    refetch,
-  } = useAnnouncements({
-    limit: 50,
-    isPublished: true,
-  });
-  const markAsReadMutation = useMarkAnnouncementAsRead();
-
-  const [tab, setTab] = useState("All");
+  const { data: announcements = [], isLoading, isError, refetch } = useAnnouncements({ limit: 50, isPublished: true });
+  const markAsRead = useMarkAnnouncementAsRead();
+  const [filter, setFilter] = useState('All');
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [readSet, setReadSet] = useState<Set<string>>(new Set());
+  const [readIds, setReadIds] = useState<Set<string>>(new Set());
 
-  // Filter announcements - memoized
-  const filtered = useMemo(() => {
-    if (!announcements) return [];
-    if (tab === "All") return announcements;
-    return announcements.filter((a: Announcement) => a.type === tab);
-  }, [announcements, tab]);
-
-  // Count unread - memoized
-  const unreadCount = useMemo(() => {
-    if (!announcements) return 0;
-    return announcements.filter((a: Announcement) => !readSet.has(a.id)).length;
-  }, [announcements, readSet]);
-
-  const toggleExpand = useCallback(
-    (id: string) => {
-      setExpandedId((prev) => (prev === id ? null : id));
-
-      // Mark as read if not already
-      if (!readSet.has(id)) {
-        setReadSet((prev) => new Set([...prev, id]));
-        markAsReadMutation.mutate(id);
-      }
-    },
-    [readSet, markAsReadMutation],
+  const filtered = useMemo(
+    () => filter === 'All' ? announcements : announcements.filter((item: Announcement) => item.type === filter),
+    [announcements, filter],
   );
+  const unreadCount = announcements.filter((item: Announcement) => !readIds.has(item.id)).length;
+
+  const toggle = (id: string) => {
+    setExpandedId((current) => current === id ? null : id);
+    if (readIds.has(id)) return;
+    setReadIds((current) => new Set(current).add(id));
+    markAsRead.mutate(id);
+  };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-3">
-          <HeighttLoader label="Loading announcements" />
-          <span className="text-sm text-[#64748B] font-medium">
-            Loading announcements...
-          </span>
-        </div>
-      </div>
-    );
+    return <div className="flex min-h-[360px] items-center justify-center"><HeighttLoader label="Loading announcements" /></div>;
   }
 
   if (isError) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-red-600">
-        <p className="font-semibold">Error loading announcements</p>
-        <p className="text-sm">Something went wrong. Please try again.</p>
-        <button
-          onClick={() => refetch()}
-          className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700"
-        >
-          Retry
-        </button>
+      <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">
+        <AlertCircle className="mb-3 h-5 w-5" />
+        <h2 className="font-bold">Unable to load announcements</h2>
+        <p className="mt-1 text-sm">Please try again.</p>
+        <button onClick={() => refetch()} className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white">Retry</button>
       </div>
     );
   }
 
   return (
     <div className="space-y-5 pb-6">
-      {/* Header */}
-      <div className="bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] rounded-3xl px-6 py-5 text-white relative overflow-hidden">
-        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
-        <div className="flex items-center gap-2.5 mb-2">
-          <div className="w-8 h-8 rounded-[8px] bg-white/15 flex items-center justify-center">
-            <Bell className="w-4 h-4" />
+      <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-[#30343A] dark:bg-[#191B1E] sm:p-6">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-black tracking-tight text-[#0B1020] dark:text-white">Announcements</h1>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              {unreadCount > 0 ? `${unreadCount} unread updates` : 'You are all caught up'}
+            </p>
           </div>
-          <span className="text-[0.68rem] font-semibold uppercase tracking-widest text-white/70">
-            Announcements
-          </span>
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#2563EB] dark:bg-blue-950/40 dark:text-blue-300">
+            <Bell className="h-5 w-5" />
+          </div>
         </div>
-        <p className="text-[1.5rem] font-extrabold">
-          {announcements?.length || 0}{" "}
-          <span className="text-[1rem] font-medium text-white/60">total</span>
+        <p className="mt-5 border-t border-slate-100 pt-4 text-xs font-semibold text-slate-500 dark:border-[#30343A] dark:text-slate-400">
+          {announcements.length} total announcements
         </p>
-        <p className="text-[0.72rem] text-white/60 mt-0.5">
-          {unreadCount > 0 ? `${unreadCount} unread` : "All caught up!"}
-        </p>
-      </div>
+      </section>
 
-      {/* Tabs */}
-      <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
-        {TABS.map((t) => (
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {FILTERS.map((item) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={item}
+            onClick={() => setFilter(item)}
             className={cn(
-              "flex-shrink-0 text-[0.72rem] font-semibold px-4 py-2 rounded-full border-none cursor-pointer transition-all",
-              tab === t
-                ? "bg-[#2563EB] text-white"
-                : "bg-white border border-[#E2E8F0] text-[#64748B] hover:border-[#2563EB] hover:text-[#2563EB]",
+              'flex-shrink-0 rounded-lg border px-4 py-2 text-xs font-semibold transition-colors',
+              filter === item
+                ? 'border-[#2563EB] bg-[#2563EB] text-white'
+                : 'border-slate-200 bg-white text-slate-600 hover:border-[#2563EB] dark:border-[#30343A] dark:bg-[#191B1E] dark:text-slate-300',
             )}
           >
-            {TAB_LABELS[t] || t}
+            {item === 'All' ? item : labelFor(item)}
           </button>
         ))}
       </div>
 
-      {/* Announcement List */}
-      <div className="space-y-2.5">
-        {filtered.length === 0 ? (
-          <div className="bg-white border border-[#E2E8F0] rounded-2xl p-10 text-center">
-            <Bell className="w-8 h-8 text-[#c8d0db] mx-auto mb-2" />
-            <p className="text-[0.82rem] font-medium text-[#64748B]">
-              No announcements found
-            </p>
+      <div className="space-y-3">
+        {filtered.length === 0 && (
+          <div className="rounded-xl border border-slate-200 bg-white p-10 text-center dark:border-[#30343A] dark:bg-[#191B1E]">
+            <Bell className="mx-auto h-7 w-7 text-slate-300 dark:text-slate-600" />
+            <p className="mt-3 text-sm font-medium text-slate-500">No announcements found</p>
           </div>
-        ) : (
-          filtered.map((ann: Announcement) => (
-            <AnnouncementItem
-              key={ann.id}
-              announcement={ann}
-              isExpanded={expandedId === ann.id}
-              isUnread={!readSet.has(ann.id)}
-              onToggle={toggleExpand}
-            />
-          ))
         )}
+        {filtered.map((announcement: Announcement) => {
+          const expanded = expandedId === announcement.id;
+          const unread = !readIds.has(announcement.id);
+          return (
+            <article key={announcement.id} className={cn('overflow-hidden rounded-xl border bg-white dark:bg-[#191B1E]', unread ? 'border-blue-300 dark:border-blue-800' : 'border-slate-200 dark:border-[#30343A]')}>
+              <button onClick={() => toggle(announcement.id)} className="flex w-full items-start gap-3 p-4 text-left transition-colors hover:bg-slate-50 dark:hover:bg-[#202328]">
+                <div className={cn('flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg', toneFor(announcement.type))}>
+                  <Bell className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start gap-2">
+                    <h2 className="flex-1 text-sm font-bold text-[#0B1020] dark:text-white">{announcement.title}</h2>
+                    {unread && <span className="mt-1.5 h-2 w-2 rounded-full bg-[#2563EB]" />}
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+                    <span className={cn('rounded px-2 py-1 font-semibold', toneFor(announcement.type))}>{labelFor(announcement.type)}</span>
+                    <span>{sourceFor(announcement)}</span>
+                    <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{dateFor(announcement)}</span>
+                  </div>
+                </div>
+                <ChevronRight className={cn('mt-1 h-4 w-4 flex-shrink-0 text-slate-400 transition-transform', expanded && 'rotate-90')} />
+              </button>
+              {expanded && <p className="border-t border-slate-100 bg-slate-50 p-4 text-sm leading-6 text-slate-600 dark:border-[#30343A] dark:bg-[#202328] dark:text-slate-300">{announcement.content}</p>}
+            </article>
+          );
+        })}
       </div>
     </div>
   );

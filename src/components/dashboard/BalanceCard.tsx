@@ -1,18 +1,13 @@
 'use client';
 
 import React from 'react';
-import { Sun, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import { Sun } from 'lucide-react';
 
 export function BalanceCard({ totalPaid }: { totalPaid: number }) {
   return (
-    <div className="bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] rounded-3xl px-6 py-5 text-white mb-5 relative overflow-hidden">
-      {/* Background glare */}
-      <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5 pointer-events-none" />
-      <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full bg-white/5 pointer-events-none" />
-
-      <p className="text-[0.7rem] text-white/70 font-medium uppercase tracking-wide mb-1">Total Balance</p>
-      <p className="text-[2rem] font-bold tracking-tight leading-none">₦{totalPaid.toLocaleString()}</p>
-      <p className="text-[0.7rem] text-white/60 mt-1.5">Total Dues Paid</p>
+    <div className="mb-5 rounded-xl border border-slate-200 bg-white px-6 py-5 dark:border-[#30343A] dark:bg-[#191B1E]">
+      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Total dues paid</p>
+      <p className="mt-2 text-3xl font-black tracking-tight text-[#0B1020] dark:text-white">₦{totalPaid.toLocaleString()}</p>
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { DashboardPageShell } from "@/components/dashboard/DashboardPageShell";
 import { TransactionsPage } from "@/components/dashboard/pages/TransactionsPage";
 
 export const metadata: Metadata = {
-  title: "Transactions — Heightt",
+  title: "Transactions | Heightt",
   description: "View your full transaction history on Heightt.",
 };
 

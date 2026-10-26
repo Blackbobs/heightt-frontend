@@ -1,16 +1,9 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import {
-  Bell,
-  ChevronDown,
-  Settings,
-  LogOut,
-  User as UserIcon,
-  ArrowLeft,
-} from 'lucide-react';
-import { User } from '@/lib/api/users';
+import { ArrowLeft, Bell, ChevronDown, LogOut, Settings, User as UserIcon } from 'lucide-react';
+import type { User } from '@/lib/api/users';
 import { useAuthStore } from '@/store/auth-store';
 import { useUnreadNotificationCount } from '@/hooks/queries/useCommunication';
 import { Logo } from '@/components/ui/Logo';
@@ -24,32 +17,40 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({
-  pageTitle = 'Dashboard',
+  pageTitle = 'Overview',
   user: propUser,
   onNotificationClick,
 }: DashboardHeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const normalizedPath = (pathname || '').replace(/\/$/, '');
-  const isMainDashboard = normalizedPath === '/dashboard';
-
+  const isMainDashboard = (pathname || '').replace(/\/$/, '') === '/dashboard';
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
   const authUser = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
-
   const user = propUser || authUser;
-
   const { data: unreadCount = 0 } = useUnreadNotificationCount();
 
-  const handleNotificationClick = () => {
-    if (onNotificationClick) {
-      onNotificationClick();
-    } else {
-      router.push('/dashboard/notifications');
-    }
-  };
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const initials = (() => {
+    const firstName = user?.profile?.firstName || '';
+    const lastName = user?.profile?.lastName || '';
+    return `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase() || 'U';
+  })();
+
+  const displayName = (() => {
+    const fullName = `${user?.profile?.firstName || ''} ${user?.profile?.lastName || ''}`.trim();
+    return fullName || user?.username || user?.email?.split('@')[0] || 'Student';
+  })();
 
   const handleLogout = async () => {
     setIsDropdownOpen(false);
@@ -62,151 +63,67 @@ export function DashboardHeader({
     }
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const getInitials = () => {
-    if (!user?.profile) return 'U';
-    const firstName = user.profile.firstName || '';
-    const lastName = user.profile.lastName || '';
-    return `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase() || 'U';
-  };
-
-  const getDisplayName = () => {
-    if (!user?.profile) return 'Student User';
-    const firstName = user.profile.firstName || '';
-    const lastName = user.profile.lastName || '';
-    const fullName = `${firstName} ${lastName}`.trim();
-    if (fullName) return fullName;
-    return user.username || user.email?.split('@')[0] || 'Student User';
-  };
-
-  const displayName = getDisplayName();
-
   const handleBack = () => {
-    if (typeof window !== 'undefined' && window.history.length > 1) {
-      router.back();
-    } else {
-      router.push('/dashboard');
-    }
+    if (typeof window !== 'undefined' && window.history.length > 1) router.back();
+    else router.push('/dashboard');
   };
 
   return (
-    <header className="px-4 sm:px-6 py-2.5 bg-white dark:bg-[#0B1020] border-b border-[#E2E8F0] dark:border-slate-800 flex-shrink-0 sticky top-0 z-20 transition-colors">
-      {isMainDashboard ? (
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {/* On Mobile: Show Compact Logo */}
-            <div className="lg:hidden">
-              <Logo imgClassName="h-7 sm:h-8" />
-            </div>
-            {/* On Desktop: Show Page Title */}
-            <h1 className="hidden lg:block text-base sm:text-lg font-bold text-[#0B1020] dark:text-white">
-              {pageTitle}
-            </h1>
-          </div>
-
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            <ThemeToggle />
-
-            {/* Notification button */}
-            <button
-              type="button"
-              onClick={handleNotificationClick}
-              className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 relative transition-colors"
-              aria-label="Notifications"
-            >
-              <Bell className="w-4 h-4" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#2563EB] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-            </button>
-
-            {/* User Dropdown */}
-            <div className="relative" ref={dropdownRef}>
-              <button
-                type="button"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="flex items-center gap-2 p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                <div className="w-6 h-6 rounded bg-[#2563EB] text-white text-xs font-bold flex items-center justify-center">
-                  {getInitials()}
-                </div>
-                <span className="text-xs font-semibold hidden sm:inline text-[#0B1020] dark:text-white">
-                  {displayName}
-                </span>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-              </button>
-
-              {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 rounded-lg p-1 shadow-md z-50 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsDropdownOpen(false);
-                      router.push('/dashboard/profile');
-                    }}
-                    className="w-full text-left px-3 py-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center gap-2 font-medium"
-                  >
-                    <UserIcon className="w-3.5 h-3.5" />
-                    <span>Profile</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsDropdownOpen(false);
-                      router.push('/dashboard/settings');
-                    }}
-                    className="w-full text-left px-3 py-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center gap-2 font-medium"
-                  >
-                    <Settings className="w-3.5 h-3.5" />
-                    <span>Settings</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="w-full text-left px-3 py-2 rounded hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 flex items-center gap-2 font-medium"
-                  >
-                    <LogOut className="w-3.5 h-3.5" />
-                    <span>Log out</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      ) : (
-        /* Subpages header: Only Back icon on left & Page title centered */
-        <div className="relative flex items-center justify-between min-h-[36px]">
+    <header className="sticky top-0 z-20 flex h-[64px] flex-shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 transition-colors dark:border-[#30343A] dark:bg-[#181A1D] sm:px-6 lg:h-[72px]">
+      <div className="flex min-w-0 items-center gap-3">
+        {isMainDashboard ? (
+          <div className="lg:hidden"><Logo imgClassName="h-7" /></div>
+        ) : (
           <button
             type="button"
             onClick={handleBack}
-            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors z-10"
+            className="grid size-9 place-items-center rounded-lg border border-slate-200 text-slate-600 transition-colors hover:bg-slate-50 dark:border-[#30343A] dark:text-slate-300 dark:hover:bg-[#23262B] lg:hidden"
             aria-label="Go back"
           >
-            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+            <ArrowLeft className="size-4" />
+          </button>
+        )}
+        <div className="min-w-0">
+          <h1 className="truncate text-base font-semibold tracking-[-0.02em] text-[#0B1020] dark:text-white sm:text-lg">{pageTitle}</h1>
+          <p className="hidden text-xs text-slate-500 dark:text-slate-400 lg:block">Manage your Heightt account</p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <ThemeToggle />
+        <button
+          type="button"
+          onClick={() => {
+            if (onNotificationClick) onNotificationClick();
+            else router.push('/dashboard/notifications');
+          }}
+          className="relative grid size-9 place-items-center rounded-lg border border-slate-200 text-slate-600 transition-colors hover:bg-slate-50 dark:border-[#30343A] dark:text-slate-300 dark:hover:bg-[#23262B]"
+          aria-label="Notifications"
+        >
+          <Bell className="size-4" />
+          {unreadCount > 0 && <span className="absolute -right-1 -top-1 grid size-4 place-items-center rounded-full bg-[#2563EB] text-[9px] font-bold text-white">{unreadCount > 9 ? '9+' : unreadCount}</span>}
+        </button>
+
+        <div className="relative" ref={dropdownRef}>
+          <button
+            type="button"
+            onClick={() => setIsDropdownOpen((current) => !current)}
+            className="flex h-9 items-center gap-2 rounded-lg border border-slate-200 px-1.5 text-slate-700 transition-colors hover:bg-slate-50 dark:border-[#30343A] dark:text-slate-200 dark:hover:bg-[#23262B]"
+          >
+            <span className="grid size-6 place-items-center rounded-md bg-[#2563EB] text-[10px] font-bold text-white">{initials}</span>
+            <span className="hidden max-w-28 truncate text-xs font-semibold sm:block">{displayName}</span>
+            <ChevronDown className="hidden size-3.5 text-slate-400 sm:block" />
           </button>
 
-          <h1 className="absolute left-1/2 -translate-x-1/2 text-sm sm:text-base font-bold text-[#0B1020] dark:text-white truncate max-w-[65%] text-center">
-            {pageTitle}
-          </h1>
-
-          <div className="w-8 sm:w-9 h-8 sm:h-9 shrink-0" aria-hidden="true" />
+          {isDropdownOpen && (
+            <div className="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-slate-200 bg-white p-1 text-xs dark:border-[#30343A] dark:bg-[#202328]">
+              <button type="button" onClick={() => { setIsDropdownOpen(false); router.push('/dashboard/profile'); }} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-[#2A2D32]"><UserIcon className="size-3.5" /> Profile</button>
+              <button type="button" onClick={() => { setIsDropdownOpen(false); router.push('/dashboard/settings'); }} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-[#2A2D32]"><Settings className="size-3.5" /> Settings</button>
+              <button type="button" onClick={handleLogout} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"><LogOut className="size-3.5" /> Log out</button>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </header>
   );
 }

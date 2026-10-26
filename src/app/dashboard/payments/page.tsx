@@ -3,7 +3,7 @@ import { DashboardPageShell } from "@/components/dashboard/DashboardPageShell";
 import { PaymentsPage } from "@/components/dashboard/pages/PaymentsPage";
 
 export const metadata: Metadata = {
-  title: "Payments — Heightt",
+  title: "Payments | Heightt",
   description: "Pay your dues, levies, and fees securely with Heightt.",
 };
 

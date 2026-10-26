@@ -3,7 +3,7 @@ import { DashboardPageShell } from "@/components/dashboard/DashboardPageShell";
 import { NotificationsPage } from "@/components/dashboard/pages/NotificationsPage";
 
 export const metadata: Metadata = {
-  title: "Notifications — Heightt",
+  title: "Notifications | Heightt",
   description: "View and manage your notifications on Heightt.",
 };
 
