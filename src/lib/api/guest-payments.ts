@@ -166,12 +166,17 @@ export function getGuestPendingPaymentId(): string | null {
   }
 }
 
-/** Clears both the token and the pending-payment marker for a checkout. */
+/** Keep the access token after success so this browser can download its receipt. */
+export function clearGuestPendingPaymentId(): void {
+  safeSessionStorage()?.removeItem(GUEST_PENDING_PAYMENT_KEY);
+}
+
+/** Clear access for an unsuccessful checkout. */
 export function clearGuestPaymentStorage(pendingPaymentId: string): void {
   const storage = safeSessionStorage();
   if (!storage) return;
   storage.removeItem(`${GUEST_PAYMENT_STORAGE_PREFIX}${pendingPaymentId}`);
-  storage.removeItem(GUEST_PENDING_PAYMENT_KEY);
+  clearGuestPendingPaymentId();
 }
 
 /* ============================================================
@@ -302,6 +307,19 @@ export async function getGuestPendingStatus(
     { headers: { "Cache-Control": "no-store" } },
   );
   return unwrapData<GuestPaymentStatusResult>(response);
+}
+
+/** Download a completed receipt using the guest token kept in session storage. */
+export async function downloadGuestReceipt(
+  receiptId: string,
+  accessToken: string,
+): Promise<Blob> {
+  const response = await axiosConfig.post<Blob>(
+    `/guest-payments/receipts/${encodeURIComponent(receiptId)}/download`,
+    { accessToken },
+    { responseType: "blob" },
+  );
+  return response.data;
 }
 
 /* ============================================================
