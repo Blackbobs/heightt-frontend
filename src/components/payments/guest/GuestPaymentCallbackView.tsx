@@ -10,6 +10,8 @@ import {
   getGuestAccessToken,
   getGuestPendingPaymentId,
   clearGuestPaymentStorage,
+  clearGuestPendingPaymentId,
+  downloadGuestReceipt,
   GuestPaymentStatusResult,
   getGuestPaymentError,
 } from "@/lib/api/guest-payments";
@@ -70,6 +72,7 @@ function describeFinalState(payment: GuestPaymentStatusResult): {
 export function GuestPaymentCallbackView() {
   const searchParams = useSearchParams();
   const [state, setState] = useState<CallbackState>({ status: "checking" });
+  const [downloadState, setDownloadState] = useState<"idle" | "downloading" | "error">("idle");
   const pollTimer = useRef<number | null>(null);
 
   const pendingPaymentId = useMemo(
@@ -84,7 +87,7 @@ export function GuestPaymentCallbackView() {
       setState({
         status: "error",
         message:
-          "We could not find the access token for this payment in this browser. If you used another browser or device, your receipt was still emailed to the payment email address.",
+          "This browser no longer has access to this payment. Check the payment email for your receipt or contact support.",
       });
       return;
     }
@@ -93,9 +96,11 @@ export function GuestPaymentCallbackView() {
       const payment = await getGuestPendingStatus(pendingPaymentId, accessToken);
 
       if (payment.status === "COMPLETED") {
-        clearGuestPaymentStorage(pendingPaymentId);
-        if (pollTimer.current) window.clearInterval(pollTimer.current);
-        pollTimer.current = null;
+        if (payment.receiptId) {
+          clearGuestPendingPaymentId();
+          if (pollTimer.current) window.clearInterval(pollTimer.current);
+          pollTimer.current = null;
+        }
         setState({ status: "completed", payment });
         return;
       }
@@ -120,7 +125,7 @@ export function GuestPaymentCallbackView() {
         status: "error",
         message: getGuestPaymentError(
           err,
-          "We could not confirm this payment. Your receipt was still emailed to you if the payment was successful.",
+          "We could not confirm this payment. Check the payment email for a receipt or contact support.",
         ),
       });
     }
@@ -129,26 +134,43 @@ export function GuestPaymentCallbackView() {
   useEffect(() => {
     if (!pendingPaymentId) return;
 
-    let cancelled = false;
-
-    async function start() {
-      await poll();
-      if (cancelled) return;
-      pollTimer.current = window.setInterval(() => {
-        void poll();
-      }, POLL_INTERVAL_MS);
-    }
-
-    void start();
+    pollTimer.current = window.setInterval(() => {
+      void poll();
+    }, POLL_INTERVAL_MS);
+    const initialTimer = window.setTimeout(() => void poll(), 0);
 
     return () => {
-      cancelled = true;
+      window.clearTimeout(initialTimer);
       if (pollTimer.current) window.clearInterval(pollTimer.current);
       pollTimer.current = null;
     };
   }, [poll, pendingPaymentId]);
 
   const isBusy = state.status === "checking" || state.status === "polling";
+
+  async function handleDownload() {
+    if (state.status !== "completed" || !state.payment.receiptId || !pendingPaymentId) return;
+    const accessToken = getGuestAccessToken(pendingPaymentId);
+    if (!accessToken) {
+      setDownloadState("error");
+      return;
+    }
+    setDownloadState("downloading");
+    try {
+      const pdf = await downloadGuestReceipt(state.payment.receiptId, accessToken);
+      const url = URL.createObjectURL(pdf);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${state.payment.receiptNumber || "payment-receipt"}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 0);
+      setDownloadState("idle");
+    } catch {
+      setDownloadState("error");
+    }
+  }
 
   if (!pendingPaymentId) {
     return (
@@ -207,7 +229,7 @@ export function GuestPaymentCallbackView() {
           </h1>
           <p className="mx-auto max-w-md text-sm leading-6 text-blue-100/75">
             {state.status === "completed"
-              ? "Your guest payment went through and the receipt was sent to your email."
+              ? "Your guest payment went through. Download your receipt below when it is ready."
               : state.status === "error"
                 ? "Check the payment provider for the status, or start a new checkout."
                 : "Please wait while we check your payment status. This can take a few moments."}
@@ -221,7 +243,7 @@ export function GuestPaymentCallbackView() {
                 <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
                 <div className="space-y-1 text-sm">
                   <p className="font-semibold text-emerald-900 dark:text-emerald-200">
-                    Your receipt is on its way
+                    {state.payment.receiptId ? "Your receipt is ready" : "Preparing your receipt"}
                   </p>
                   <p className="text-xs leading-5 text-emerald-800/80 dark:text-emerald-300/80">
                     Register or sign in with the same email you used for this
@@ -231,6 +253,25 @@ export function GuestPaymentCallbackView() {
                   {state.payment.receiptNumber && (
                     <p className="pt-1 font-mono text-xs text-emerald-800 dark:text-emerald-300">
                       Receipt no.: {state.payment.receiptNumber}
+                    </p>
+                  )}
+                  {state.payment.receiptId ? (
+                    <button
+                      type="button"
+                      onClick={() => void handleDownload()}
+                      disabled={downloadState === "downloading"}
+                      className="mt-3 rounded-lg border border-emerald-700 px-4 py-2 text-xs font-semibold text-emerald-900 disabled:opacity-50 dark:text-emerald-200"
+                    >
+                      {downloadState === "downloading" ? "Preparing receipt..." : "Download receipt"}
+                    </button>
+                  ) : (
+                    <p className="pt-2 text-xs text-emerald-800 dark:text-emerald-300">
+                      Receipt is being prepared. This page will update automatically.
+                    </p>
+                  )}
+                  {downloadState === "error" && (
+                    <p role="alert" className="pt-2 text-xs text-red-700 dark:text-red-300">
+                      Download failed. Try again or use the receipt sent to your email.
                     </p>
                   )}
                 </div>
