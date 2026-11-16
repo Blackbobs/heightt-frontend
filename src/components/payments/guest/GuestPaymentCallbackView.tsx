@@ -87,7 +87,7 @@ export function GuestPaymentCallbackView() {
       setState({
         status: "error",
         message:
-          "We could not find the access token for this payment in this browser. If you used another browser or device, your receipt was still emailed to the payment email address.",
+          "This browser no longer has access to this payment. Check the payment email for your receipt or contact support.",
       });
       return;
     }
@@ -125,7 +125,7 @@ export function GuestPaymentCallbackView() {
         status: "error",
         message: getGuestPaymentError(
           err,
-          "We could not confirm this payment. Your receipt was still emailed to you if the payment was successful.",
+          "We could not confirm this payment. Check the payment email for a receipt or contact support.",
         ),
       });
     }
@@ -229,7 +229,7 @@ export function GuestPaymentCallbackView() {
           </h1>
           <p className="mx-auto max-w-md text-sm leading-6 text-blue-100/75">
             {state.status === "completed"
-              ? "Your guest payment went through and the receipt was sent to your email."
+              ? "Your guest payment went through. Download your receipt below when it is ready."
               : state.status === "error"
                 ? "Check the payment provider for the status, or start a new checkout."
                 : "Please wait while we check your payment status. This can take a few moments."}
@@ -243,7 +243,7 @@ export function GuestPaymentCallbackView() {
                 <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
                 <div className="space-y-1 text-sm">
                   <p className="font-semibold text-emerald-900 dark:text-emerald-200">
-                    Your receipt is on its way
+                    {state.payment.receiptId ? "Your receipt is ready" : "Preparing your receipt"}
                   </p>
                   <p className="text-xs leading-5 text-emerald-800/80 dark:text-emerald-300/80">
                     Register or sign in with the same email you used for this
